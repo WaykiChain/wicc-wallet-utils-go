@@ -1,7 +1,7 @@
 package wiccwallet
 
 import (
-	"wiccwallet/commons"
+	"wicc-wallet-utils-go/commons"
 	"encoding/hex"
 )
 

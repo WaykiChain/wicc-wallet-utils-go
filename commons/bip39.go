@@ -10,7 +10,7 @@ import (
 	"math/big"
 	"strings"
 	"golang.org/x/crypto/pbkdf2"
-	"wiccwallet/wordslists"
+	"wicc-wallet-utils-go/wordslists"
 )
 
 var (

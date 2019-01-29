@@ -2,7 +2,7 @@ package commons
 
 import (
 	"errors"
-	"wiccwallet/wordslists"
+	"wicc-wallet-utils-go/wordslists"
 )
 
 // Please refer the link: https://iancoleman.io/bip39/ for purpose double check result
