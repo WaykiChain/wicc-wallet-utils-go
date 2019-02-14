@@ -3,60 +3,62 @@ package commons
 import (
 	"bytes"
 	"encoding/hex"
+
 	"github.com/btcsuite/btcutil"
 )
 
 type WaykiContractTxParams struct {
 	BaseSignTxParams
-	Value int64
-	Appid string
-	ContractBytes []byte
+	AppId    string //user regid or user key id or app regid
+	Fees     uint64
+	Values   uint64 //transfer amount
+	Contract []byte
 }
 
-func (waykiContract WaykiContractTxParams)SignTX()string{
-	srcId:=parseRegId(waykiContract.RegId)
-	destId:=parseRegId(waykiContract.Appid)
-	bytesBuffer := bytes.NewBuffer([]byte{})
-	bytesBuffer.WriteByte(byte(waykiContract.TxType))
-	bytesBuffer.Write(EncodeInOldWay(waykiContract.Version))
-	bytesBuffer.Write(EncodeInOldWay(waykiContract.ValidHeight))
-	bytesBuffer.Write(EncodeInOldWay(4))
-	bytesBuffer.Write(EncodeInOldWay(srcId[0]))
-	bytesBuffer.Write(EncodeInOldWay(srcId[1]))
-	bytesBuffer.Write(EncodeInOldWay(4))
-	bytesBuffer.Write(EncodeInOldWay(destId[0]))
-	bytesBuffer.Write(EncodeInOldWay(destId[1]))
-	bytesBuffer.Write(EncodeInOldWay(waykiContract.Fees))
-	bytesBuffer.Write(EncodeInOldWay(waykiContract.Value))
-	bytesBuffer.Write(EncodeInOldWay(int64(len(waykiContract.ContractBytes))))
-	bytesBuffer.Write(waykiContract.ContractBytes)
-	ss9:=signContractTX(waykiContract)
-	bytesBuffer.Write(EncodeInOldWay(int64(len(ss9))))
-	bytesBuffer.Write(ss9)
-	signHex:=hex.EncodeToString(bytesBuffer.Bytes())
-	return signHex
+func (params WaykiContractTxParams) SignTX() string {
+
+	uid := ParseRegId(params.UserId)
+	appId := ParseRegId(params.AppId)
+
+	buf := bytes.NewBuffer([]byte{})
+	writer := NewWriterHelper(buf)
+
+	writer.WriteByte(byte(params.TxType))
+	writer.WriteVarInt(params.Version)
+	writer.WriteVarInt(params.ValidHeight)
+	writer.WriteRegId(*uid)
+	writer.WriteRegId(*appId)
+	writer.WriteVarInt(int64(params.Fees))
+	writer.WriteVarInt(int64(params.Values))
+	writer.WriteBytes(params.Contract)
+
+	signedBytes := params.doSignTx()
+	writer.WriteBytes(signedBytes)
+
+	rawTx := hex.EncodeToString(buf.Bytes())
+	return rawTx
 }
 
-func signContractTX(waykiContract WaykiContractTxParams) []byte{
-	srcId:=parseRegId(waykiContract.RegId)
-	destId:=parseRegId(waykiContract.Appid)
-	bytesBuffer := bytes.NewBuffer([]byte{})
-	bytesBuffer.Write(EncodeInOldWay(waykiContract.Version))
-	bytesBuffer.WriteByte(byte(waykiContract.TxType))
-	bytesBuffer.Write(EncodeInOldWay(waykiContract.ValidHeight))
-	bytesBuffer.Write(EncodeInOldWay(4))
-	bytesBuffer.Write(EncodeInOldWay(srcId[0]))
-	bytesBuffer.Write(EncodeInOldWay(srcId[1]))
-	bytesBuffer.Write(EncodeInOldWay(4))
-	bytesBuffer.Write(EncodeInOldWay(destId[0]))
-	bytesBuffer.Write(EncodeInOldWay(destId[1]))
-	bytesBuffer.Write(EncodeInOldWay(waykiContract.Fees))
-	bytesBuffer.Write(EncodeInOldWay(waykiContract.Value))
-	bytesBuffer.Write(EncodeInOldWay(int64(len(waykiContract.ContractBytes))))
-	bytesBuffer.Write(waykiContract.ContractBytes)
-	data1,_:=HashDoubleSha256(bytesBuffer.Bytes())
-	wif,_ := btcutil.DecodeWIF(waykiContract.PrivateKey)
-	key:=wif.PrivKey
-	ss,_:=key.Sign(data1)
+func (params WaykiContractTxParams) doSignTx() []byte {
+
+	uid := ParseRegId(params.UserId)
+	appId := ParseRegId(params.AppId)
+
+	buf := bytes.NewBuffer([]byte{})
+	writer := NewWriterHelper(buf)
+
+	writer.WriteVarInt(params.Version)
+	writer.WriteByte(byte(params.TxType))
+	writer.WriteVarInt(params.ValidHeight)
+	writer.WriteRegId(*uid)
+	writer.WriteRegId(*appId)
+	writer.WriteVarInt(int64(params.Fees))
+	writer.WriteVarInt(int64(params.Values))
+	writer.WriteBytes(params.Contract)
+
+	hash, _ := HashDoubleSha256(buf.Bytes())
+	wif, _ := btcutil.DecodeWIF(params.PrivateKey)
+	key := wif.PrivKey
+	ss, _ := key.Sign(hash)
 	return ss.Serialize()
 }
