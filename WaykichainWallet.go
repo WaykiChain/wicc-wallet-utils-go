@@ -9,6 +9,33 @@ import (
 const WAYKI_TESTNET commons.Network = 1
 const WAYKI_MAINTNET commons.Network = 2
 
+type OperVoteFund struct {
+	PubKey    []byte //< public key, binary format
+	VoteValue int64  //< add fund if >= 0, minus fund if < 0
+}
+
+type OperVoteFunds struct {
+	voteArray []*OperVoteFund
+}
+
+func NewOperVoteFunds() *OperVoteFunds {
+	return &OperVoteFunds{}
+}
+
+func (votes *OperVoteFunds) Len(index int) int {
+	return len(votes.voteArray)
+}
+
+func (votes *OperVoteFunds) Get(index int) *OperVoteFund {
+	return votes.voteArray[index]
+}
+
+func (votes *OperVoteFunds) Add(pubKey []byte, voteValue int64) *OperVoteFund {
+	vote := OperVoteFund{pubKey, voteValue}
+	votes.voteArray = append(votes.voteArray, &vote)
+	return &vote
+}
+
 //Generate Mnemonics string, saprated by space, language is EN(english)
 func GenerateMnemonics() string {
 	mn := NewMnemonicWithLanguage(ENGLISH)
@@ -38,59 +65,78 @@ func PrivateKey2Address(words string, netType commons.Network) string {
 }
 
 //注册账户交易签名
-func SignRegisterTx(height int64, fees uint64, privateKey string) string {
-	var waykiRegister commons.WaykiRegisterTxParams
-	waykiRegister.PrivateKey = privateKey
-	waykiRegister.ValidHeight = height
-	waykiRegister.Fees = fees
-	waykiRegister.TxType = commons.TX_REGISTERACCOUNT
-	waykiRegister.Version = 1
-	hash := waykiRegister.SignTX()
+func SignRegisterTx(height int64, fees int64, privateKey string) string {
+	var tx commons.WaykiRegisterAccountTx
+	tx.PrivateKey = privateKey
+	tx.ValidHeight = height
+	tx.Fees = uint64(fees)
+	tx.TxType = commons.REG_ACCT_TX
+	tx.Version = 1
+	hash := tx.SignTx()
 	return hash
 }
 
 //普通交易签名
-func SignCommonTx(values uint64, regid string, toAddr string, height int64, fees uint64, privateKey string) string {
-	var waykicommon commons.WaykiCommonTxParams
-	waykicommon.Values = values
-	waykicommon.DestAddress = toAddr
-	waykicommon.PrivateKey = privateKey
-	waykicommon.UserId = regid
-	waykicommon.ValidHeight = height
-	waykicommon.Fees = fees
-	waykicommon.TxType = commons.TX_COMMON
-	waykicommon.Version = 1
-	hash := waykicommon.SignTX()
+func SignCommonTx(values int64, regId string, toAddr string, height int64, fees int64, privateKey string) string {
+	var tx commons.WaykiCommonTx
+	tx.Values = uint64(values)
+	tx.DestId = commons.NewAdressUidByStr(toAddr)
+	tx.PrivateKey = privateKey
+	tx.UserId = commons.NewRegUidByStr(regId)
+	tx.ValidHeight = height
+	tx.Fees = uint64(fees)
+	tx.TxType = commons.COMMON_TX
+	tx.Version = 1
+	hash := tx.SignTx()
 	return hash
 }
 
 //投票交易签名
-func SignDelegateTx(regid string, height int64, fees uint64, privateKey string, votes []commons.OperVoteFund) string {
-	var waykiDelegate commons.WaykiDelegateTxParams
-	waykiDelegate.PrivateKey = privateKey
-	waykiDelegate.UserId = regid
-	waykiDelegate.ValidHeight = height
-	waykiDelegate.Fees = fees
-	waykiDelegate.TxType = commons.TX_DELEGATE
-	waykiDelegate.Version = 1
-	waykiDelegate.OperVoteFunds = votes
-	hash := waykiDelegate.SignTX()
+func SignDelegateTx(regId string, height int64, fees int64, privateKey string, votes *OperVoteFunds) string {
+
+	var voteData []commons.OperVoteFund
+	for i := 0; i < len(votes.voteArray); i++ {
+		inVote := votes.voteArray[i]
+		var v commons.OperVoteFund
+		var pubKey commons.PubKeyId = inVote.PubKey
+		v.PubKey = &pubKey
+		v.VoteType = commons.GetVoteTypeByValue(inVote.VoteValue)
+		v.VoteValue = abs(inVote.VoteValue)
+		voteData = append(voteData, v)
+	}
+
+	var tx commons.WaykiDelegateTx
+	tx.PrivateKey = privateKey
+	tx.UserId = commons.NewRegUidByStr(regId)
+	tx.ValidHeight = height
+	tx.Fees = uint64(fees)
+	tx.TxType = commons.DELEGATE_TX
+	tx.Version = 1
+	tx.OperVoteFunds = voteData
+	hash := tx.SignTx()
 	return hash
 }
 
 //智能合约交易签名
-func SignContractTx(values uint64, height int64, fees uint64, privateKey string, regId string, appId string, contractStr string) string {
-	var waykiContract commons.WaykiContractTxParams
-	waykiContract.Values = values
-	waykiContract.PrivateKey = privateKey
-	waykiContract.UserId = regId
-	waykiContract.AppId = appId
-	waykiContract.ValidHeight = height
-	waykiContract.Fees = fees
-	waykiContract.TxType = commons.TX_CONTRACT
-	waykiContract.Version = 1
+func SignContractTx(values int64, height int64, fees int64, privateKey string, regId string, appId string, contractStr string) string {
+	var tx commons.WaykiCallContractTx
+	tx.Values = uint64(values)
+	tx.PrivateKey = privateKey
+	tx.UserId = commons.NewRegUidByStr(regId)
+	tx.AppId = commons.NewRegUidByStr(appId)
+	tx.ValidHeight = height
+	tx.Fees = uint64(fees)
+	tx.TxType = commons.CONTRACT_TX
+	tx.Version = 1
 	binary, _ := hex.DecodeString(contractStr)
-	waykiContract.Contract = []byte(binary)
-	hash := waykiContract.SignTX()
+	tx.Contract = []byte(binary)
+	hash := tx.SignTx()
 	return hash
+}
+
+func abs(x int64) int64 {
+	if x < 0 {
+		return -x
+	}
+	return x
 }

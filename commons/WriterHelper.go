@@ -3,7 +3,6 @@ package commons
 import (
 	"bytes"
 	"encoding/binary"
-	"regexp"
 )
 
 const (
@@ -19,6 +18,10 @@ type WriterHelper struct {
 
 func NewWriterHelper(buf *bytes.Buffer) *WriterHelper {
 	return &WriterHelper{buf}
+}
+
+func (writer WriterHelper) GetBuf() *bytes.Buffer {
+	return writer.buf
 }
 
 func (writer WriterHelper) Write(p []byte) {
@@ -78,12 +81,12 @@ func (writer WriterHelper) WriteVarInt(value int64) {
 		}
 
 		n = (n >> 7) - 1
-		len += 1
+		len++
 	}
 
 	for {
 		writer.WriteByte(tmp[len])
-		len -= 1
+		len--
 		if len < 0 {
 			break
 		}
@@ -96,7 +99,7 @@ func sizeofVarInt(value int64) int {
 	n := value
 
 	for {
-		ret += 1
+		ret++
 		if n <= 0x7f {
 			break
 		}
@@ -106,25 +109,37 @@ func sizeofVarInt(value int64) int {
 	return ret
 }
 
-/*
-func parseRegId(value string) []int64 {
-	regidStr := strings.Split(value, "-")
-	regHeight, _ := strconv.ParseInt(regidStr[0], 10, 64)
-	regIndex, _ := strconv.ParseInt(regidStr[1], 10, 64)
-	return []int64{regHeight, regIndex}
-}
-*/
-func isRegId(value string) bool {
-	re := regexp.MustCompile(`^\s*(\d+)\-(\d+)\s*$`)
-	return re.MatchString(value)
+func (writer WriterHelper) WriteRegId(value RegId) {
+	buf := bytes.NewBuffer([]byte{})
+	idWriter := NewWriterHelper(buf)
+	idWriter.WriteVarInt(int64(value.Height))
+	idWriter.WriteVarInt(int64(value.Index))
+	writer.WriteBytes(buf.Bytes())
 }
 
-/*
-func (writer WriterHelper) WriteRegId(value string) {
-	regIdData := parseRegId(value)
-
+func (writer WriterHelper) WritePubKeyId(value PubKeyId) {
+	writer.WriteBytes(value)
 }
-*/
+
+func (writer WriterHelper) WriteAddressId(value AddressId) {
+	writer.WriteBytes(value)
+}
+
+func (writer WriterHelper) WriteUserId(value *UserIdWraper) {
+
+	if value != nil {
+		switch value.GetType() {
+		case UID_REG:
+			writer.WriteRegId(value.GetId().(RegId))
+		case UID_PUB_KEY:
+			writer.WritePubKeyId(value.GetId().(PubKeyId))
+		case UID_ADDRESS:
+			writer.WriteAddressId(value.GetId().(AddressId))
+		}
+	} else {
+		writer.WriteVarInt(0) // write empty bytes
+	}
+}
 
 func (writer WriterHelper) WriteString(value string) {
 	len := uint64(len(value))
@@ -132,14 +147,6 @@ func (writer WriterHelper) WriteString(value string) {
 	if len > 0 {
 		writer.buf.WriteString(value)
 	}
-}
-
-func (writer WriterHelper) WriteRegId(value RegId) {
-	buf := bytes.NewBuffer([]byte{})
-	idWriter := NewWriterHelper(buf)
-	idWriter.WriteVarInt(int64(value.Height))
-	idWriter.WriteVarInt(int64(value.Index))
-	writer.WriteBytes(buf.Bytes())
 }
 
 func (writer WriterHelper) WriteContractScript(script []byte, description string) {
