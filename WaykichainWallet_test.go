@@ -3,7 +3,7 @@ package wiccwallet
 import (
 	"testing"
 	"fmt"
-	"wiccwallet/commons"
+	"wicc-wallet-utils-go/commons"
 	"bytes"
 	"encoding/hex"
 	"btcutil"
