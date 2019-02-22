@@ -2,48 +2,129 @@ package commons
 
 import (
 	"crypto/ecdsa"
+	"encoding/hex"
+	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/btcsuite/btcd/btcec"
+	"github.com/btcsuite/btcutil/base58"
 )
 
 type WaykiTxType uint32
 
 const (
-	TX_REGISTERACCOUNT WaykiTxType = 2 + iota
-	TX_COMMON
-	TX_CONTRACT
-	REG_APP_TX
-	TX_DELEGATE
+	REWARD_TX   WaykiTxType = 1 + iota //!< reward tx
+	REG_ACCT_TX                        //!< tx that used to register account
+	COMMON_TX                          //!< transfer coin from one account to another
+	CONTRACT_TX                        //!< contract tx
+	REG_CONT_TX                        //!< register contract
+	DELEGATE_TX                        //!< delegate tx
 )
 
 type WaykiVoteType uint32
+
 const (
 	NULL_OPER  WaykiVoteType = iota
-	ADD_FUND   //投票
-	MINUS_FUND //撤销投票
+	ADD_FUND                 //投票
+	MINUS_FUND               //撤销投票
 )
+
+func GetVoteTypeByValue(value int64) WaykiVoteType {
+	ret := ADD_FUND
+	if value < 0 {
+		ret = MINUS_FUND
+	}
+	return ret
+}
 
 type WalletAddress struct {
 	key     ecdsa.PrivateKey
 	privKey string
 	address string
 }
-
-type BaseSignTxParams struct {
-	PrivateKey  string
-	RegId       string
-	UserPubKey  []byte
-	MinerPubKey []byte
-	ValidHeight int64
-	Fees        int64
-	TxType      WaykiTxType
-	Version     int64
+type RegId struct {
+	Height uint64
+	Index  uint64
 }
 
-func parseRegId(regId string) []int64 {
+func IsRegIdStr(regId string) bool {
+	re := regexp.MustCompile(`^\s*(\d+)\-(\d+)\s*$`)
+	return re.MatchString(regId)
+}
+
+func ParseRegId(regId string) *RegId {
 	regidStr := strings.Split(regId, "-")
 	regHeight, _ := strconv.ParseInt(regidStr[0], 10, 64)
 	regIndex, _ := strconv.ParseInt(regidStr[1], 10, 64)
-	regIdArray := []int64{regHeight, regIndex}
-	return regIdArray
+	return &RegId{uint64(regHeight), uint64(regIndex)}
+}
+
+type PubKeyId []byte
+
+func NewPubKeyIdByKey(privKey *btcec.PrivateKey) *PubKeyId {
+	var myid PubKeyId = privKey.PubKey().SerializeCompressed()
+	return &myid
+}
+
+func NewPubKeyIdByStr(str string) *PubKeyId {
+	myid, _ := hex.DecodeString(str)
+	return (*PubKeyId)(&myid)
+}
+
+type AddressId []byte
+
+type UserIdType int
+
+const (
+	UID_REG     UserIdType = iota //< reg id
+	UID_PUB_KEY                   //< public key
+	UID_ADDRESS                   //< wicc address
+)
+
+type UserIdWraper struct {
+	idType UserIdType
+	id     interface{}
+}
+
+func NewPubKeyUid(pubKey PubKeyId) *UserIdWraper {
+	return &UserIdWraper{UID_PUB_KEY, pubKey}
+}
+
+func NewPubKeyUidByStr(pubKey string) *UserIdWraper {
+	id, _ := hex.DecodeString(pubKey)
+	return NewPubKeyUid(id)
+}
+
+func NewAdressUid(address AddressId) *UserIdWraper {
+	return &UserIdWraper{UID_ADDRESS, address}
+}
+
+func NewAdressUidByStr(address string) *UserIdWraper {
+	addrBytes, _, _ := base58.CheckDecode(address)
+	return &UserIdWraper{UID_ADDRESS, AddressId(addrBytes)}
+}
+
+func NewRegUid(regId RegId) *UserIdWraper {
+	return &UserIdWraper{UID_REG, regId}
+}
+
+func NewRegUidByStr(regId string) *UserIdWraper {
+	return NewRegUid(*ParseRegId(regId))
+}
+
+func (uid UserIdWraper) GetType() UserIdType {
+	return uid.idType
+}
+
+func (uid UserIdWraper) GetId() interface{} {
+	return uid.id
+}
+
+type WaykiBaseSignTx struct {
+	PrivateKey  string
+	TxType      WaykiTxType
+	Version     int64
+	ValidHeight int64
+	UserId      *UserIdWraper // current operating user id, which one will do something
 }

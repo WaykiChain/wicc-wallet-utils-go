@@ -1,8 +1,19 @@
-package commons
+package wiccwallet
 
 import (
 	"errors"
-	"wicc-wallet-utils-go/wordslists"
+	"wicc-wallet-utils-go/commons"
+	"wicc-wallet-utils-go/wordlists"
+)
+
+// List Mnemonic language support
+const (
+	ENGLISH  string = "EN"
+	JAPANESE        = "JP"
+	FRENCH          = "FR"
+	ITALIAN         = "IT"
+	KOREAN          = "KR"
+	SPANISH         = "ES"
 )
 
 // Please refer the link: https://iancoleman.io/bip39/ for purpose double check result
@@ -13,39 +24,39 @@ type Mnemonic struct {
 }
 
 func NewMnemonicWithDefaultOption() *Mnemonic {
-	return &Mnemonic{EntropySize: DefaultEntropySize, Password: DefaultSeedPass}
+	return &Mnemonic{EntropySize: commons.DefaultEntropySize, Password: commons.DefaultSeedPass}
 }
 
-func NewMnemonicWithLanguage(language MnemonicLanguage) *Mnemonic {
-	SetWordList(loadWordList(language))
-	return &Mnemonic{EntropySize: DefaultEntropySize, Password: DefaultSeedPass}
+func NewMnemonicWithLanguage(language string) *Mnemonic {
+	commons.SetWordList(loadWordList(language))
+	return &Mnemonic{EntropySize: commons.DefaultEntropySize, Password: commons.DefaultSeedPass}
 }
 
 // New mnemonic follow the wordlists
 func (m *Mnemonic) GenerateMnemonic() (string, error) {
-	entropy, err := NewEntropy(m.EntropySize)
+	entropy, err := commons.NewEntropy(m.EntropySize)
 	if err != nil {
 		return "", err
 	}
 
-	return NewMnemonic(entropy)
+	return commons.NewMnemonic(entropy)
 }
 
 // Generate seed from mnemonic and pass( optional )
 func (m *Mnemonic) GenerateSeed(mnemonic string) ([]byte, error) {
-	if !IsMnemonicValid(mnemonic) {
+	if !commons.IsMnemonicValid(mnemonic) {
 		return nil, errors.New("invalidate mnemonic")
 	}
-	return NewSeed(mnemonic, m.Password), nil
+	return commons.NewSeed(mnemonic, m.Password), nil
 }
 
 // Get word list
 func (m *Mnemonic) ListWord() []string {
-	return GetWordList()
+	return commons.GetWordList()
 }
 
 // loadWordList returns word lists base on language setting in the configuration
-func loadWordList(language MnemonicLanguage) []string {
+func loadWordList(language string) []string {
 	switch language {
 	case JAPANESE:
 		return wordlists.Japanese
