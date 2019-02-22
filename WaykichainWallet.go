@@ -6,8 +6,10 @@ import (
 	"wicc-wallet-utils-go/commons"
 )
 
-const WAYKI_TESTNET commons.Network = 1
-const WAYKI_MAINTNET commons.Network = 2
+const (
+	WAYKI_TESTNET  int = 1
+	WAYKI_MAINTNET int = 2
+)
 
 type OperVoteFund struct {
 	PubKey    []byte //< public key, binary format
@@ -36,7 +38,7 @@ func (votes *OperVoteFunds) Add(pubKey []byte, voteValue int64) *OperVoteFund {
 	return &vote
 }
 
-//Generate Mnemonics string, saprated by space, language is EN(english)
+//Generate Mnemonics string, saprated by space, default language is EN(english)
 func GenerateMnemonics() string {
 	mn := NewMnemonicWithLanguage(ENGLISH)
 	words, err := mn.GenerateMnemonic()
@@ -47,20 +49,23 @@ func GenerateMnemonics() string {
 }
 
 //助记词转换地址
-func Mnemonic2Address(words string, netType commons.Network) string {
-	address := commons.GenerateAddress(words, netType)
+// netType: WAYKI_TESTNET or WAYKI_MAINTNET
+func GetAddressFromMnemonic(words string, netType int) string {
+	address := commons.GenerateAddress(words, commons.Network(netType))
 	return address
 }
 
 //助记词转私钥
-func Mnemonic2PrivateKey(words string, netType commons.Network) string {
-	privateKey := commons.GeneratePrivateKey(words, netType)
+// netType: WAYKI_TESTNET or WAYKI_MAINTNET
+func GetPrivateKeyFromMnemonic(words string, netType int) string {
+	privateKey := commons.GeneratePrivateKey(words, commons.Network(netType))
 	return privateKey
 }
 
 //私钥转地址
-func PrivateKey2Address(words string, netType commons.Network) string {
-	address := commons.ImportPrivateKey(words, netType)
+// netType: WAYKI_TESTNET or WAYKI_MAINTNET
+func GetAddressFromPrivateKey(words string, netType int) string {
+	address := commons.ImportPrivateKey(words, commons.Network(netType))
 	return address
 }
 
