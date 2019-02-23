@@ -2,8 +2,9 @@ package wiccwallet
 
 import (
 	"errors"
-	"wicc-wallet-utils-go/commons"
-	"wicc-wallet-utils-go/wordlists"
+
+	"github.com/WaykiChain/wicc-wallet-utils-go/commons"
+	"github.com/WaykiChain/wicc-wallet-utils-go/wordlists"
 )
 
 // List Mnemonic language support
