@@ -4,7 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"testing"
-	"wicc-wallet-utils-go/commons"
+
+	"github.com/WaykiChain/wicc-wallet-utils-go/commons"
 )
 
 func TestWriteCompactSize(t *testing.T) {

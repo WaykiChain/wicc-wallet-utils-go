@@ -9,8 +9,8 @@ import (
 	"fmt"
 	"math/big"
 	"strings"
-	"wicc-wallet-utils-go/wordlists"
 
+	"github.com/WaykiChain/wicc-wallet-utils-go/wordlists"
 	"golang.org/x/crypto/pbkdf2"
 )
 

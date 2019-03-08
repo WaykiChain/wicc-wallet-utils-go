@@ -3,7 +3,7 @@ package wiccwallet
 import (
 	"encoding/hex"
 
-	"wicc-wallet-utils-go/commons"
+	"github.com/WaykiChain/wicc-wallet-utils-go/commons"
 )
 
 const (
