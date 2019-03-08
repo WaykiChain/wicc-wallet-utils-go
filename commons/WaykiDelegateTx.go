@@ -35,8 +35,9 @@ func (tx WaykiDelegateTx) SignTx() string {
 		writer.WriteVarInt(fund.VoteValue)
 	}
 	writer.WriteVarInt(int64(tx.Fees))
-	signedBytes := tx.doSignTx()
-	writer.WriteBytes(signedBytes)
+	//signedBytes := tx.doSignTx()
+	//writer.WriteBytes(signedBytes)
+	writer.WriteBytes([]byte{})
 
 	rawTx := hex.EncodeToString(buf.Bytes())
 	return rawTx

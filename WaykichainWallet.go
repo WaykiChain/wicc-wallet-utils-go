@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 
 	"github.com/WaykiChain/wicc-wallet-utils-go/commons"
+	"github.com/btcsuite/btcutil"
 )
 
 const (
@@ -69,39 +70,61 @@ func GetAddressFromPrivateKey(words string, netType int) string {
 	return address
 }
 
+type RegisterAccountTxParam struct {
+	ValidHeight int64
+	Fees        int64
+}
+
 //注册账户交易签名
-func SignRegisterTx(height int64, fees int64, privateKey string) string {
+func SignRegisterAccountTx(privateKey string, params *RegisterAccountTxParam) string {
 	var tx commons.WaykiRegisterAccountTx
 	tx.PrivateKey = privateKey
-	tx.ValidHeight = height
-	tx.Fees = uint64(fees)
+	tx.ValidHeight = params.ValidHeight
+	tx.Fees = uint64(params.Fees)
 	tx.TxType = commons.REG_ACCT_TX
 	tx.Version = 1
+	wif, _ := btcutil.DecodeWIF(tx.PrivateKey)
+	tx.UserId = commons.NewPubKeyUid(*commons.NewPubKeyIdByKey(wif.PrivKey))
 	hash := tx.SignTx()
 	return hash
 }
 
+type CommonTxParam struct {
+	ValidHeight int64
+	SrcRegId    string
+	DestAddr    string
+	Values      int64
+	Fees        int64
+}
+
 //普通交易签名
-func SignCommonTx(values int64, regId string, toAddr string, height int64, fees int64, privateKey string) string {
+func SignCommonTx(privateKey string, params *CommonTxParam) string {
 	var tx commons.WaykiCommonTx
-	tx.Values = uint64(values)
-	tx.DestId = commons.NewAdressUidByStr(toAddr)
 	tx.PrivateKey = privateKey
-	tx.UserId = commons.NewRegUidByStr(regId)
-	tx.ValidHeight = height
-	tx.Fees = uint64(fees)
+	tx.ValidHeight = params.ValidHeight
+	tx.UserId = commons.NewRegUidByStr(params.SrcRegId)
+	tx.DestId = commons.NewAdressUidByStr(params.DestAddr)
+	tx.Values = uint64(params.Values)
+	tx.Fees = uint64(params.Fees)
 	tx.TxType = commons.COMMON_TX
 	tx.Version = 1
 	hash := tx.SignTx()
 	return hash
 }
 
+type DelegateTxParam struct {
+	ValidHeight int64
+	SrcRegId    string
+	Fees        int64
+	Votes       *OperVoteFunds
+}
+
 //投票交易签名
-func SignDelegateTx(regId string, height int64, fees int64, privateKey string, votes *OperVoteFunds) string {
+func SignDelegateTx(privateKey string, params *DelegateTxParam) string {
 
 	var voteData []commons.OperVoteFund
-	for i := 0; i < len(votes.voteArray); i++ {
-		inVote := votes.voteArray[i]
+	for i := 0; i < len(params.Votes.voteArray); i++ {
+		inVote := params.Votes.voteArray[i]
 		var v commons.OperVoteFund
 		var pubKey commons.PubKeyId = inVote.PubKey
 		v.PubKey = &pubKey
@@ -112,9 +135,9 @@ func SignDelegateTx(regId string, height int64, fees int64, privateKey string, v
 
 	var tx commons.WaykiDelegateTx
 	tx.PrivateKey = privateKey
-	tx.UserId = commons.NewRegUidByStr(regId)
-	tx.ValidHeight = height
-	tx.Fees = uint64(fees)
+	tx.UserId = commons.NewRegUidByStr(params.SrcRegId)
+	tx.ValidHeight = params.ValidHeight
+	tx.Fees = uint64(params.Fees)
 	tx.TxType = commons.DELEGATE_TX
 	tx.Version = 1
 	tx.OperVoteFunds = voteData
@@ -122,19 +145,52 @@ func SignDelegateTx(regId string, height int64, fees int64, privateKey string, v
 	return hash
 }
 
+type CallContractTxParam struct {
+	ValidHeight int64
+	SrcRegId    string
+	AppId       string
+	Fees        int64
+	Values      int64
+	ContractHex string
+}
+
 //智能合约交易签名
-func SignContractTx(values int64, height int64, fees int64, privateKey string, regId string, appId string, contractStr string) string {
+func SignCallContractTx(privateKey string, params *CallContractTxParam) string {
 	var tx commons.WaykiCallContractTx
-	tx.Values = uint64(values)
+	tx.Values = uint64(params.Values)
 	tx.PrivateKey = privateKey
-	tx.UserId = commons.NewRegUidByStr(regId)
-	tx.AppId = commons.NewRegUidByStr(appId)
-	tx.ValidHeight = height
-	tx.Fees = uint64(fees)
+	tx.UserId = commons.NewRegUidByStr(params.SrcRegId)
+	tx.AppId = commons.NewRegUidByStr(params.AppId)
+	tx.ValidHeight = params.ValidHeight
+	tx.Fees = uint64(params.Fees)
 	tx.TxType = commons.CONTRACT_TX
 	tx.Version = 1
-	binary, _ := hex.DecodeString(contractStr)
+	binary, _ := hex.DecodeString(params.ContractHex)
 	tx.Contract = []byte(binary)
+	hash := tx.SignTx()
+	return hash
+}
+
+type RegisterContractTxParam struct {
+	ValidHeight int64
+	SrcRegId    string
+	Fees        int64
+	Script      []byte
+	Description string
+}
+
+func SignRegisterContractTx(privateKey string, params *RegisterContractTxParam) string {
+
+	var tx commons.WaykiRegisterContractTx
+	tx.PrivateKey = privateKey
+	tx.TxType = commons.REG_CONT_TX
+	tx.Version = 1
+	tx.ValidHeight = params.ValidHeight
+	tx.UserId = commons.NewRegUidByStr(params.SrcRegId)
+	tx.Script = params.Script
+	tx.Description = params.Description
+
+	tx.Fees = 110000001
 	hash := tx.SignTx()
 	return hash
 }
