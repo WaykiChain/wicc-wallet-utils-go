@@ -45,7 +45,10 @@ func TestSignCallContractTx(t *testing.T) {
 	txParam.Values = 10000
 	txParam.ContractHex = "f017"
 
-	hash := SignCallContractTx(privateKey, &txParam)
+	hash, err := SignCallContractTx(privateKey, &txParam)
+	if err != nil {
+		t.Error("SignCallContractTx err: ", err)
+	}
 	println(hash)
 }
 
@@ -56,12 +59,15 @@ func TestSignDelegateTx(t *testing.T) {
 	var txParams DelegateTxParam
 	txParams.ValidHeight = 40935
 	txParams.SrcRegId = "0-1"
-	txParams.Fees = 1000
+	txParams.Fees = 10000
 	txParams.Votes = NewOperVoteFunds()
 	pubKey, _ := hex.DecodeString("025a37cb6ec9f63bb17e562865e006f0bafa9afbd8a846bd87fc8ff9e35db1252e")
 	txParams.Votes.Add(pubKey, 10000)
 
-	hash := SignDelegateTx(privateKey, &txParams)
+	hash, err := SignDelegateTx(privateKey, &txParams)
+	if err != nil {
+		t.Error("SignDelegateTx err: ", err)
+	}
 	println(hash)
 }
 
@@ -70,9 +76,12 @@ func TestSignRegisterAccountTx(t *testing.T) {
 	privateKey := "Y9sx4Y8sBAbWDAqAWytYuUnJige3ZPwKDZp1SCDqqRby1YMgRG9c"
 	var txParam RegisterAccountTxParam
 	txParam.ValidHeight = 7783
-	txParam.Fees = 10001
+	txParam.Fees = 10000
 
-	hash := SignRegisterAccountTx(privateKey, &txParam)
+	hash, err := SignRegisterAccountTx(privateKey, &txParam)
+	if err != nil {
+		t.Error("SignRegisterAccountTx err: ", err)
+	}
 	println(hash)
 }
 
@@ -86,7 +95,10 @@ func TestSignCommonTx(t *testing.T) {
 	txParams.Values = 10000
 	txParams.Fees = 10000
 
-	hash := SignCommonTx(privateKey, &txParams)
+	hash, err := SignCommonTx(privateKey, &txParams)
+	if err != nil {
+		t.Error("SignCommonTx err: ", err)
+	}
 	println(hash)
 }
 
@@ -106,6 +118,9 @@ func TestSignRegisterContractTx(t *testing.T) {
 	txParam.Script = script
 	txParam.Description = "My hello contract!!!"
 
-	hash := SignRegisterContractTx(privateKey, &txParam)
+	hash, err := SignRegisterContractTx(privateKey, &txParam)
+	if err != nil {
+		t.Error("SignRegisterContractTx err: ", err)
+	}
 	println(hash)
 }

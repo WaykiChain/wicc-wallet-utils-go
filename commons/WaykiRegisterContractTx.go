@@ -15,7 +15,7 @@ type WaykiRegisterContractTx struct {
 }
 
 // sign transaction
-func (tx WaykiRegisterContractTx) SignTx() string {
+func (tx WaykiRegisterContractTx) SignTx(wifKey *btcutil.WIF) string {
 
 	buf := bytes.NewBuffer([]byte{})
 	writer := NewWriterHelper(buf)
@@ -26,15 +26,14 @@ func (tx WaykiRegisterContractTx) SignTx() string {
 	WriteContractScript(writer, tx.Script, tx.Description)
 
 	writer.WriteVarInt(int64(tx.Fees))
-	signedBytes := tx.doSign()
+	signedBytes := tx.doSign(wifKey)
 	writer.WriteBytes(signedBytes)
 
 	rawTx := hex.EncodeToString(buf.Bytes())
 	return rawTx
 }
 
-func (tx WaykiRegisterContractTx) doSign() []byte {
-	wif, _ := btcutil.DecodeWIF(tx.PrivateKey)
+func (tx WaykiRegisterContractTx) doSign(wifKey *btcutil.WIF) []byte {
 	buf := bytes.NewBuffer([]byte{})
 	writer := NewWriterHelper(buf)
 	writer.WriteVarInt(tx.Version)
@@ -45,7 +44,7 @@ func (tx WaykiRegisterContractTx) doSign() []byte {
 	writer.WriteVarInt(int64(tx.Fees))
 
 	hash, _ := HashDoubleSha256(buf.Bytes())
-	key := wif.PrivKey
+	key := wifKey.PrivKey
 	ss, _ := key.Sign(hash)
 	return ss.Serialize()
 }

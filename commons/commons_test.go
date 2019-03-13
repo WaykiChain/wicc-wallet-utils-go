@@ -12,9 +12,12 @@ import (
 )
 
 func TestSignCallContractTx(t *testing.T) {
+
+	privateKey := "Y9sx4Y8sBAbWDAqAWytYuUnJige3ZPwKDZp1SCDqqRby1YMgRG9c"
+	wifKey, _ := btcutil.DecodeWIF(privateKey)
+
 	var tx WaykiCallContractTx
 	tx.Values = 10000
-	tx.PrivateKey = "Y9sx4Y8sBAbWDAqAWytYuUnJige3ZPwKDZp1SCDqqRby1YMgRG9c"
 	tx.UserId = NewRegUidByStr("7849-1")
 	tx.AppId = NewRegUidByStr("20988-1")
 	tx.ValidHeight = 22365
@@ -23,16 +26,18 @@ func TestSignCallContractTx(t *testing.T) {
 	tx.Version = 1
 	binary, _ := hex.DecodeString("f017")
 	tx.Contract = binary
-	hash := tx.SignTx()
+	hash := tx.SignTx(wifKey)
 	println(hash)
 }
 
 func TestSignDelegateTx(t *testing.T) {
+	privateKey := "Y9sx4Y8sBAbWDAqAWytYuUnJige3ZPwKDZp1SCDqqRby1YMgRG9c"
+	wifKey, _ := btcutil.DecodeWIF(privateKey)
+
 	var tx WaykiDelegateTx
-	tx.PrivateKey = "Y9sx4Y8sBAbWDAqAWytYuUnJige3ZPwKDZp1SCDqqRby1YMgRG9c"
-	tx.ValidHeight = 22135
+	tx.ValidHeight = 40935
 	tx.Fees = 1000
-	tx.UserId = NewRegUidByStr("7849-1")
+	tx.UserId = NewRegUidByStr("0-1")
 	tx.TxType = DELEGATE_TX
 	tx.Version = 1
 
@@ -46,26 +51,31 @@ func TestSignDelegateTx(t *testing.T) {
 	}
 	tx.OperVoteFunds = delegateList
 
-	hash := tx.SignTx()
+	hash := tx.SignTx(wifKey)
 	println(hash)
 }
 
 func TestSignRegisterAccountTx(t *testing.T) {
+
+	privateKey := "Y9sx4Y8sBAbWDAqAWytYuUnJige3ZPwKDZp1SCDqqRby1YMgRG9c"
+	wifKey, _ := btcutil.DecodeWIF(privateKey)
+
 	var tx WaykiRegisterAccountTx
-	tx.PrivateKey = "Y9sx4Y8sBAbWDAqAWytYuUnJige3ZPwKDZp1SCDqqRby1YMgRG9c"
-	wif, _ := btcutil.DecodeWIF(tx.PrivateKey)
+
 	tx.TxType = REG_ACCT_TX
 	tx.Version = 1
 	tx.ValidHeight = 7783
-	tx.UserId = NewPubKeyUid(*NewPubKeyIdByKey(wif.PrivKey))
+	tx.UserId = NewPubKeyUid(*NewPubKeyIdByKey(wifKey.PrivKey))
 	tx.Fees = 10001
-	hash := tx.SignTx()
+	hash := tx.SignTx(wifKey)
 	println(hash)
 }
 
 func TestSignCommonTx(t *testing.T) {
+	privateKey := "Y9sx4Y8sBAbWDAqAWytYuUnJige3ZPwKDZp1SCDqqRby1YMgRG9c"
+	wifKey, _ := btcutil.DecodeWIF(privateKey)
+
 	var tx WaykiCommonTx
-	tx.PrivateKey = "Y7V1jwCRr8D3tyPTkcsjgBTHwZN45b1U3ueZfJ5oWVJqwcKpArou"
 	tx.TxType = COMMON_TX
 	tx.ValidHeight = 14897
 	tx.Version = 1
@@ -73,18 +83,20 @@ func TestSignCommonTx(t *testing.T) {
 	tx.DestId = NewAdressUidByStr("wSSbTePArv6BkDsQW9gpGCTX55AXVxVKbd")
 	tx.Fees = 10000
 	tx.Values = 10000
-	hash := tx.SignTx()
+	hash := tx.SignTx(wifKey)
 	println(hash)
 }
 
 func TestSignRegisterContractTx(t *testing.T) {
+	privateKey := "Y9sx4Y8sBAbWDAqAWytYuUnJige3ZPwKDZp1SCDqqRby1YMgRG9c"
+	wifKey, _ := btcutil.DecodeWIF(privateKey)
+
 	script, err := ioutil.ReadFile("../demo/data/hello.lua")
 	if err != nil {
 		t.Error("Read contract script file err: ", err)
 	}
 	var tx WaykiRegisterContractTx
 
-	tx.PrivateKey = "Y9sx4Y8sBAbWDAqAWytYuUnJige3ZPwKDZp1SCDqqRby1YMgRG9c"
 	tx.TxType = REG_CONT_TX
 	tx.Version = 1
 	tx.ValidHeight = 20999
@@ -93,21 +105,22 @@ func TestSignRegisterContractTx(t *testing.T) {
 	tx.Description = "My hello contract!!!"
 
 	tx.Fees = 110000001
-	hash := tx.SignTx()
+	hash := tx.SignTx(wifKey)
 	println(hash)
 }
 
 func TestSignRewardTx(t *testing.T) {
+	privateKey := "Y9sx4Y8sBAbWDAqAWytYuUnJige3ZPwKDZp1SCDqqRby1YMgRG9c"
+	wifKey, _ := btcutil.DecodeWIF(privateKey)
 
 	var tx WaykiRewardTx
 
-	tx.PrivateKey = "Y9sx4Y8sBAbWDAqAWytYuUnJige3ZPwKDZp1SCDqqRby1YMgRG9c"
 	tx.TxType = REWARD_TX
 	tx.Version = 1
 	tx.ValidHeight = 14599
 	tx.UserId = NewRegUidByStr("7849-1")
 	tx.Values = 123456
-	hash := tx.SignTx()
+	hash := tx.SignTx(wifKey)
 	println(hash)
 }
 

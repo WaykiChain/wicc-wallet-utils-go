@@ -13,7 +13,7 @@ type WaykiRegisterAccountTx struct {
 	Fees    uint64
 }
 
-func (tx WaykiRegisterAccountTx) SignTx() string {
+func (tx WaykiRegisterAccountTx) SignTx(wifKey *btcutil.WIF) string {
 
 	buf := bytes.NewBuffer([]byte{})
 	writer := NewWriterHelper(buf)
@@ -24,15 +24,14 @@ func (tx WaykiRegisterAccountTx) SignTx() string {
 	writer.WriteUserId(tx.MinerId)
 
 	writer.WriteVarInt(int64(tx.Fees))
-	signedBytes := tx.doSign()
+	signedBytes := tx.doSign(wifKey)
 	writer.WriteBytes(signedBytes)
 
 	rawTx := hex.EncodeToString(buf.Bytes())
 	return rawTx
 }
 
-func (tx WaykiRegisterAccountTx) doSign() []byte {
-	wif, _ := btcutil.DecodeWIF(tx.PrivateKey)
+func (tx WaykiRegisterAccountTx) doSign(wifKey *btcutil.WIF) []byte {
 	buf := bytes.NewBuffer([]byte{})
 	writer := NewWriterHelper(buf)
 	writer.WriteVarInt(tx.Version)
@@ -43,7 +42,7 @@ func (tx WaykiRegisterAccountTx) doSign() []byte {
 	writer.WriteVarInt(int64(tx.Fees))
 
 	hash, _ := HashDoubleSha256(buf.Bytes())
-	key := wif.PrivKey
+	key := wifKey.PrivKey
 	ss, _ := key.Sign(hash)
 	return ss.Serialize()
 }
