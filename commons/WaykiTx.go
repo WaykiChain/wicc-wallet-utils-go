@@ -122,9 +122,8 @@ func (uid UserIdWraper) GetId() interface{} {
 }
 
 type WaykiBaseSignTx struct {
-	PrivateKey  string
 	TxType      WaykiTxType
 	Version     int64
 	ValidHeight int64
-	UserId      *UserIdWraper // current operating user id, which one will do something
+	UserId      *UserIdWraper // current operating user id, the one want to do something
 }

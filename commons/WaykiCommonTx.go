@@ -14,7 +14,7 @@ type WaykiCommonTx struct {
 	DestId *UserIdWraper //< the dest id(reg id or address or public key) received the wicc values
 }
 
-func (tx WaykiCommonTx) SignTx() string {
+func (tx WaykiCommonTx) SignTx(wifKey *btcutil.WIF) string {
 	//uid := ParseRegId(tx.UserId)
 	buf := bytes.NewBuffer([]byte{})
 	writer := NewWriterHelper(buf)
@@ -28,14 +28,14 @@ func (tx WaykiCommonTx) SignTx() string {
 	writer.WriteVarInt(int64(tx.Values))
 	writer.WriteVarInt(0) // write the empty contract script data
 
-	signedBytes := tx.doSignTx()
+	signedBytes := tx.doSignTx(wifKey)
 	writer.WriteBytes(signedBytes)
 
 	rawTx := hex.EncodeToString(buf.Bytes())
 	return rawTx
 }
 
-func (tx WaykiCommonTx) doSignTx() []byte {
+func (tx WaykiCommonTx) doSignTx(wifKey *btcutil.WIF) []byte {
 
 	buf := bytes.NewBuffer([]byte{})
 	writer := NewWriterHelper(buf)
@@ -50,8 +50,7 @@ func (tx WaykiCommonTx) doSignTx() []byte {
 	writer.WriteVarInt(0) // write the empty contract script data
 
 	hash, _ := HashDoubleSha256(buf.Bytes())
-	wif, _ := btcutil.DecodeWIF(tx.PrivateKey)
-	key := wif.PrivKey
+	key := wifKey.PrivKey
 	ss, _ := key.Sign(hash)
 	return ss.Serialize()
 }

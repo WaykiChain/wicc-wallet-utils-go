@@ -19,7 +19,7 @@ type WaykiDelegateTx struct {
 	Fees          uint64
 }
 
-func (tx WaykiDelegateTx) SignTx() string {
+func (tx WaykiDelegateTx) SignTx(wifKey *btcutil.WIF) string {
 
 	buf := bytes.NewBuffer([]byte{})
 	writer := NewWriterHelper(buf)
@@ -35,15 +35,14 @@ func (tx WaykiDelegateTx) SignTx() string {
 		writer.WriteVarInt(fund.VoteValue)
 	}
 	writer.WriteVarInt(int64(tx.Fees))
-	//signedBytes := tx.doSignTx()
-	//writer.WriteBytes(signedBytes)
-	writer.WriteBytes([]byte{})
+	signedBytes := tx.doSignTx(wifKey)
+	writer.WriteBytes(signedBytes)
 
 	rawTx := hex.EncodeToString(buf.Bytes())
 	return rawTx
 }
 
-func (tx WaykiDelegateTx) doSignTx() []byte {
+func (tx WaykiDelegateTx) doSignTx(wifKey *btcutil.WIF) []byte {
 
 	buf := bytes.NewBuffer([]byte{})
 	writer := NewWriterHelper(buf)
@@ -60,8 +59,8 @@ func (tx WaykiDelegateTx) doSignTx() []byte {
 	}
 	writer.WriteVarInt(int64(tx.Fees))
 	hash, _ := HashDoubleSha256(buf.Bytes())
-	wif, _ := btcutil.DecodeWIF(tx.PrivateKey)
-	key := wif.PrivKey
+
+	key := wifKey.PrivKey
 	ss, _ := key.Sign(hash)
 	return ss.Serialize()
 }

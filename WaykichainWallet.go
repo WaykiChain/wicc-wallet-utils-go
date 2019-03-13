@@ -7,38 +7,6 @@ import (
 	"github.com/btcsuite/btcutil"
 )
 
-const (
-	WAYKI_TESTNET  int = 1
-	WAYKI_MAINTNET int = 2
-)
-
-type OperVoteFund struct {
-	PubKey    []byte //< public key, binary format
-	VoteValue int64  //< add fund if >= 0, minus fund if < 0
-}
-
-type OperVoteFunds struct {
-	voteArray []*OperVoteFund
-}
-
-func NewOperVoteFunds() *OperVoteFunds {
-	return &OperVoteFunds{}
-}
-
-func (votes *OperVoteFunds) Len(index int) int {
-	return len(votes.voteArray)
-}
-
-func (votes *OperVoteFunds) Get(index int) *OperVoteFund {
-	return votes.voteArray[index]
-}
-
-func (votes *OperVoteFunds) Add(pubKey []byte, voteValue int64) *OperVoteFund {
-	vote := OperVoteFund{pubKey, voteValue}
-	votes.voteArray = append(votes.voteArray, &vote)
-	return &vote
-}
-
 //Generate Mnemonics string, saprated by space, default language is EN(english)
 func GenerateMnemonics() string {
 	mn := NewMnemonicWithLanguage(ENGLISH)
@@ -63,141 +31,248 @@ func GetPrivateKeyFromMnemonic(words string, netType int) string {
 	return privateKey
 }
 
-//私钥转地址
+//GetAddressFromPrivateKey get address from private key
 // netType: WAYKI_TESTNET or WAYKI_MAINTNET
 func GetAddressFromPrivateKey(words string, netType int) string {
 	address := commons.ImportPrivateKey(words, commons.Network(netType))
 	return address
 }
 
-type RegisterAccountTxParam struct {
-	ValidHeight int64
-	Fees        int64
-}
+//SignRegisterAccountTx sign for register account tx
+// returns the signature hex string and nil error, or returns empty string and the error if it has error
+func SignRegisterAccountTx(privateKey string, param *RegisterAccountTxParam) (string, error) {
+	// check and convert params
+	wifKey, err := btcutil.DecodeWIF(privateKey)
+	if err != nil {
+		return "", ERR_INVALID_PRIVATE_KEY
+	}
 
-//注册账户交易签名
-func SignRegisterAccountTx(privateKey string, params *RegisterAccountTxParam) string {
 	var tx commons.WaykiRegisterAccountTx
-	tx.PrivateKey = privateKey
-	tx.ValidHeight = params.ValidHeight
-	tx.Fees = uint64(params.Fees)
+	if param.ValidHeight < 0 {
+		return "", ERR_NEGATIVE_VALID_HEIGHT
+	}
+	tx.ValidHeight = param.ValidHeight
+
+	if !checkMinTxFee(param.Fees) {
+		return "", ERR_FEE_SMALLER_MIN
+	}
+	tx.Fees = uint64(param.Fees)
+
+	tx.UserId = commons.NewPubKeyUid(wifKey.PrivKey.PubKey().SerializeCompressed())
 	tx.TxType = commons.REG_ACCT_TX
 	tx.Version = 1
-	wif, _ := btcutil.DecodeWIF(tx.PrivateKey)
-	tx.UserId = commons.NewPubKeyUid(*commons.NewPubKeyIdByKey(wif.PrivKey))
-	hash := tx.SignTx()
-	return hash
+
+	hash := tx.SignTx(wifKey)
+	return hash, nil
 }
 
-type CommonTxParam struct {
-	ValidHeight int64
-	SrcRegId    string
-	DestAddr    string
-	Values      int64
-	Fees        int64
-}
+//SignCommonTx sign for common tx
+// returns the signature hex string and nil error, or returns empty string and the error if it has error
+func SignCommonTx(privateKey string, param *CommonTxParam) (string, error) {
 
-//普通交易签名
-func SignCommonTx(privateKey string, params *CommonTxParam) string {
+	// check and convert params
+	wifKey, err := btcutil.DecodeWIF(privateKey)
+	if err != nil {
+		return "", ERR_INVALID_PRIVATE_KEY
+	}
+
 	var tx commons.WaykiCommonTx
-	tx.PrivateKey = privateKey
-	tx.ValidHeight = params.ValidHeight
-	tx.UserId = commons.NewRegUidByStr(params.SrcRegId)
-	tx.DestId = commons.NewAdressUidByStr(params.DestAddr)
-	tx.Values = uint64(params.Values)
-	tx.Fees = uint64(params.Fees)
+
+	if param.ValidHeight < 0 {
+		return "", ERR_NEGATIVE_VALID_HEIGHT
+	}
+	tx.ValidHeight = param.ValidHeight
+
+	tx.UserId = parseRegId(param.SrcRegId)
+	if tx.UserId == nil {
+		return "", ERR_INVALID_SRC_REG_ID
+	}
+
+	tx.DestId = parseUserId(param.DestAddr)
+	if tx.DestId == nil {
+		return "", ERR_INVALID_DEST_ADDR
+	}
+
+	if !checkMoneyRange(param.Values) {
+		return "", ERR_RANGE_VALUES
+	}
+	tx.Values = uint64(param.Values)
+
+	if !checkMoneyRange(param.Fees) {
+		return "", ERR_RANGE_FEE
+	}
+
+	if !checkMinTxFee(param.Fees) {
+		return "", ERR_FEE_SMALLER_MIN
+	}
+	tx.Fees = uint64(param.Fees)
+
 	tx.TxType = commons.COMMON_TX
-	tx.Version = 1
-	hash := tx.SignTx()
-	return hash
+	tx.Version = TX_VERSION
+	hash := tx.SignTx(wifKey)
+	return hash, nil
 }
 
-type DelegateTxParam struct {
-	ValidHeight int64
-	SrcRegId    string
-	Fees        int64
-	Votes       *OperVoteFunds
+func checkPubKey(pubKey []byte) bool {
+	return len(pubKey) == 33
 }
 
-//投票交易签名
-func SignDelegateTx(privateKey string, params *DelegateTxParam) string {
+//SignDelegateTx sign for delegate tx
+// returns the signature hex string and nil error, or returns empty string and the error if it has error
+func SignDelegateTx(privateKey string, param *DelegateTxParam) (string, error) {
 
-	var voteData []commons.OperVoteFund
-	for i := 0; i < len(params.Votes.voteArray); i++ {
-		inVote := params.Votes.voteArray[i]
-		var v commons.OperVoteFund
-		var pubKey commons.PubKeyId = inVote.PubKey
-		v.PubKey = &pubKey
-		v.VoteType = commons.GetVoteTypeByValue(inVote.VoteValue)
-		v.VoteValue = abs(inVote.VoteValue)
-		voteData = append(voteData, v)
+	// check and convert params
+	wifKey, err := btcutil.DecodeWIF(privateKey)
+	if err != nil {
+		return "", ERR_INVALID_PRIVATE_KEY
 	}
 
 	var tx commons.WaykiDelegateTx
-	tx.PrivateKey = privateKey
-	tx.UserId = commons.NewRegUidByStr(params.SrcRegId)
-	tx.ValidHeight = params.ValidHeight
-	tx.Fees = uint64(params.Fees)
+
+	if param.ValidHeight < 0 {
+		return "", ERR_NEGATIVE_VALID_HEIGHT
+	}
+	tx.ValidHeight = param.ValidHeight
+
+	tx.UserId = parseRegId(param.SrcRegId)
+	if tx.UserId == nil {
+		return "", ERR_INVALID_SRC_REG_ID
+	}
+
+	if !checkMoneyRange(param.Fees) {
+		return "", ERR_RANGE_FEE
+	}
+
+	if !checkMinTxFee(param.Fees) {
+		return "", ERR_FEE_SMALLER_MIN
+	}
+
+	if len(param.Votes.voteArray) == 0 {
+		return "", ERR_EMPTY_VOTES
+	}
+	var voteData []commons.OperVoteFund
+	for i := 0; i < len(param.Votes.voteArray); i++ {
+		inVote := param.Votes.voteArray[i]
+		var v commons.OperVoteFund
+		if !checkPubKey(inVote.PubKey) {
+			return "", ERR_INVALID_VOTE_PUBKEY
+		}
+
+		v.VoteValue = abs(inVote.VoteValue)
+		if !checkMoneyRange(v.VoteValue) {
+			return "", ERR_RANGE_VOTE_VALUE
+		}
+		v.VoteType = commons.GetVoteTypeByValue(inVote.VoteValue)
+
+		var pubKey commons.PubKeyId = inVote.PubKey
+		v.PubKey = &pubKey
+		voteData = append(voteData, v)
+	}
+
 	tx.TxType = commons.DELEGATE_TX
 	tx.Version = 1
 	tx.OperVoteFunds = voteData
-	hash := tx.SignTx()
-	return hash
+	hash := tx.SignTx(wifKey)
+	return hash, nil
 }
 
-type CallContractTxParam struct {
-	ValidHeight int64
-	SrcRegId    string
-	AppId       string
-	Fees        int64
-	Values      int64
-	ContractHex string
-}
+var ()
 
-//智能合约交易签名
-func SignCallContractTx(privateKey string, params *CallContractTxParam) string {
+//SignCallContractTx sign for call contract tx
+// returns the signature hex string and nil error, or returns empty string and the error if it has error
+func SignCallContractTx(privateKey string, param *CallContractTxParam) (string, error) {
+	// check and convert params
+	wifKey, err := btcutil.DecodeWIF(privateKey)
+	if err != nil {
+		return "", ERR_INVALID_PRIVATE_KEY
+	}
+
 	var tx commons.WaykiCallContractTx
-	tx.Values = uint64(params.Values)
-	tx.PrivateKey = privateKey
-	tx.UserId = commons.NewRegUidByStr(params.SrcRegId)
-	tx.AppId = commons.NewRegUidByStr(params.AppId)
-	tx.ValidHeight = params.ValidHeight
-	tx.Fees = uint64(params.Fees)
-	tx.TxType = commons.CONTRACT_TX
-	tx.Version = 1
-	binary, _ := hex.DecodeString(params.ContractHex)
+
+	if param.ValidHeight < 0 {
+		return "", ERR_NEGATIVE_VALID_HEIGHT
+	}
+	tx.ValidHeight = param.ValidHeight
+
+	tx.UserId = parseRegId(param.SrcRegId)
+	if tx.UserId == nil {
+		return "", ERR_INVALID_SRC_REG_ID
+	}
+
+	tx.AppId = parseRegId(param.AppId)
+	if tx.AppId == nil {
+		return "", ERR_INVALID_APP_ID
+	}
+
+	if !checkMoneyRange(param.Values) {
+		return "", ERR_RANGE_VALUES
+	}
+	tx.Values = uint64(param.Values)
+
+	if !checkMoneyRange(param.Fees) {
+		return "", ERR_RANGE_FEE
+	}
+	if !checkMinTxFee(param.Fees) {
+		return "", ERR_FEE_SMALLER_MIN
+	}
+	tx.Fees = uint64(param.Fees)
+
+	binary, errHex := hex.DecodeString(param.ContractHex)
+	if errHex != nil {
+		return "", ERR_INVALID_CONTRACT_HEX
+	}
 	tx.Contract = []byte(binary)
-	hash := tx.SignTx()
-	return hash
+
+	tx.TxType = commons.CONTRACT_TX
+	tx.Version = TX_VERSION
+	hash := tx.SignTx(wifKey)
+	return hash, nil
 }
 
-type RegisterContractTxParam struct {
-	ValidHeight int64
-	SrcRegId    string
-	Fees        int64
-	Script      []byte
-	Description string
-}
+//SignRegisterContractTx sign for call register contract tx
+// returns the signature hex string and nil error, or returns empty string and the error if it has error
+func SignRegisterContractTx(privateKey string, param *RegisterContractTxParam) (string, error) {
 
-func SignRegisterContractTx(privateKey string, params *RegisterContractTxParam) string {
+	// check and convert params
+	wifKey, err := btcutil.DecodeWIF(privateKey)
+	if err != nil {
+		return "", ERR_INVALID_PRIVATE_KEY
+	}
 
 	var tx commons.WaykiRegisterContractTx
-	tx.PrivateKey = privateKey
-	tx.TxType = commons.REG_CONT_TX
-	tx.Version = 1
-	tx.ValidHeight = params.ValidHeight
-	tx.UserId = commons.NewRegUidByStr(params.SrcRegId)
-	tx.Script = params.Script
-	tx.Description = params.Description
 
-	tx.Fees = 110000001
-	hash := tx.SignTx()
-	return hash
-}
-
-func abs(x int64) int64 {
-	if x < 0 {
-		return -x
+	if param.ValidHeight < 0 {
+		return "", ERR_NEGATIVE_VALID_HEIGHT
 	}
-	return x
+	tx.ValidHeight = param.ValidHeight
+
+	tx.UserId = parseRegId(param.SrcRegId)
+	if tx.UserId == nil {
+		return "", ERR_INVALID_SRC_REG_ID
+	}
+
+	if !checkMoneyRange(param.Fees) {
+		return "", ERR_RANGE_FEE
+	}
+	if !checkMinTxFee(param.Fees) {
+		return "", ERR_FEE_SMALLER_MIN
+	}
+	tx.Fees = uint64(param.Fees)
+
+	tx.TxType = commons.REG_CONT_TX
+	tx.Version = TX_VERSION
+
+	if len(param.Script) == 0 || len(param.Script) > CONTRACT_SCRIPT_MAX_SIZE {
+		return "", ERR_INVALID_SCRIPT
+
+	}
+	tx.Script = param.Script
+
+	if len(param.Description) > CONTRACT_SCRIPT_DESC_MAX_SIZE {
+		return "", ERR_INVALID_SCRIPT_DESC
+	}
+	tx.Description = param.Description
+
+	hash := tx.SignTx(wifKey)
+	return hash, nil
 }
