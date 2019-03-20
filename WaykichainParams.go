@@ -51,10 +51,8 @@ func (votes *OperVoteFunds) Get(index int) *OperVoteFund {
 //Add element to OperVoteFund
 //pubKey is binary bytes
 //voteValue add fund if >= 0, minus fund if < 0
-func (votes *OperVoteFunds) Add(pubKey []byte, voteValue int64) *OperVoteFund {
-	vote := OperVoteFund{pubKey, voteValue}
-	votes.voteArray = append(votes.voteArray, &vote)
-	return &vote
+func (votes *OperVoteFunds) Add(fund *OperVoteFund) {
+	votes.voteArray = append(votes.voteArray, fund)
 }
 
 //RegisterAccountTxParam register account tx param
