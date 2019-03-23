@@ -53,16 +53,15 @@ func TestSignCallContractTx(t *testing.T) {
 }
 
 func TestSignDelegateTx(t *testing.T) {
-
 	privateKey := "Y9sx4Y8sBAbWDAqAWytYuUnJige3ZPwKDZp1SCDqqRby1YMgRG9c"
-
 	var txParams DelegateTxParam
-	txParams.ValidHeight = 40935
+	txParams.ValidHeight = 95728
 	txParams.SrcRegId = "0-1"
 	txParams.Fees = 10000
 	txParams.Votes = NewOperVoteFunds()
 	pubKey, _ := hex.DecodeString("025a37cb6ec9f63bb17e562865e006f0bafa9afbd8a846bd87fc8ff9e35db1252e")
-	txParams.Votes.Add(pubKey, 10000)
+	vote:=OperVoteFund{PubKey:pubKey,VoteValue:10000}
+	txParams.Votes.Add(&vote)
 
 	hash, err := SignDelegateTx(privateKey, &txParams)
 	if err != nil {
