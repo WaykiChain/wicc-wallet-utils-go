@@ -2,7 +2,7 @@ package wiccwallet
 
 import (
 	"encoding/hex"
-	"fmt"
+	_ "fmt"
 	"io/ioutil"
 	"testing"
 )
@@ -28,9 +28,16 @@ func TestGetAddressFromMnemonic(t *testing.T) {
 }
 
 func TestMnemonicWIF(t *testing.T) {
-	mnemonic := "empty regular curve turtle student prize toy accuse develop spike scatter ginger"
+// 	mnemonic := "empty regular curve turtle student prize toy accuse develop spike scatter ginger"
+// 	privateKey := GetAddressFromPrivateKey(mnemonic, WAYKI_MAINTNET)
+// 	fmt.Println("私钥" + privateKey)
+	mnemonic := "Y9sx4Y8sBAbWDAqAWytYuUnJige3ZPwKDZp1SCDqqRby1YMgRG9c"
 	privateKey := GetAddressFromPrivateKey(mnemonic, WAYKI_MAINTNET)
-	fmt.Println("私钥" + privateKey)
+	if privateKey == "" {
+		t.Error("MnemonicWIF error!")
+		return
+	}
+	t.Log("私钥",privateKey)
 }
 
 func TestSignCallContractTx(t *testing.T) {
