@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 
 	"github.com/btcsuite/btcutil"
+	hash2 "github.com/WaykiChain/wicc-wallet-utils-go/commons/hash"
 )
 
 type WaykiRewardTx struct {
@@ -41,7 +42,7 @@ func (tx WaykiRewardTx) doSignTx(wifKey *btcutil.WIF) []byte {
 	writer.WriteVarInt(int64(tx.Values))
 	writer.WriteVarInt(tx.ValidHeight)
 
-	hash, _ := HashDoubleSha256(buf.Bytes())
+	hash := hash2.DoubleHash256(buf.Bytes())
 	key := wifKey.PrivKey
 	ss, _ := key.Sign(hash)
 	return ss.Serialize()

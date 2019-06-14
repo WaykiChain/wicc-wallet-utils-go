@@ -30,6 +30,8 @@ const (
 
 	MAINNET Network = 1
 	TESTNET Network = 2
+
+	BIP44PATH = "m/44'/99999'/0'/0/0"
 )
 
 type MnemonicLanguage string
@@ -47,10 +49,10 @@ const (
 func NetworkToChainConfig(net Network) (*chaincfg.Params, error) {
 	switch net {
 	case 1:
-		return &WaykiTestParams, nil
+		return &WaykiMainNetParams, nil
 
 	case 2:
-		return &WaykiMainNetParams, nil
+		return &WaykiTestNetParams, nil
 	}
 
 	return nil, errors.New("invalid network")

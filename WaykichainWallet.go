@@ -20,21 +20,21 @@ func GenerateMnemonics() string {
 //助记词转换地址
 // netType: WAYKI_TESTNET or WAYKI_MAINTNET
 func GetAddressFromMnemonic(words string, netType int) string {
-	address := commons.GenerateAddress(words, commons.Network(netType))
+	address := commons.GetAddressFromMnemonic(words, commons.Network(netType))
 	return address
 }
 
 //助记词转私钥
 // netType: WAYKI_TESTNET or WAYKI_MAINTNET
 func GetPrivateKeyFromMnemonic(words string, netType int) string {
-	privateKey := commons.GeneratePrivateKey(words, commons.Network(netType))
+	privateKey := commons.GetPrivateKeyFromMnemonic(words, commons.Network(netType))
 	return privateKey
 }
 
 //GetAddressFromPrivateKey get address from private key
 // netType: WAYKI_TESTNET or WAYKI_MAINTNET
-func GetAddressFromPrivateKey(words string, netType int) string {
-	address := commons.ImportPrivateKey(words, commons.Network(netType))
+func GetAddressFromPrivateKey(privateKey string, netType int) string {
+	address := commons.GetAddressFromPrivateKey(privateKey, commons.Network(netType))
 	return address
 }
 
