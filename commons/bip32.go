@@ -1,278 +1,310 @@
+// Package bip32 provides ...
 package commons
 
 import (
-	"bytes"
 	"crypto/hmac"
 	"crypto/sha512"
-	"encoding/hex"
+	"encoding/binary"
 	"errors"
+	"fmt"
+	"math/big"
+	"github.com/WaykiChain/wicc-wallet-utils-go/commons/bytes"
+	"github.com/WaykiChain/wicc-wallet-utils-go/commons/hash"
+	"github.com/WaykiChain/wicc-wallet-utils-go/commons/base58"
+	"github.com/WaykiChain/wicc-wallet-utils-go/commons/ec"
+	"github.com/btcsuite/btcd/chaincfg"
 )
 
-const (
-	// FirstHardenedChild is the index of the firxt "harded" child key as per the
-	// bip32 spec
-	FirstHardenedChild = uint32(0x80000000)
+// https://github.com/btcsuite/btcutil/blob/master/hdkeychain/extendedkey.go
+// https://github.com/tyler-smith/go-bip32/blob/master/bip32.go
 
-	// PublicKeyCompressedLength is the byte count of a compressed public key
-	PublicKeyCompressedLength = 33
+const (
+	//HardenedKeyStart hardended key starts.
+	HardenedKeyStart uint32= 0x80000000 // 2^31
+
+	// version(4 bytes) || depth(1 byte) || parent fingerprint(4 bytes) || child number(4 bytes) || chaincode(32 bytes) || pub/pri key data(33 bytes)
+	serializedKeyLen = 78
+
+	// max Depth
+	maxDepth = 0xFF
+
+	minSeedBytes = 16 //128 bits
+
+	maxSeedBytes = 64 // 512 bits
 )
 
 var (
-	// PrivateWalletVersion is the version flag for serialized private keys
-	PrivateWalletVersion, _ = hex.DecodeString("0488ADE4")
+	// ErrInvalidSeedLen seed Len error
+	ErrInvalidSeedLen = errors.New("seed lenght must be between 128 and 512 bits")
+	// ErrUnusableSeed describes an error in which the provided seed is not
+	// usable due to the derived key falling outside of the valid range for
+	// secp256k1 private keys.  This error indicates the caller must choose
+	// another seed.
+	ErrUnusableSeed = errors.New("unusable seed")
 
-	// PublicWalletVersion is the version flag for serialized private keys
-	PublicWalletVersion, _ = hex.DecodeString("0488B21E")
+	// ErrKeyByteSize error extended key bytes
+	ErrKeyByteSize = errors.New("error extended key bytes")
 
-	// ErrSerializedKeyWrongSize is returned when trying to deserialize a key that
-	// has an incorrect length
-	ErrSerializedKeyWrongSize = errors.New("Serialized keys should by exactly 82 bytes")
+	//ErrDeriveBeyondMaxDepth max 255 indices
+	ErrDeriveBeyondMaxDepth = errors.New("cannot derive a key with more than 255 indices in its path")
 
-	// ErrHardnedChildPublicKey is returned when trying to create a harded child
-	// of the public key
-	ErrHardnedChildPublicKey = errors.New("Can't create hardened child for public key")
+	// ErrDeriveHardFromPublic cannot derive a hardened key from a public key
+	ErrDeriveHardFromPublic = errors.New("cannot derive a hardened key from a public key")
 
-	// ErrInvalidChecksum is returned when deserializing a key with an incorrect
-	// checksum
-	ErrInvalidChecksum = errors.New("Checksum doesn't match")
+	//ErrInvalidChild  child index invalid
+	ErrInvalidChild = errors.New("the extended key at this index is invalid")
 
-	// ErrInvalidPrivateKey is returned when a derived private key is invalid
-	ErrInvalidPrivateKey = errors.New("Invalid private key")
-
-	// ErrInvalidPublicKey is returned when a derived public key is invalid
-	ErrInvalidPublicKey = errors.New("Invalid public key")
+	// ErrNotPrivExtKey  not Private Key
+	ErrNotPrivExtKey = errors.New("cant't create private keys from public extended key")
 )
 
-// Key represents a bip32 extended key
-type Key struct {
-	Key         []byte // 33 bytes
-	Version     []byte // 4 bytes
-	ChildNumber []byte // 4 bytes
-	FingerPrint []byte // 4 bytes
-	ChainCode   []byte // 32 bytes
-	Depth       byte   // 1 bytes
-	IsPrivate   bool   // unserialized
+var (
+	masterKey = []byte("Bitcoin seed")
+)
+
+// ExtendedKey private/public key data
+type ExtendedKey struct {
+	coinParams     * chaincfg.Params
+	version        []byte // 4 bytes
+	depth          byte   // 1 byte
+	parentFP       []byte // 4 bytes
+	childNum       uint32 // 4 bytes
+	chainCode      []byte // 32 bytes
+	key            []byte // will be the pubkey for extended pub keys
+	pubKey         []byte // only for extended pri keys
+	isPrivate      bool
+	DerivationPath string
 }
 
-// NewMasterKey creates a new master extended key from a seed
-func NewMasterKey(seed []byte) (*Key, error) {
-	// Generate key and chaincode
-	hmac := hmac.New(sha512.New, []byte("Bitcoin seed"))
-	_, err := hmac.Write(seed)
-	if err != nil {
-		return nil, err
+//NewMasterKey create a new master key data from seed
+func NewMasterKey(seed []byte, params * chaincfg.Params) (*ExtendedKey, error) {
+	if len(seed) < minSeedBytes || len(seed) > maxSeedBytes {
+		return nil, ErrInvalidSeedLen
 	}
-	intermediary := hmac.Sum(nil)
+	// I = HMAC-SHA512(Key = "Bitcoin seed", Data = S)
+	hmac512 := hmac.New(sha512.New, masterKey)
+	hmac512.Write(seed)
+	lr := hmac512.Sum(nil)
 
-	// Split it into our key and chain code
-	keyBytes := intermediary[:32]
-	chainCode := intermediary[32:]
+	// Split "I" into two 32-byte sequences Il and Ir where:
+	//   Il = master secret key
+	//   Ir = master chain code
+	secretKey := lr[:32]
+	chainCode := lr[32:]
 
-	// Validate key
-	err = ValidatePrivateKey(keyBytes)
-	if err != nil {
-		return nil, err
-	}
-
-	// Create the key struct
-	key := &Key{
-		Version:     PrivateWalletVersion,
-		ChainCode:   chainCode,
-		Key:         keyBytes,
-		Depth:       0x0,
-		ChildNumber: []byte{0x00, 0x00, 0x00, 0x00},
-		FingerPrint: []byte{0x00, 0x00, 0x00, 0x00},
-		IsPrivate:   true,
+	secretKeyNum := new(big.Int).SetBytes(secretKey)
+	if secretKeyNum.Cmp(ec.Secp265k1().Params().N) >= 0 || secretKeyNum.Sign() == 0 {
+		return nil, ErrUnusableSeed
 	}
 
-	return key, nil
+	return &ExtendedKey{
+		coinParams:     params,
+		version:        params.HDPrivateKeyID[:],
+		depth:          0,
+		parentFP:       []byte{0x00, 0x00, 0x00, 0x00},
+		childNum:       0,
+		chainCode:      chainCode,
+		key:            secretKey,
+		isPrivate:      true,
+		DerivationPath: "m",
+	}, nil
 }
 
-// NewChildKey derives a child key from a given parent as outlined by bip32
-func (key *Key) NewChildKey(childIdx uint32) (*Key, error) {
-	// Fail early if trying to create hardned child from public key
-	if !key.IsPrivate && childIdx >= FirstHardenedChild {
-		return nil, ErrHardnedChildPublicKey
+// pubKeyBytes returns bytes for the serialized compressed public key associated
+// with this extended key in an efficient manner including memoization as
+// necessary.
+//
+// When the extended key is already a public key, the key is simply returned as
+// is since it's already in the correct form.  However, when the extended key is
+// a private key, the public key will be calculated and memoized so future
+// accesses can simply return the cached result.
+func (key *ExtendedKey) pubKeyBytes() []byte {
+	// Just return the key if it's already an extended public key.
+	if !key.isPrivate {
+		return key.key
 	}
 
-	intermediary, err := key.getIntermediary(childIdx)
-	if err != nil {
-		return nil, err
+	// This is a private extended key, so calculate and memoize the public
+	// key if needed.
+	if len(key.pubKey) == 0 {
+		_, pubKey := ec.PrivKeyFromBytes(key.key)
+		key.pubKey = pubKey.SerializeCompressed()
+	}
+	return key.pubKey
+}
+
+// HardenedChild derivation hardened child
+func (key *ExtendedKey) HardenedChild(i uint32) (*ExtendedKey, error) {
+	i += HardenedKeyStart
+	return key.Child(i)
+}
+
+// Child create extended child key
+// https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#child-key-derivation-ckd-functions
+func (key *ExtendedKey) Child(i uint32) (*ExtendedKey, error) {
+	if key.depth == maxDepth {
+		return nil, ErrDeriveBeyondMaxDepth
 	}
 
-	// Create child Key with data common to all both scenarios
-	childKey := &Key{
-		ChildNumber: Uint32Bytes(childIdx),
-		ChainCode:   intermediary[32:],
-		Depth:       key.Depth + 1,
-		IsPrivate:   key.IsPrivate,
+	// four scenarios
+	// #1 Private parent key -> private child key (hardened)
+	// #2 Private parent key -> private child key (normal)
+	// #3 Public parent key -> public child key (normal)
+	// #4 Public parent key -> public child key (hardened) failure!!
+
+	isHardenedChild := i >= HardenedKeyStart
+
+	// #4
+	if !key.isPrivate && isHardenedChild {
+		return nil, ErrDeriveHardFromPublic
 	}
 
-	// Bip32 CKDpriv
-	if key.IsPrivate {
-		childKey.Version = PrivateWalletVersion
-		fingerprint, err := Hash160(PublicKeyForPrivateKey(key.Key))
-		if err != nil {
-			return nil, err
-		}
-		childKey.FingerPrint = fingerprint[:4]
-		childKey.Key = addPrivateKeys(intermediary[:32], key.Key)
-
-		// Validate key
-		err = ValidatePrivateKey(childKey.Key)
-		if err != nil {
-			return nil, err
-		}
-		// Bip32 CKDpub
+	// data:
+	// #1 hardened: 0x00 || ser256(parentKey) || ser32(i)
+	//     1+32+4 = 37
+	// #2 normal: serP(point(parentKey)) || ser32(i)
+	//   point(parentKey) = parentPubKey
+	// #3 normal: serP(parentPubKey) || ser32(i)
+	//   P=(x,y)  serP(P) = (0x02 or 0x03) || ser256(x) = Compressed PubKey
+	// 33 +4 = 37
+	keyIdentifier := ""
+	data := make([]byte, 37)
+	if isHardenedChild {
+		// #1
+		copy(data[1:], key.key)
+		keyIdentifier = fmt.Sprintf("%s/%d'", key.DerivationPath, i%HardenedKeyStart)
 	} else {
-		keyBytes := PublicKeyForPrivateKey(intermediary[:32])
+		// #2 #3
+		copy(data, key.pubKeyBytes())
+		keyIdentifier = fmt.Sprintf("%s/%d", key.DerivationPath, i)
+	}
+	binary.BigEndian.PutUint32(data[33:], i)
 
-		// Validate key
-		err := ValidateChildPublicKey(keyBytes)
-		if err != nil {
-			return nil, err
-		}
+	// I = HMAC-SHA512(Key = chainCode, Data=data)
+	hmac512 := hmac.New(sha512.New, key.chainCode)
+	hmac512.Write(data)
+	ilr := hmac512.Sum(nil)
 
-		childKey.Version = PublicWalletVersion
-		fingerprint, err := Hash160(key.Key)
-		if err != nil {
-			return nil, err
-		}
-		childKey.FingerPrint = fingerprint[:4]
-		childKey.Key = addPublicKeys(keyBytes, key.Key)
+	il := ilr[:32]
+	childChainCode := ilr[32:]
+
+	ilNum := new(big.Int).SetBytes(il)
+	if ilNum.Cmp(ec.Secp265k1().Params().N) >= 0 || ilNum.Sign() == 0 {
+		return nil, ErrInvalidChild
 	}
 
-	return childKey, nil
-}
-
-func (key *Key) getIntermediary(childIdx uint32) ([]byte, error) {
-	// Get intermediary to create key and chaincode from
-	// Hardened children are based on the private key
-	// NonHardened children are based on the public key
-	childIndexBytes := Uint32Bytes(childIdx)
-
-	var data []byte
-	if childIdx >= FirstHardenedChild {
-		data = append([]byte{0x0}, key.Key...)
+	var isPrivate bool
+	var childKey []byte
+	if key.isPrivate {
+		// #1 #2
+		// child key ki is parse256(IL) + kpar (mod n)
+		keyNum := new(big.Int).SetBytes(key.key)
+		ilNum.Add(ilNum, keyNum)
+		ilNum.Mod(ilNum, ec.Secp265k1().Params().N)
+		// childKey = ilNum.Bytes()
+		childKey = bytes.PaddedBytes(32, ilNum.Bytes())
+		isPrivate = true
 	} else {
-		if key.IsPrivate {
-			data = PublicKeyForPrivateKey(key.Key)
-		} else {
-			data = key.Key
+		// #3
+		// child key Ki is point(parse256(IL)) + Kpar.
+		ilx, ily := ec.Secp265k1().ScalarBaseMult(il)
+		if ilx.Sign() == 0 || ily.Sign() == 0 {
+			return nil, ErrInvalidChild
 		}
-	}
-	data = append(data, childIndexBytes...)
 
-	hmac := hmac.New(sha512.New, key.ChainCode)
-	_, err := hmac.Write(data)
-	if err != nil {
-		return nil, err
+		parentPubKey, err := ec.ParsePubKey(key.key)
+		if err != nil {
+			return nil, err
+		}
+
+		childX, childY := ec.Secp265k1().Add(ilx, ily, parentPubKey.X, parentPubKey.Y)
+		pk := ec.PublicKey{X: childX, Y: childY}
+		childKey = pk.SerializeCompressed()
 	}
-	return hmac.Sum(nil), nil
+	parentFP := hash.Hash160(key.pubKeyBytes())[:4]
+	return &ExtendedKey{
+		coinParams:     key.coinParams,
+		version:        key.version,
+		depth:          key.depth + 1,
+		parentFP:       parentFP,
+		childNum:       i,
+		chainCode:      childChainCode,
+		key:            childKey,
+		pubKey:         nil,
+		isPrivate:      isPrivate,
+		DerivationPath: keyIdentifier,
+	}, nil
 }
 
-// PublicKey returns the public version of key or return a copy
-// The 'Neuter' function from the bip32 spec
-func (key *Key) PublicKey() *Key {
-	keyBytes := key.Key
-
-	if key.IsPrivate {
-		keyBytes = PublicKeyForPrivateKey(keyBytes)
+// Neuter https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#private-parent-key--public-child-key
+func (key *ExtendedKey) Neuter() *ExtendedKey {
+	// N((k, c)) → (K, c)
+	// N(CKDpriv((kpar, cpar), i)) (works always).
+	// CKDpub(N(kpar, cpar), i) (works only for non-hardened child keys).
+	if !key.isPrivate {
+		return key
 	}
-
-	return &Key{
-		Version:     PublicWalletVersion,
-		Key:         keyBytes,
-		Depth:       key.Depth,
-		ChildNumber: key.ChildNumber,
-		FingerPrint: key.FingerPrint,
-		ChainCode:   key.ChainCode,
-		IsPrivate:   false,
+	return &ExtendedKey{
+		coinParams:     key.coinParams,
+		version:        key.coinParams.HDPublicKeyID[:],
+		depth:          key.depth,
+		parentFP:       key.parentFP,
+		childNum:       key.childNum,
+		chainCode:      key.chainCode,
+		key:            key.pubKeyBytes(),
+		pubKey:         nil,
+		isPrivate:      false,
+		DerivationPath: key.DerivationPath,
 	}
 }
 
-// Serialize a Key to a 78 byte byte slice
-func (key *Key) Serialize() ([]byte, error) {
-	// Private keys should be prepended with a single null byte
-	keyBytes := key.Key
-	if key.IsPrivate {
-		keyBytes = append([]byte{0x0}, keyBytes...)
-	}
-
-	// Write fields to buffer in order
-	buffer := new(bytes.Buffer)
-	buffer.Write(key.Version)
-	buffer.WriteByte(key.Depth)
-	buffer.Write(key.FingerPrint)
-	buffer.Write(key.ChildNumber)
-	buffer.Write(key.ChainCode)
-	buffer.Write(keyBytes)
-
-	// Append the standard doublesha256 checksum
-	serializedKey, err := AddChecksumToBytes(buffer.Bytes())
-	if err != nil {
-		return nil, err
-	}
-
-	return serializedKey, nil
+// Address return pay-to-pubkey-has (P2PKH) address
+func (key *ExtendedKey) Address() (*ec.AddressPubKeyHash, error) {
+	pkHash := hash.Hash160(key.pubKeyBytes())
+	return ec.NewAddressPubKeyHash(pkHash, key.coinParams.PubKeyHashAddrID)
 }
 
-// B58Serialize encodes the Key in the standard Bitcoin base58 encoding
-func (key *Key) B58Serialize() string {
-	serializedKey, err := key.Serialize()
+func (key *ExtendedKey) ECPrivKey() (*ec.PrivateKey, error) {
+	if !key.isPrivate {
+		return nil, ErrNotPrivExtKey
+	}
+
+	privKey, _ := ec.PrivKeyFromBytes(key.key)
+	return privKey, nil
+}
+
+func (key *ExtendedKey) Serialize() ([]byte, error) {
+	if len(key.key) == 0 {
+		return nil, ErrKeyByteSize
+	}
+
+	var childNumBytes [4]byte
+	binary.BigEndian.PutUint32(childNumBytes[:], key.childNum)
+
+	// The serialized format is:
+	//   version (4) || depth (1) || parent fingerprint (4)) ||
+	//   child num (4) || chain code (32) || key data (33) || checksum (4)
+	serializedBytes := make([]byte, 0, serializedKeyLen+4)
+	serializedBytes = append(serializedBytes, key.version...)
+	serializedBytes = append(serializedBytes, key.depth)
+	serializedBytes = append(serializedBytes, key.parentFP...)
+	serializedBytes = append(serializedBytes, childNumBytes[:]...)
+	serializedBytes = append(serializedBytes, key.chainCode...)
+	if key.isPrivate {
+		serializedBytes = append(serializedBytes, 0x00)
+		serializedBytes = bytes.PaddedAppend(serializedBytes, 32, key.key)
+	} else {
+		serializedBytes = append(serializedBytes, key.pubKeyBytes()...)
+	}
+	checkSum := hash.DoubleHash256(serializedBytes)[:4]
+	serializedBytes = append(serializedBytes, checkSum...)
+	return serializedBytes, nil
+}
+
+func (key *ExtendedKey) B58Serialize() string {
+	serializeKey, err := key.Serialize()
 	if err != nil {
 		return ""
 	}
-
-	return Base58Encode(serializedKey)
+	return base58.Encode(serializeKey)
 }
-
-// String encodes the Key in the standard Bitcoin base58 encoding
-func (key *Key) String() string {
-	return key.B58Serialize()
-}
-
-// Deserialize a byte slice into a Key
-func Deserialize(data []byte) (*Key, error) {
-	if len(data) != 82 {
-		return nil, ErrSerializedKeyWrongSize
-	}
-	var key = &Key{}
-	key.Version = data[0:4]
-	key.Depth = data[4]
-	key.FingerPrint = data[5:9]
-	key.ChildNumber = data[9:13]
-	key.ChainCode = data[13:45]
-
-	if data[45] == byte(0) {
-		key.IsPrivate = true
-		key.Key = data[46:78]
-	} else {
-		key.IsPrivate = false
-		key.Key = data[45:78]
-	}
-
-	// validate checksum
-	cs1, err := Checksum(data[0 : len(data)-4])
-	if err != nil {
-		return nil, err
-	}
-
-	cs2 := data[len(data)-4:]
-	for i := range cs1 {
-		if cs1[i] != cs2[i] {
-			return nil, ErrInvalidChecksum
-		}
-	}
-	return key, nil
-}
-
-// B58Deserialize deserializes a Key encoded in base58 encoding
-func B58Deserialize(data string) (*Key, error) {
-	b, err := Base58Decode(data)
-	if err != nil {
-		return nil, err
-	}
-	return Deserialize(b)
-}
-

@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 
 	"github.com/btcsuite/btcutil"
+	hash2 "github.com/WaykiChain/wicc-wallet-utils-go/commons/hash"
 )
 
 type OperVoteFund struct {
@@ -58,7 +59,7 @@ func (tx WaykiDelegateTx) doSignTx(wifKey *btcutil.WIF) []byte {
 		writer.WriteVarInt(fund.VoteValue)
 	}
 	writer.WriteVarInt(int64(tx.Fees))
-	hash, _ := HashDoubleSha256(buf.Bytes())
+	hash := hash2.DoubleHash256(buf.Bytes())
 
 	key := wifKey.PrivKey
 	ss, _ := key.Sign(hash)

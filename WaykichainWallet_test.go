@@ -20,7 +20,7 @@ func TestGetAddressFromMnemonic(t *testing.T) {
 	mnemonic := "empty regular curve turtle student prize toy accuse develop spike scatter ginger"
 	//seed := bip.NewSeed(mnemonic, "")
 	////fmt.Println(hex.EncodeToString(seed))
-	address := GetAddressFromMnemonic(mnemonic, WAYKI_MAINTNET)
+	address := GetAddressFromMnemonic(mnemonic, WAYKI_TESTNET)
 	if address == "" {
 		t.Error("GenerateAddress err!")
 	}
@@ -79,9 +79,9 @@ func TestSignDelegateTx(t *testing.T) {
 
 func TestSignRegisterAccountTx(t *testing.T) {
 
-	privateKey := "Y9sx4Y8sBAbWDAqAWytYuUnJige3ZPwKDZp1SCDqqRby1YMgRG9c"
+	privateKey := "YAa1wFCfFnZ5bt4hg9MDeDevTMd1Nu874Mn83hEXwtfAL2vkQE9f"//"Y9sx4Y8sBAbWDAqAWytYuUnJige3ZPwKDZp1SCDqqRby1YMgRG9c"
 	var txParam RegisterAccountTxParam
-	txParam.ValidHeight = 7783
+	txParam.ValidHeight = 630314
 	txParam.Fees = 10000
 
 	hash, err := SignRegisterAccountTx(privateKey, &txParam)
@@ -93,10 +93,10 @@ func TestSignRegisterAccountTx(t *testing.T) {
 
 func TestSignCommonTx(t *testing.T) {
 
-	privateKey := "Y7V1jwCRr8D3tyPTkcsjgBTHwZN45b1U3ueZfJ5oWVJqwcKpArou"
+	privateKey := "YAa1wFCfFnZ5bt4hg9MDeDevTMd1Nu874Mn83hEXwtfAL2vkQE9f"//"Y7V1jwCRr8D3tyPTkcsjgBTHwZN45b1U3ueZfJ5oWVJqwcKpArou"
 	var txParams CommonTxParam
-	txParams.ValidHeight = 14897
-	txParams.SrcRegId = "158-1"
+	txParams.ValidHeight = 630314//14897
+	txParams.SrcRegId = "630318-2"//"158-1"
 	txParams.DestAddr = "wSSbTePArv6BkDsQW9gpGCTX55AXVxVKbd"
 	txParams.Values = 10000
 	txParams.Fees = 10000
@@ -110,7 +110,7 @@ func TestSignCommonTx(t *testing.T) {
 
 func TestSignRegisterContractTx(t *testing.T) {
 
-	privateKey := "Y9sx4Y8sBAbWDAqAWytYuUnJige3ZPwKDZp1SCDqqRby1YMgRG9c"
+	privateKey := "YAa1wFCfFnZ5bt4hg9MDeDevTMd1Nu874Mn83hEXwtfAL2vkQE9f"//"Y9sx4Y8sBAbWDAqAWytYuUnJige3ZPwKDZp1SCDqqRby1YMgRG9c"
 
 	script, err := ioutil.ReadFile("./demo/data/hello.lua")
 	if err != nil {
@@ -118,8 +118,8 @@ func TestSignRegisterContractTx(t *testing.T) {
 	}
 
 	var txParam RegisterContractTxParam
-	txParam.ValidHeight = 20999
-	txParam.SrcRegId = "7849-1"
+	txParam.ValidHeight = 630314//20999
+	txParam.SrcRegId = "630318-2"//"7849-1"
 	txParam.Fees = 110000000
 	txParam.Script = script
 	txParam.Description = "My hello contract!!!"

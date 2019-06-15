@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 
 	"github.com/btcsuite/btcutil"
+	hash2 "github.com/WaykiChain/wicc-wallet-utils-go/commons/hash"
 )
 
 type WaykiCommonTx struct {
@@ -49,7 +50,7 @@ func (tx WaykiCommonTx) doSignTx(wifKey *btcutil.WIF) []byte {
 	writer.WriteVarInt(int64(tx.Values))
 	writer.WriteVarInt(0) // write the empty contract script data
 
-	hash, _ := HashDoubleSha256(buf.Bytes())
+	hash := hash2.DoubleHash256(buf.Bytes())
 	key := wifKey.PrivKey
 	ss, _ := key.Sign(hash)
 	return ss.Serialize()
