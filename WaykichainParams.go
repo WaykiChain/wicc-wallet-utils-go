@@ -20,6 +20,7 @@ const (
 	MIN_TX_FEE                    = 10000                         // tx fee min value, unit: sawi
 	CONTRACT_SCRIPT_MAX_SIZE      = 65536                         //64 KB max for contract script size, unit: bytes
 	CONTRACT_SCRIPT_DESC_MAX_SIZE = 512                           //max for contract script description size, unit: bytes
+	MIN_TX_FEE_CDP                = 100000                        // cdp tx fee min value, unit: sawi
 )
 
 // OperVoteFund operation of vote fund
@@ -96,6 +97,81 @@ type RegisterContractTxParam struct {
 	Description string // description of contract
 }
 
+//Cdp Stake param of the tx
+type CdpStakeTxParam struct {
+	ValidHeight int64  // valid height Within the height of the latest block
+	SrcRegId    string // the reg id of the register
+	PubKey      string
+	FeeSymbol   string
+	Fees        int64 // fees for mining
+	CdpTxid     string
+	BcoinSymbol string
+	ScoinSymbol string
+	BcoinStake  uint64
+	ScoinMint   uint64
+}
+
+//Cdp Redeem param of the tx
+type CdpRedeemTxParam struct {
+	ValidHeight int64  // valid height Within the height of the latest block
+	SrcRegId    string // the reg id of the register
+	PubKey      string
+	FeeSymbol   string
+	Fees        int64 // fees for mining
+	CdpTxid     string
+	ScoinsToRepay  uint64  // stablecoin amount to redeem or burn, including interest
+	BcoinsToRedeem   uint64
+}
+
+//Cdp Redeem param of the tx
+type CdpLiquidateTxParam struct {
+	ValidHeight int64  // valid height Within the height of the latest block
+	SrcRegId    string // the reg id of the register
+	PubKey      string
+	FeeSymbol   string
+	Fees        int64 // fees for mining
+	CdpTxid     string // target CDP to liquidate
+	ScoinsLiquidate  uint64   // partial liquidation is allowed, must include penalty fees in
+}
+
+
+//UCoin Transfer param of the tx
+type UCoinTransferTxParam struct {
+	ValidHeight int64  // valid height Within the height of the latest block
+	SrcRegId    string // the reg id of the register
+	PubKey      string
+	FeeSymbol   string
+	Fees        int64 // fees for mining
+	CoinAmount  uint64
+	CoinSymbol  string
+	Memo        string
+}
+
+//Dex Sell Limit param of the tx
+type DexLimitTxParam struct {
+	ValidHeight int64  // valid height Within the height of the latest block
+	SrcRegId    string // the reg id of the register
+	PubKey      string
+	FeeSymbol   string
+	Fees        int64 // fees for mining
+	AssetSymbol string
+	CoinSymbol  string
+	AssetAmount  int64
+	AskPrice     int64
+}
+
+//Dex market Sell param of the tx
+type DexMarketTxParam struct {
+	ValidHeight int64  // valid height Within the height of the latest block
+	SrcRegId    string // the reg id of the register
+	PubKey      string
+	FeeSymbol   string
+	Fees        int64 // fees for mining
+	AssetSymbol string
+	CoinSymbol  string
+	AssetAmount  int64
+}
+
 // errors
 var (
 	ERR_INVALID_PRIVATE_KEY   = errors.New("privateKey invalid")
@@ -112,6 +188,13 @@ var (
 	ERR_INVALID_CONTRACT_HEX  = errors.New("ContractHex must be valid hex format")
 	ERR_INVALID_SCRIPT        = errors.New("Script can not be empty or is too large")
 	ERR_INVALID_SCRIPT_DESC   = errors.New("Description of script is too large")
+
+	ERR_CDP_TX_HASH      = errors.New("CDP tx hash error")
+	ERR_CDP_STAKE_NUMBER = errors.New("CDP stake number error")
+	ERR_COIN_TYPE        = errors.New("Coin type error")
+	ERR_USER_PUBLICKEY   = errors.New("PublicKey invalid")
+
+	ERR_ASK_PRICE   = errors.New("Ask Price invalid")
 )
 
 func abs(x int64) int64 {
@@ -123,6 +206,12 @@ func abs(x int64) int64 {
 
 func checkMoneyRange(value int64) bool {
 	return value >= 0 && value <= MAX_MONEY
+}
+
+
+func checkCdpMinTxFee(fees int64) bool {
+
+	return fees >= MIN_TX_FEE_CDP
 }
 
 func checkMinTxFee(fees int64) bool {

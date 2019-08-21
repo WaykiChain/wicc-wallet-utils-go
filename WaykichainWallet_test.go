@@ -5,6 +5,7 @@ import (
 	_ "fmt"
 	"io/ioutil"
 	"testing"
+	"github.com/WaykiChain/wicc-wallet-utils-go-cdp/commons"
 )
 
 func TestGenerateMnemonics(t *testing.T) {
@@ -127,6 +128,144 @@ func TestSignRegisterContractTx(t *testing.T) {
 	hash, err := SignRegisterContractTx(privateKey, &txParam)
 	if err != nil {
 		t.Error("SignRegisterContractTx err: ", err)
+	}
+	println(hash)
+}
+
+
+func TestCdpStakeTx(t *testing.T) {
+	privateKey := "Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEnmFEYMqQd13"
+	var txParam CdpStakeTxParam
+	txParam.CdpTxid="0b9734e5db3cfa38e76bb273dba4f65a210cc76ca2cf739f3c131d0b24ff89c1"
+	txParam.BcoinSymbol=string(commons.WICC)
+	txParam.ScoinSymbol=string(commons.WUSD)
+	txParam.FeeSymbol=string(commons.WICC)
+	txParam.BcoinStake=0
+	txParam.ScoinMint=0
+	txParam.Fees=100000
+	txParam.ValidHeight=25
+	txParam.SrcRegId=""
+	txParam.PubKey="03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
+
+	hash, err := SignCdpStakeTx(privateKey, &txParam)
+	if err != nil {
+		t.Error("SignCdpStakeTx err: ", err)
+	}
+	println(hash)
+}
+
+func TestSignCdpRedeemTx(t *testing.T) {
+	privateKey := "Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEnmFEYMqQd13"
+	var txParam CdpRedeemTxParam
+	txParam.CdpTxid="0b9734e5db3cfa38e76bb273dba4f65a210cc76ca2cf739f3c131d0b24ff89c1"
+	txParam.FeeSymbol=string(commons.WICC)
+	txParam.ScoinsToRepay=0
+	txParam.BcoinsToRedeem=10
+	txParam.Fees=100000
+	txParam.ValidHeight=25
+	txParam.SrcRegId=""
+	txParam.PubKey="03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
+
+	hash, err := SignCdpRedeemTx(privateKey, &txParam)
+	if err != nil {
+		t.Error("SignCdpStakeTx err: ", err)
+	}
+	println(hash)
+}
+
+func TestSignCdpLiquidateTx(t *testing.T) {
+	privateKey := "Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEnmFEYMqQd13"
+	var txParam CdpLiquidateTxParam
+	txParam.CdpTxid="0b9734e5db3cfa38e76bb273dba4f65a210cc76ca2cf739f3c131d0b24ff89c1"
+	txParam.FeeSymbol=string(commons.WICC)
+	txParam.ScoinsLiquidate=100
+	txParam.Fees=100000
+	txParam.ValidHeight=25
+	txParam.SrcRegId=""
+	txParam.PubKey="03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
+
+	hash, err := SignCdpLiquidateTx(privateKey, &txParam)
+	if err != nil {
+		t.Error("SignCdpStakeTx err: ", err)
+	}
+	println(hash)
+}
+
+func TestSignDexBuyLimitTx(t *testing.T) {
+	privateKey := "Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEnmFEYMqQd13"
+	var txParam DexLimitTxParam
+	txParam.FeeSymbol=string(commons.WICC)
+	txParam.Fees=100000
+	txParam.CoinSymbol=string(commons.WICC)
+	txParam.AssetSymbol=string(commons.WUSD)
+	txParam.AssetAmount=10000
+	txParam.ValidHeight=25
+	txParam.AskPrice=25
+	txParam.SrcRegId=""
+	txParam.PubKey="03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
+
+	hash, err := SignDexBuyLimitTx(privateKey, &txParam)
+	if err != nil {
+		t.Error("SignCdpStakeTx err: ", err)
+	}
+	println(hash)
+}
+
+func TestSignDexSellLimitTx(t *testing.T) {
+	privateKey := "Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEnmFEYMqQd13"
+	var txParam DexLimitTxParam
+	txParam.FeeSymbol=string(commons.WICC)
+	txParam.Fees=100000
+	txParam.CoinSymbol=string(commons.WICC)
+	txParam.AssetSymbol=string(commons.WUSD)
+	txParam.AssetAmount=10000
+	txParam.ValidHeight=25
+	txParam.AskPrice=25
+	txParam.SrcRegId=""
+	txParam.PubKey="03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
+
+	hash, err := SignDexSellLimitTx(privateKey, &txParam)
+	if err != nil {
+		t.Error("SignCdpStakeTx err: ", err)
+	}
+	println(hash)
+}
+
+func TestSignDexMarketSellTx(t *testing.T) {
+	privateKey := "Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEnmFEYMqQd13"
+	var txParam DexMarketTxParam
+	txParam.FeeSymbol=string(commons.WICC)
+	txParam.Fees=100000
+	txParam.CoinSymbol=string(commons.WICC)
+	txParam.AssetSymbol=string(commons.WUSD)
+	txParam.AssetAmount=10000
+	txParam.ValidHeight=25
+	txParam.SrcRegId=""
+	txParam.PubKey="03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
+
+	hash, err := SignDexMarketSellTx(privateKey, &txParam)
+	if err != nil {
+		t.Error("SignCdpStakeTx err: ", err)
+	}
+	println(hash)
+}
+
+
+func TestSignDexMarketBuyTx(t *testing.T) {
+	privateKey := "Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEnmFEYMqQd13"
+	var txParam DexMarketTxParam
+	txParam.FeeSymbol=string(commons.WICC)
+	txParam.Fees=100000
+	txParam.CoinSymbol=string(commons.WICC)
+	txParam.AssetSymbol=string(commons.WUSD)
+	txParam.AssetAmount=10000
+	txParam.ValidHeight=25
+	txParam.SrcRegId="0-1"
+	txParam.PubKey="03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
+
+	hash, err := SignDexMarketBuyTx(privateKey, &txParam)
+	if err != nil {
+		t.Error("SignCdpStakeTx err: ", err)
 	}
 	println(hash)
 }

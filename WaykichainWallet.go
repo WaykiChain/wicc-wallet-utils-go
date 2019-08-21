@@ -276,3 +276,408 @@ func SignRegisterContractTx(privateKey string, param *RegisterContractTxParam) (
 	hash := tx.SignTx(wifKey)
 	return hash, nil
 }
+
+
+func SignUCoinTransferTx(privateKey string, param *UCoinTransferTxParam) (string, error) {
+
+	wifKey, err := btcutil.DecodeWIF(privateKey)
+	if err != nil {
+		return "", ERR_INVALID_PRIVATE_KEY
+	}
+	var tx commons.WaykiUCoinTransferTx
+
+	if param.ValidHeight < 0 {
+		return "", ERR_NEGATIVE_VALID_HEIGHT
+	}
+	tx.ValidHeight = param.ValidHeight
+
+	tx.UserId = parseRegId(param.SrcRegId)
+
+	pubKey, err := hex.DecodeString(param.PubKey)
+	if (err != nil) {
+		return "", ERR_USER_PUBLICKEY
+	}
+	tx.PubKey = pubKey
+	if (tx.UserId == nil && tx.PubKey == nil) {
+		return "", ERR_INVALID_SRC_REG_ID
+	}
+	if !checkMoneyRange(param.Fees) {
+		return "", ERR_RANGE_FEE
+	}
+	tx.Fees = uint64(param.Fees)
+
+	tx.TxType = commons.UCOIN_TRANSFER_TX
+	tx.Version = TX_VERSION
+	if param.CoinAmount < 0 {
+		return "", ERR_RANGE_VALUES
+	}
+
+	if param.CoinSymbol == "" {
+		return "", ERR_COIN_TYPE
+	}
+	if (param.FeeSymbol == "") {
+		tx.FeeSymbol = string(commons.WICC)
+	} else {
+		tx.FeeSymbol = string(param.FeeSymbol)
+	}
+	tx.CoinSymbol = string(param.CoinSymbol)
+	tx.CoinAmount = param.CoinAmount
+	tx.Memo = param.Memo
+	hash := tx.SignTx(wifKey)
+	return hash, nil
+}
+
+func SignCdpStakeTx(privateKey string, param *CdpStakeTxParam) (string, error) {
+
+	wifKey, err := btcutil.DecodeWIF(privateKey)
+	if err != nil {
+		return "", ERR_INVALID_PRIVATE_KEY
+	}
+	var tx commons.WaykiCdpStakeTx
+
+	if param.ValidHeight < 0 {
+		return "", ERR_NEGATIVE_VALID_HEIGHT
+	}
+	tx.ValidHeight = param.ValidHeight
+
+	tx.UserId = parseRegId(param.SrcRegId)
+
+	pubKey, err := hex.DecodeString(param.PubKey)
+	if (err != nil) {
+		return "", ERR_USER_PUBLICKEY
+	}
+	tx.PubKey = pubKey
+	if (tx.UserId == nil && tx.PubKey == nil) {
+		return "", ERR_INVALID_SRC_REG_ID
+	}
+	if !checkCdpMinTxFee(param.Fees) {
+		return "", ERR_FEE_SMALLER_MIN
+	}
+	tx.Fees = uint64(param.Fees)
+
+	tx.TxType = commons.CDP_STAKE_TX
+	tx.Version = TX_VERSION
+	if param.BcoinStake < 0 || param.ScoinMint < 0 {
+		return "", ERR_CDP_STAKE_NUMBER
+	}
+	tx.BcoinValues = param.BcoinStake
+	tx.ScoinValues = param.ScoinMint
+
+	if param.BcoinSymbol == "" || param.ScoinSymbol == "" {
+		return "", ERR_COIN_TYPE
+	}
+	if (param.FeeSymbol == "") {
+		tx.FeeSymbol = string(commons.WICC)
+	} else {
+		tx.FeeSymbol = string(param.FeeSymbol)
+	}
+	tx.BcoinSymbol = string(param.BcoinSymbol)
+	tx.ScoinSymbol = string(param.ScoinSymbol)
+	txHash, err := hex.DecodeString(param.CdpTxid)
+	if (err != nil) {
+		return "", ERR_CDP_TX_HASH
+	}
+	tx.CdpTxHash = txHash
+
+	hash := tx.SignTx(wifKey)
+	return hash, nil
+}
+
+func SignCdpRedeemTx(privateKey string, param *CdpRedeemTxParam) (string, error) {
+
+	wifKey, err := btcutil.DecodeWIF(privateKey)
+	if err != nil {
+		return "", ERR_INVALID_PRIVATE_KEY
+	}
+	var tx commons.WaykiCdpRedeemTx
+
+	if param.ValidHeight < 0 {
+		return "", ERR_NEGATIVE_VALID_HEIGHT
+	}
+	tx.ValidHeight = param.ValidHeight
+
+	tx.UserId = parseRegId(param.SrcRegId)
+
+	pubKey, err := hex.DecodeString(param.PubKey)
+	if (err != nil) {
+		return "", ERR_USER_PUBLICKEY
+	}
+	tx.PubKey = pubKey
+	if (tx.UserId == nil && tx.PubKey == nil) {
+		return "", ERR_INVALID_SRC_REG_ID
+	}
+	if !checkCdpMinTxFee(param.Fees) {
+		return "", ERR_FEE_SMALLER_MIN
+	}
+	tx.Fees = uint64(param.Fees)
+
+	tx.TxType = commons.CDP_REDEEMP_TX
+	tx.Version = TX_VERSION
+	if param.BcoinsToRedeem < 0 || param.ScoinsToRepay < 0 {
+		return "", ERR_CDP_STAKE_NUMBER
+	}
+	tx.ScoinValues = param.ScoinsToRepay
+	tx.BcoinValues = param.BcoinsToRedeem
+
+	if (param.FeeSymbol == "") {
+		tx.FeeSymbol = string(commons.WICC)
+	} else {
+		tx.FeeSymbol = string(param.FeeSymbol)
+	}
+
+	txHash, err := hex.DecodeString(param.CdpTxid)
+	if (err != nil) {
+		return "", ERR_CDP_TX_HASH
+	}
+	tx.CdpTxHash = txHash
+
+	hash := tx.SignTx(wifKey)
+	return hash, nil
+}
+
+func SignCdpLiquidateTx(privateKey string, param *CdpLiquidateTxParam) (string, error) {
+
+	wifKey, err := btcutil.DecodeWIF(privateKey)
+	if err != nil {
+		return "", ERR_INVALID_PRIVATE_KEY
+	}
+	var tx commons.WaykiCdpLiquidateTx
+
+	if param.ValidHeight < 0 {
+		return "", ERR_NEGATIVE_VALID_HEIGHT
+	}
+	tx.ValidHeight = param.ValidHeight
+
+	tx.UserId = parseRegId(param.SrcRegId)
+
+	pubKey, err := hex.DecodeString(param.PubKey)
+	if (err != nil) {
+		return "", ERR_USER_PUBLICKEY
+	}
+	tx.PubKey = pubKey
+	if (tx.UserId == nil && tx.PubKey == nil) {
+		return "", ERR_INVALID_SRC_REG_ID
+	}
+	if !checkCdpMinTxFee(param.Fees) {
+		return "", ERR_FEE_SMALLER_MIN
+	}
+	tx.Fees = uint64(param.Fees)
+
+	tx.TxType = commons.CDP_LIQUIDATE_TX
+	tx.Version = TX_VERSION
+	if param.ScoinsLiquidate < 0 {
+		return "", ERR_CDP_STAKE_NUMBER
+	}
+	tx.ScoinsLiquidate = param.ScoinsLiquidate
+
+	if (param.FeeSymbol == "") {
+		tx.FeeSymbol = string(commons.WICC)
+	} else {
+		tx.FeeSymbol = string(param.FeeSymbol)
+	}
+
+	txHash, err := hex.DecodeString(param.CdpTxid)
+	if (err != nil) {
+		return "", ERR_CDP_TX_HASH
+	}
+	tx.CdpTxHash = txHash
+
+	hash := tx.SignTx(wifKey)
+	return hash, nil
+}
+
+func SignDexSellLimitTx(privateKey string, param *DexLimitTxParam) (string, error) {
+	wifKey, err := btcutil.DecodeWIF(privateKey)
+	if err != nil {
+		return "", ERR_INVALID_PRIVATE_KEY
+	}
+	var tx commons.WaykiDexSellLimitTx
+
+	if param.ValidHeight < 0 {
+		return "", ERR_NEGATIVE_VALID_HEIGHT
+	}
+	tx.ValidHeight = param.ValidHeight
+
+	tx.UserId = parseRegId(param.SrcRegId)
+
+	pubKey, err := hex.DecodeString(param.PubKey)
+	if (err != nil) {
+		return "", ERR_USER_PUBLICKEY
+	}
+	tx.PubKey = pubKey
+	if (tx.UserId == nil && tx.PubKey == nil) {
+		return "", ERR_INVALID_SRC_REG_ID
+	}
+	if !checkCdpMinTxFee(param.Fees) {
+		return "", ERR_FEE_SMALLER_MIN
+	}
+	tx.Fees = uint64(param.Fees)
+
+	tx.TxType = commons.DEX_SELL_LIMIT_ORDER_TX
+	tx.Version = TX_VERSION
+	if param.AskPrice <= 0 {
+		return "", ERR_ASK_PRICE
+	}
+	tx.AskPrice = uint64(param.AskPrice)
+	if param.CoinSymbol == "" || param.AssetSymbol == "" {
+		return "", ERR_COIN_TYPE
+	}
+	tx.AssetSymbol=param.AssetSymbol
+	tx.CoinSymbol=param.CoinSymbol
+	if (param.FeeSymbol == "") {
+		tx.FeeSymbol = string(commons.WICC)
+	} else {
+		tx.FeeSymbol = string(param.FeeSymbol)
+	}
+	if !checkMoneyRange(param.AssetAmount) {
+		return "", ERR_RANGE_VALUES
+	}
+	tx.AssetAmount = uint64(param.AssetAmount)
+	hash := tx.SignTx(wifKey)
+	return hash, nil
+}
+
+func SignDexMarketSellTx(privateKey string, param *DexMarketTxParam) (string, error) {
+	wifKey, err := btcutil.DecodeWIF(privateKey)
+	if err != nil {
+		return "", ERR_INVALID_PRIVATE_KEY
+	}
+	var tx commons.WaykiDexMarketTx
+
+	if param.ValidHeight < 0 {
+		return "", ERR_NEGATIVE_VALID_HEIGHT
+	}
+	tx.ValidHeight = param.ValidHeight
+
+	tx.UserId = parseRegId(param.SrcRegId)
+
+	pubKey, err := hex.DecodeString(param.PubKey)
+	if (err != nil) {
+		return "", ERR_USER_PUBLICKEY
+	}
+	tx.PubKey = pubKey
+	if (tx.UserId == nil && tx.PubKey == nil) {
+		return "", ERR_INVALID_SRC_REG_ID
+	}
+	if !checkCdpMinTxFee(param.Fees) {
+		return "", ERR_FEE_SMALLER_MIN
+	}
+	tx.Fees = uint64(param.Fees)
+
+	tx.TxType = commons.DEX_SELL_MARKET_ORDER_TX
+	tx.Version = TX_VERSION
+	if param.CoinSymbol == "" || param.AssetSymbol == "" {
+		return "", ERR_COIN_TYPE
+	}
+	tx.AssetSymbol=param.AssetSymbol
+	tx.CoinSymbol=param.CoinSymbol
+	if (param.FeeSymbol == "") {
+		tx.FeeSymbol = string(commons.WICC)
+	} else {
+		tx.FeeSymbol = string(param.FeeSymbol)
+	}
+	if !checkMoneyRange(param.AssetAmount) {
+		return "", ERR_RANGE_VALUES
+	}
+	tx.AssetAmount = uint64(param.AssetAmount)
+	hash := tx.SignTx(wifKey)
+	return hash, nil
+}
+
+func SignDexBuyLimitTx(privateKey string, param *DexLimitTxParam) (string, error) {
+	wifKey, err := btcutil.DecodeWIF(privateKey)
+	if err != nil {
+		return "", ERR_INVALID_PRIVATE_KEY
+	}
+	var tx commons.WaykiDexSellLimitTx
+
+	if param.ValidHeight < 0 {
+		return "", ERR_NEGATIVE_VALID_HEIGHT
+	}
+	tx.ValidHeight = param.ValidHeight
+
+	tx.UserId = parseRegId(param.SrcRegId)
+
+	pubKey, err := hex.DecodeString(param.PubKey)
+	if (err != nil) {
+		return "", ERR_USER_PUBLICKEY
+	}
+	tx.PubKey = pubKey
+	if (tx.UserId == nil && tx.PubKey == nil) {
+		return "", ERR_INVALID_SRC_REG_ID
+	}
+	if !checkCdpMinTxFee(param.Fees) {
+		return "", ERR_FEE_SMALLER_MIN
+	}
+	tx.Fees = uint64(param.Fees)
+
+	tx.TxType = commons.DEX_BUY_LIMIT_ORDER_TX
+	tx.Version = TX_VERSION
+	if param.AskPrice <= 0 {
+		return "", ERR_ASK_PRICE
+	}
+	tx.AskPrice = uint64(param.AskPrice)
+	if param.CoinSymbol == "" || param.AssetSymbol == "" {
+		return "", ERR_COIN_TYPE
+	}
+	tx.AssetSymbol=param.AssetSymbol
+	tx.CoinSymbol=param.CoinSymbol
+	if (param.FeeSymbol == "") {
+		tx.FeeSymbol = string(commons.WICC)
+	} else {
+		tx.FeeSymbol = string(param.FeeSymbol)
+	}
+	if !checkMoneyRange(param.AssetAmount) {
+		return "", ERR_RANGE_VALUES
+	}
+	tx.AssetAmount = uint64(param.AssetAmount)
+	hash := tx.SignTx(wifKey)
+	return hash, nil
+}
+
+func SignDexMarketBuyTx(privateKey string, param *DexMarketTxParam) (string, error) {
+	wifKey, err := btcutil.DecodeWIF(privateKey)
+	if err != nil {
+		return "", ERR_INVALID_PRIVATE_KEY
+	}
+	var tx commons.WaykiDexMarketTx
+
+	if param.ValidHeight < 0 {
+		return "", ERR_NEGATIVE_VALID_HEIGHT
+	}
+	tx.ValidHeight = param.ValidHeight
+
+	tx.UserId = parseRegId(param.SrcRegId)
+
+	pubKey, err := hex.DecodeString(param.PubKey)
+	if (err != nil) {
+		return "", ERR_USER_PUBLICKEY
+	}
+	tx.PubKey = pubKey
+	if (tx.UserId == nil && tx.PubKey == nil) {
+		return "", ERR_INVALID_SRC_REG_ID
+	}
+	if !checkCdpMinTxFee(param.Fees) {
+		return "", ERR_FEE_SMALLER_MIN
+	}
+	tx.Fees = uint64(param.Fees)
+
+	tx.TxType = commons.DEX_BUY_MARKET_ORDER_TX
+	tx.Version = TX_VERSION
+	if param.CoinSymbol == "" || param.AssetSymbol == "" {
+		return "", ERR_COIN_TYPE
+	}
+	tx.AssetSymbol=param.AssetSymbol
+	tx.CoinSymbol=param.CoinSymbol
+	if (param.FeeSymbol == "") {
+		tx.FeeSymbol = string(commons.WICC)
+	} else {
+		tx.FeeSymbol = string(param.FeeSymbol)
+	}
+	if !checkMoneyRange(param.AssetAmount) {
+		return "", ERR_RANGE_VALUES
+	}
+	tx.AssetAmount = uint64(param.AssetAmount)
+	hash := tx.SignTx(wifKey)
+	return hash, nil
+}
