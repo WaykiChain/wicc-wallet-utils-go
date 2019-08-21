@@ -172,6 +172,15 @@ type DexMarketTxParam struct {
 	AssetAmount  int64
 }
 
+type DexCancelTxParam struct {
+	ValidHeight int64  // valid height Within the height of the latest block
+	SrcRegId    string // the reg id of the register
+	PubKey      string
+	FeeSymbol   string
+	Fees        int64 // fees for mining
+	DexTxid     string
+}
+
 // errors
 var (
 	ERR_INVALID_PRIVATE_KEY   = errors.New("privateKey invalid")

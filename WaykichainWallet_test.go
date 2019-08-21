@@ -250,7 +250,6 @@ func TestSignDexMarketSellTx(t *testing.T) {
 	println(hash)
 }
 
-
 func TestSignDexMarketBuyTx(t *testing.T) {
 	privateKey := "Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEnmFEYMqQd13"
 	var txParam DexMarketTxParam
@@ -264,6 +263,23 @@ func TestSignDexMarketBuyTx(t *testing.T) {
 	txParam.PubKey="03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
 
 	hash, err := SignDexMarketBuyTx(privateKey, &txParam)
+	if err != nil {
+		t.Error("SignCdpStakeTx err: ", err)
+	}
+	println(hash)
+}
+
+func TestSignDexCancelTx(t *testing.T) {
+	privateKey := "Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEnmFEYMqQd13"
+	var txParam DexCancelTxParam
+	txParam.FeeSymbol=string(commons.WICC)
+	txParam.Fees=100000
+	txParam.DexTxid="009c0e665acdd9e8ae754f9a51337b85bb8996980a93d6175b61edccd3cdc144"
+	txParam.ValidHeight=25
+	txParam.SrcRegId=""
+	txParam.PubKey="03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
+
+	hash, err := SignDexCancelTx(privateKey, &txParam)
 	if err != nil {
 		t.Error("SignCdpStakeTx err: ", err)
 	}

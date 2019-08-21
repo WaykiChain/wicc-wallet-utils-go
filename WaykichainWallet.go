@@ -681,3 +681,46 @@ func SignDexMarketBuyTx(privateKey string, param *DexMarketTxParam) (string, err
 	hash := tx.SignTx(wifKey)
 	return hash, nil
 }
+
+func SignDexCancelTx(privateKey string, param *DexCancelTxParam) (string, error) {
+	wifKey, err := btcutil.DecodeWIF(privateKey)
+	if err != nil {
+		return "", ERR_INVALID_PRIVATE_KEY
+	}
+	var tx commons.WaykiDexCancelTx
+
+	if param.ValidHeight < 0 {
+		return "", ERR_NEGATIVE_VALID_HEIGHT
+	}
+	tx.ValidHeight = param.ValidHeight
+
+	tx.UserId = parseRegId(param.SrcRegId)
+
+	pubKey, err := hex.DecodeString(param.PubKey)
+	if (err != nil) {
+		return "", ERR_USER_PUBLICKEY
+	}
+	tx.PubKey = pubKey
+	if (tx.UserId == nil && tx.PubKey == nil) {
+		return "", ERR_INVALID_SRC_REG_ID
+	}
+	if !checkCdpMinTxFee(param.Fees) {
+		return "", ERR_FEE_SMALLER_MIN
+	}
+	tx.Fees = uint64(param.Fees)
+
+	tx.TxType = commons.DEX_CANCEL_ORDER_TX
+	tx.Version = TX_VERSION
+	if (param.FeeSymbol == "") {
+		tx.FeeSymbol = string(commons.WICC)
+	} else {
+		tx.FeeSymbol = string(param.FeeSymbol)
+	}
+	txHash, err := hex.DecodeString(param.DexTxid)
+	if (err != nil) {
+		return "", ERR_CDP_TX_HASH
+	}
+	tx.DexHash = txHash
+	hash := tx.SignTx(wifKey)
+	return hash, nil
+}
