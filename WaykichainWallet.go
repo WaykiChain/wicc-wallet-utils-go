@@ -31,6 +31,19 @@ func GetPrivateKeyFromMnemonic(words string, netType int) string {
 	return privateKey
 }
 
+func GetPubKeyFromPrivateKey(privKey string) (string,error) {
+	wifKey, err := btcutil.DecodeWIF(privKey)
+	if err != nil {
+		return "", ERR_INVALID_PRIVATE_KEY
+	}
+	pubHex:=hex.EncodeToString(wifKey.SerializePubKey())
+	return pubHex,nil
+}
+
+func checkPubKey(pubKey []byte) bool {
+	return len(pubKey) == 33
+}
+
 //GetAddressFromPrivateKey get address from private key
 // netType: WAYKI_TESTNET or WAYKI_MAINTNET
 func GetAddressFromPrivateKey(privateKey string, netType int) string {
@@ -84,9 +97,6 @@ func SignCommonTx(privateKey string, param *CommonTxParam) (string, error) {
 	tx.ValidHeight = param.ValidHeight
 
 	tx.UserId = parseRegId(param.SrcRegId)
-	if tx.UserId == nil {
-		return "", ERR_INVALID_SRC_REG_ID
-	}
 
 	tx.DestId = parseUserId(param.DestAddr)
 	if tx.DestId == nil {
@@ -107,14 +117,19 @@ func SignCommonTx(privateKey string, param *CommonTxParam) (string, error) {
 	}
 	tx.Fees = uint64(param.Fees)
 
+	pubKey, err := hex.DecodeString(param.PubKey)
+	if (err != nil) {
+		return "", ERR_USER_PUBLICKEY
+	}
+	tx.PubKey = pubKey
+	if (tx.UserId == nil && tx.PubKey == nil) {
+		return "", ERR_INVALID_SRC_REG_ID
+	}
+
 	tx.TxType = commons.COMMON_TX
 	tx.Version = TX_VERSION
 	hash := tx.SignTx(wifKey)
 	return hash, nil
-}
-
-func checkPubKey(pubKey []byte) bool {
-	return len(pubKey) == 33
 }
 
 //SignDelegateTx sign for delegate tx
@@ -135,9 +150,6 @@ func SignDelegateTx(privateKey string, param *DelegateTxParam) (string, error) {
 	tx.ValidHeight = param.ValidHeight
 
 	tx.UserId = parseRegId(param.SrcRegId)
-	if tx.UserId == nil {
-		return "", ERR_INVALID_SRC_REG_ID
-	}
 
 	if !checkMoneyRange(param.Fees) {
 		return "", ERR_RANGE_FEE
@@ -169,14 +181,20 @@ func SignDelegateTx(privateKey string, param *DelegateTxParam) (string, error) {
 		voteData = append(voteData, v)
 	}
 
+	pubKey, err := hex.DecodeString(param.PubKey)
+	if (err != nil) {
+		return "", ERR_USER_PUBLICKEY
+	}
+	tx.PubKey = pubKey
+	if (tx.UserId == nil && tx.PubKey == nil) {
+		return "", ERR_INVALID_SRC_REG_ID
+	}
 	tx.TxType = commons.DELEGATE_TX
 	tx.Version = 1
 	tx.OperVoteFunds = voteData
 	hash := tx.SignTx(wifKey)
 	return hash, nil
 }
-
-var ()
 
 //SignCallContractTx sign for call contract tx
 // returns the signature hex string and nil error, or returns empty string and the error if it has error
@@ -195,9 +213,6 @@ func SignCallContractTx(privateKey string, param *CallContractTxParam) (string, 
 	tx.ValidHeight = param.ValidHeight
 
 	tx.UserId = parseRegId(param.SrcRegId)
-	if tx.UserId == nil {
-		return "", ERR_INVALID_SRC_REG_ID
-	}
 
 	tx.AppId = parseRegId(param.AppId)
 	if tx.AppId == nil {
@@ -222,7 +237,14 @@ func SignCallContractTx(privateKey string, param *CallContractTxParam) (string, 
 		return "", ERR_INVALID_CONTRACT_HEX
 	}
 	tx.Contract = []byte(binary)
-
+	pubKey, err := hex.DecodeString(param.PubKey)
+	if (err != nil) {
+		return "", ERR_USER_PUBLICKEY
+	}
+	tx.PubKey = pubKey
+	if (tx.UserId == nil && tx.PubKey == nil) {
+		return "", ERR_INVALID_SRC_REG_ID
+	}
 	tx.TxType = commons.CONTRACT_TX
 	tx.Version = TX_VERSION
 	hash := tx.SignTx(wifKey)
@@ -247,9 +269,6 @@ func SignRegisterContractTx(privateKey string, param *RegisterContractTxParam) (
 	tx.ValidHeight = param.ValidHeight
 
 	tx.UserId = parseRegId(param.SrcRegId)
-	if tx.UserId == nil {
-		return "", ERR_INVALID_SRC_REG_ID
-	}
 
 	if !checkMoneyRange(param.Fees) {
 		return "", ERR_RANGE_FEE
@@ -264,7 +283,6 @@ func SignRegisterContractTx(privateKey string, param *RegisterContractTxParam) (
 
 	if len(param.Script) == 0 || len(param.Script) > CONTRACT_SCRIPT_MAX_SIZE {
 		return "", ERR_INVALID_SCRIPT
-
 	}
 	tx.Script = param.Script
 
@@ -272,11 +290,17 @@ func SignRegisterContractTx(privateKey string, param *RegisterContractTxParam) (
 		return "", ERR_INVALID_SCRIPT_DESC
 	}
 	tx.Description = param.Description
-
+	pubKey, err := hex.DecodeString(param.PubKey)
+	if (err != nil) {
+		return "", ERR_USER_PUBLICKEY
+	}
+	tx.PubKey = pubKey
+	if (tx.UserId == nil && tx.PubKey == nil) {
+		return "", ERR_INVALID_SRC_REG_ID
+	}
 	hash := tx.SignTx(wifKey)
 	return hash, nil
 }
-
 
 func SignUCoinTransferTx(privateKey string, param *UCoinTransferTxParam) (string, error) {
 

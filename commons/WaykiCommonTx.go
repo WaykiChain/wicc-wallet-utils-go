@@ -23,7 +23,11 @@ func (tx WaykiCommonTx) SignTx(wifKey *btcutil.WIF) string {
 	writer.WriteByte(byte(tx.TxType))
 	writer.WriteVarInt(tx.Version)
 	writer.WriteVarInt(tx.ValidHeight)
-	writer.WriteUserId(tx.UserId)
+	if(tx.UserId!=nil){
+		writer.WriteUserId(tx.UserId)
+	}else if(tx.PubKey!=nil){
+		writer.WritePubKeyId(tx.PubKey)
+	}
 	writer.WriteUserId(tx.DestId)
 	writer.WriteVarInt(int64(tx.Fees))
 	writer.WriteVarInt(int64(tx.Values))
@@ -44,7 +48,11 @@ func (tx WaykiCommonTx) doSignTx(wifKey *btcutil.WIF) []byte {
 	writer.WriteVarInt(tx.Version)
 	writer.WriteByte(byte(tx.TxType))
 	writer.WriteVarInt(tx.ValidHeight)
-	writer.WriteUserId(tx.UserId)
+	if(tx.UserId!=nil){
+		writer.WriteUserId(tx.UserId)
+	}else if(tx.PubKey!=nil){
+		writer.WritePubKeyId(tx.PubKey)
+	}
 	writer.WriteUserId(tx.DestId)
 	writer.WriteVarInt(int64(tx.Fees))
 	writer.WriteVarInt(int64(tx.Values))

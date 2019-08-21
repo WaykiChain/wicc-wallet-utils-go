@@ -68,6 +68,7 @@ type CommonTxParam struct {
 	DestAddr    string // the dest address that the transaction send to
 	Values      int64  // transfer values
 	Fees        int64  // fees for mining
+	PubKey      string
 }
 
 //DelegateTxParam param of the delegate tx
@@ -76,6 +77,7 @@ type DelegateTxParam struct {
 	SrcRegId    string         // the reg id of the voter
 	Fees        int64          // fees for mining
 	Votes       *OperVoteFunds // vote list
+	PubKey      string
 }
 
 //CallContractTxParam param of the call contract tx
@@ -86,6 +88,7 @@ type CallContractTxParam struct {
 	Fees        int64  // fees for mining
 	Values      int64  // the values send to the contract app
 	ContractHex string // the command of contract, hex format
+	PubKey      string
 }
 
 //RegisterContractTxParam param of the register contract tx
@@ -95,6 +98,7 @@ type RegisterContractTxParam struct {
 	Fees        int64  // fees for mining
 	Script      []byte // the contract script, binary format
 	Description string // description of contract
+	PubKey      string
 }
 
 //Cdp Stake param of the tx
