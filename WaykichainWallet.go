@@ -373,6 +373,9 @@ func SignCdpStakeTx(privateKey string, param *CdpStakeTxParam) (string, error) {
 	}
 	tx.BcoinSymbol = string(param.BcoinSymbol)
 	tx.ScoinSymbol = string(param.ScoinSymbol)
+	if(param.CdpTxid==""){
+      param.CdpTxid="0000000000000000000000000000000000000000000000000000000000000000"
+	}
 	txHash, err := hex.DecodeString(param.CdpTxid)
 	if (err != nil) {
 		return "", ERR_CDP_TX_HASH

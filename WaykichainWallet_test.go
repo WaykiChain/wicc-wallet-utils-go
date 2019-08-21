@@ -136,7 +136,7 @@ func TestSignRegisterContractTx(t *testing.T) {
 func TestCdpStakeTx(t *testing.T) {
 	privateKey := "Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEnmFEYMqQd13"
 	var txParam CdpStakeTxParam
-	txParam.CdpTxid="0b9734e5db3cfa38e76bb273dba4f65a210cc76ca2cf739f3c131d0b24ff89c1"
+	//txParam.CdpTxid=""
 	txParam.BcoinSymbol=string(commons.WICC)
 	txParam.ScoinSymbol=string(commons.WUSD)
 	txParam.FeeSymbol=string(commons.WICC)
