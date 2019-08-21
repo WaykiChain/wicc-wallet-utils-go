@@ -31,6 +31,7 @@ func GetPrivateKeyFromMnemonic(words string, netType int) string {
 	return privateKey
 }
 
+// get publickey from privatekey
 func GetPubKeyFromPrivateKey(privKey string) (string,error) {
 	wifKey, err := btcutil.DecodeWIF(privKey)
 	if err != nil {
@@ -38,10 +39,6 @@ func GetPubKeyFromPrivateKey(privKey string) (string,error) {
 	}
 	pubHex:=hex.EncodeToString(wifKey.SerializePubKey())
 	return pubHex,nil
-}
-
-func checkPubKey(pubKey []byte) bool {
-	return len(pubKey) == 33
 }
 
 //GetAddressFromPrivateKey get address from private key
@@ -302,6 +299,8 @@ func SignRegisterContractTx(privateKey string, param *RegisterContractTxParam) (
 	return hash, nil
 }
 
+//SignUCoinTransferTx sign for Multi-currency transfer
+// returns the signature hex string and nil error, or returns empty string and the error if it has error
 func SignUCoinTransferTx(privateKey string, param *UCoinTransferTxParam) (string, error) {
 
 	wifKey, err := btcutil.DecodeWIF(privateKey)
@@ -351,6 +350,8 @@ func SignUCoinTransferTx(privateKey string, param *UCoinTransferTxParam) (string
 	return hash, nil
 }
 
+//SignCdpStakeTx sign for create a cdp tx
+// returns the signature hex string and nil error, or returns empty string and the error if it has error
 func SignCdpStakeTx(privateKey string, param *CdpStakeTxParam) (string, error) {
 
 	wifKey, err := btcutil.DecodeWIF(privateKey)
@@ -410,6 +411,8 @@ func SignCdpStakeTx(privateKey string, param *CdpStakeTxParam) (string, error) {
 	return hash, nil
 }
 
+//SignCdpRedeemTx sign for redeem a cdp tx
+// returns the signature hex string and nil error, or returns empty string and the error if it has error
 func SignCdpRedeemTx(privateKey string, param *CdpRedeemTxParam) (string, error) {
 
 	wifKey, err := btcutil.DecodeWIF(privateKey)
@@ -462,6 +465,8 @@ func SignCdpRedeemTx(privateKey string, param *CdpRedeemTxParam) (string, error)
 	return hash, nil
 }
 
+//SignCdpLiquidateTx sign for liquidate a cdp tx
+// returns the signature hex string and nil error, or returns empty string and the error if it has error
 func SignCdpLiquidateTx(privateKey string, param *CdpLiquidateTxParam) (string, error) {
 
 	wifKey, err := btcutil.DecodeWIF(privateKey)
@@ -513,6 +518,8 @@ func SignCdpLiquidateTx(privateKey string, param *CdpLiquidateTxParam) (string, 
 	return hash, nil
 }
 
+//SignDexSellLimitTx sign for dex sell limit price tx
+// returns the signature hex string and nil error, or returns empty string and the error if it has error
 func SignDexSellLimitTx(privateKey string, param *DexLimitTxParam) (string, error) {
 	wifKey, err := btcutil.DecodeWIF(privateKey)
 	if err != nil {
@@ -564,6 +571,8 @@ func SignDexSellLimitTx(privateKey string, param *DexLimitTxParam) (string, erro
 	return hash, nil
 }
 
+//SignDexMarketSellTx sign for dex sell market price tx
+// returns the signature hex string and nil error, or returns empty string and the error if it has error
 func SignDexMarketSellTx(privateKey string, param *DexMarketTxParam) (string, error) {
 	wifKey, err := btcutil.DecodeWIF(privateKey)
 	if err != nil {
@@ -611,6 +620,8 @@ func SignDexMarketSellTx(privateKey string, param *DexMarketTxParam) (string, er
 	return hash, nil
 }
 
+//SignDexBuyLimitTx sign for dex buy limit Price tx
+// returns the signature hex string and nil error, or returns empty string and the error if it has error
 func SignDexBuyLimitTx(privateKey string, param *DexLimitTxParam) (string, error) {
 	wifKey, err := btcutil.DecodeWIF(privateKey)
 	if err != nil {
@@ -662,6 +673,8 @@ func SignDexBuyLimitTx(privateKey string, param *DexLimitTxParam) (string, error
 	return hash, nil
 }
 
+//SignDexMarketBuyTx sign for dex buy market price tx
+// returns the signature hex string and nil error, or returns empty string and the error if it has error
 func SignDexMarketBuyTx(privateKey string, param *DexMarketTxParam) (string, error) {
 	wifKey, err := btcutil.DecodeWIF(privateKey)
 	if err != nil {
@@ -709,6 +722,8 @@ func SignDexMarketBuyTx(privateKey string, param *DexMarketTxParam) (string, err
 	return hash, nil
 }
 
+//SignDexMarketBuyTx sign for cancel dex tx
+// returns the signature hex string and nil error, or returns empty string and the error if it has error
 func SignDexCancelTx(privateKey string, param *DexCancelTxParam) (string, error) {
 	wifKey, err := btcutil.DecodeWIF(privateKey)
 	if err != nil {

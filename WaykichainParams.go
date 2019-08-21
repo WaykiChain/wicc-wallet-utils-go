@@ -253,3 +253,7 @@ func parseUserId(idStr string) *commons.UserIdWraper {
 	}
 	return userId
 }
+
+func checkPubKey(pubKey []byte) bool {
+	return len(pubKey) == 33
+}
