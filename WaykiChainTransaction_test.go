@@ -225,8 +225,8 @@ func TestSignDexBuyLimitTx(t *testing.T) {
 	var txParam DexLimitTxParam
 	txParam.FeeSymbol = string(commons.WICC)
 	txParam.Fees = 100000
-	txParam.CoinSymbol = string(commons.WICC)
-	txParam.AssetSymbol = string(commons.WUSD)
+	txParam.CoinSymbol = string(commons.WUSD)
+	txParam.AssetSymbol = string(commons.WICC)
 	txParam.AssetAmount = 10000
 	txParam.ValidHeight = 25
 	txParam.AskPrice = 25
@@ -275,8 +275,8 @@ func TestSignDexMarketSellTx(t *testing.T) {
 	var txParam DexMarketTxParam
 	txParam.FeeSymbol = string(commons.WICC)
 	txParam.Fees = 100000
-	txParam.CoinSymbol = string(commons.WICC)
-	txParam.AssetSymbol = string(commons.WUSD)
+	txParam.CoinSymbol = string(commons.WUSD)
+	txParam.AssetSymbol = string(commons.WICC)
 	txParam.AssetAmount = 10000
 	txParam.ValidHeight = 25
 	txParam.SrcRegId = ""
@@ -299,8 +299,8 @@ func TestSignDexMarketBuyTx(t *testing.T) {
 	var txParam DexMarketTxParam
 	txParam.FeeSymbol = string(commons.WICC)
 	txParam.Fees = 100000
-	txParam.CoinSymbol = string(commons.WICC)
-	txParam.AssetSymbol = string(commons.WUSD)
+	txParam.CoinSymbol = string(commons.WUSD)
+	txParam.AssetSymbol = string(commons.WICC)
 	txParam.AssetAmount = 10000
 	txParam.ValidHeight = 25
 	txParam.SrcRegId = "0-1"
