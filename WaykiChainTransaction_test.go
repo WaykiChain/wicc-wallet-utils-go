@@ -182,7 +182,7 @@ func TestSignCdpRedeemTx(t *testing.T) {
 	txParam.BcoinsToRedeem = 10
 	txParam.Fees = 100000
 	txParam.ValidHeight = 25
-	txParam.SrcRegId = ""
+	txParam.SrcRegId = "0-1"
 	txParam.PubKey = "03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
 
 	hash, err := SignCdpRedeemTx(privateKey, &txParam)
@@ -205,7 +205,7 @@ func TestSignCdpLiquidateTx(t *testing.T) {
 	txParam.ScoinsLiquidate = 100
 	txParam.Fees = 100000
 	txParam.ValidHeight = 25
-	txParam.SrcRegId = ""
+	txParam.SrcRegId = "0-1"
 	txParam.PubKey = "03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
 
 	hash, err := SignCdpLiquidateTx(privateKey, &txParam)
@@ -230,7 +230,7 @@ func TestSignDexBuyLimitTx(t *testing.T) {
 	txParam.AssetAmount = 10000
 	txParam.ValidHeight = 25
 	txParam.AskPrice = 25
-	txParam.SrcRegId = ""
+	txParam.SrcRegId = "0-1"
 	txParam.PubKey = "03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
 
 	hash, err := SignDexBuyLimitTx(privateKey, &txParam)
@@ -279,7 +279,7 @@ func TestSignDexMarketSellTx(t *testing.T) {
 	txParam.AssetSymbol = string(commons.WICC)
 	txParam.AssetAmount = 10000
 	txParam.ValidHeight = 25
-	txParam.SrcRegId = ""
+	txParam.SrcRegId = "0-1"
 	txParam.PubKey = "03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
 
 	hash, err := SignDexMarketSellTx(privateKey, &txParam)
@@ -325,7 +325,7 @@ func TestSignDexCancelTx(t *testing.T) {
 	txParam.Fees = 100000
 	txParam.DexTxid = "009c0e665acdd9e8ae754f9a51337b85bb8996980a93d6175b61edccd3cdc144"
 	txParam.ValidHeight = 25
-	txParam.SrcRegId = ""
+	txParam.SrcRegId = "0-1"
 	txParam.PubKey = "03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
 
 	hash, err := SignDexCancelTx(privateKey, &txParam)
