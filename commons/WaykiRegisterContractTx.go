@@ -23,11 +23,7 @@ func (tx WaykiRegisterContractTx) SignTx(wifKey *btcutil.WIF) string {
 	writer.WriteByte(byte(tx.TxType))
 	writer.WriteVarInt(tx.Version)
 	writer.WriteVarInt(tx.ValidHeight)
-	if(tx.UserId!=nil){
-		writer.WriteUserId(tx.UserId)
-	}else if(tx.PubKey!=nil){
-		writer.WritePubKeyId(tx.PubKey)
-	}
+	writer.WriteUserId(tx.UserId)
 	WriteContractScript(writer, tx.Script, tx.Description)
 
 	writer.WriteVarInt(int64(tx.Fees))
@@ -44,11 +40,7 @@ func (tx WaykiRegisterContractTx) doSign(wifKey *btcutil.WIF) []byte {
 	writer.WriteVarInt(tx.Version)
 	writer.WriteByte(byte(tx.TxType))
 	writer.WriteVarInt(tx.ValidHeight)
-	if(tx.UserId!=nil){
-		writer.WriteUserId(tx.UserId)
-	}else if(tx.PubKey!=nil){
-		writer.WritePubKeyId(tx.PubKey)
-	}
+    writer.WriteUserId(tx.UserId)
 	WriteContractScript(writer, tx.Script, tx.Description)
 	writer.WriteVarInt(int64(tx.Fees))
 

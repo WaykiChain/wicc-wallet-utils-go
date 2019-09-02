@@ -98,7 +98,6 @@ type RegisterContractTxParam struct {
 	Fees        int64  // fees for mining
 	Script      []byte // the contract script, binary format
 	Description string // description of contract
-	PubKey      string
 }
 
 //Cdp Stake param of the tx
@@ -143,6 +142,7 @@ type CdpLiquidateTxParam struct {
 type UCoinTransferTxParam struct {
 	ValidHeight int64  // valid height Within the height of the latest block
 	SrcRegId    string // the reg id of the register
+	DestAddr    string // the reg id of the register
 	PubKey      string
 	FeeSymbol   string
 	Fees        int64 // fees for mining

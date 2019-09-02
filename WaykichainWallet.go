@@ -287,11 +287,6 @@ func SignRegisterContractTx(privateKey string, param *RegisterContractTxParam) (
 		return "", ERR_INVALID_SCRIPT_DESC
 	}
 	tx.Description = param.Description
-	pubKey, err := hex.DecodeString(param.PubKey)
-	if (err != nil) {
-		return "", ERR_USER_PUBLICKEY
-	}
-	tx.PubKey = pubKey
 	if (tx.UserId == nil && tx.PubKey == nil) {
 		return "", ERR_INVALID_SRC_REG_ID
 	}
@@ -314,6 +309,7 @@ func SignUCoinTransferTx(privateKey string, param *UCoinTransferTxParam) (string
 	}
 	tx.ValidHeight = param.ValidHeight
 
+	tx.DestId =parseUserId(param.DestAddr)
 	tx.UserId = parseRegId(param.SrcRegId)
 
 	pubKey, err := hex.DecodeString(param.PubKey)
@@ -542,7 +538,7 @@ func SignDexSellLimitTx(privateKey string, param *DexLimitTxParam) (string, erro
 	if (tx.UserId == nil && tx.PubKey == nil) {
 		return "", ERR_INVALID_SRC_REG_ID
 	}
-	if !checkCdpMinTxFee(param.Fees) {
+	if !checkMinTxFee(param.Fees) {
 		return "", ERR_FEE_SMALLER_MIN
 	}
 	tx.Fees = uint64(param.Fees)

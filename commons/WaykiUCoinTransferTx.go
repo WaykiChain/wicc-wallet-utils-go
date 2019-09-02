@@ -15,7 +15,7 @@ type WaykiUCoinTransferTx struct {
 	CoinSymbol string   //From Coin Type
 	CoinAmount uint64
 	Memo       string
-	DestId *UserIdWraper //< the dest id(reg id or address or public key) received the wicc values
+	DestId    *UserIdWraper
 }
 
 func (tx WaykiUCoinTransferTx) SignTx(wifKey *btcutil.WIF) string {
