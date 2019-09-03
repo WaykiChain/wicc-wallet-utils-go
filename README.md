@@ -3,8 +3,8 @@ WaykiChain Wallet Library for Offline Operation written in golang
 
 ## Install
 
-go get github.com/WaykiChain/wicc-wallet-utils-go
-go get github.com/btcsuite
+* go get github.com/WaykiChain/wicc-wallet-utils-go
+* go get github.com/btcsuite
 
 ## Usage
 
