@@ -34,8 +34,8 @@ func TestSignCommonTx(t *testing.T) {
 
 	privateKey := "YAa1wFCfFnZ5bt4hg9MDeDevTMd1Nu874Mn83hEXwtfAL2vkQE9f" //"Y7V1jwCRr8D3tyPTkcsjgBTHwZN45b1U3ueZfJ5oWVJqwcKpArou"
 	var txParams CommonTxParam
-	txParams.ValidHeight = 630314 //14897
-	txParams.SrcRegId = ""        //"158-1"
+	txParams.ValidHeight = 630314
+	txParams.SrcRegId = "158-1"
 	txParams.DestAddr = "wSSbTePArv6BkDsQW9gpGCTX55AXVxVKbd"
 	txParams.Values = 10000
 	txParams.Fees = 10000
