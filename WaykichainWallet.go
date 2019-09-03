@@ -125,6 +125,7 @@ func SignCommonTx(privateKey string, param *CommonTxParam) (string, error) {
 
 	tx.TxType = commons.COMMON_TX
 	tx.Version = TX_VERSION
+	tx.Memo=param.Memo
 	hash := tx.SignTx(wifKey)
 	return hash, nil
 }

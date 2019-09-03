@@ -40,7 +40,7 @@ func TestSignCommonTx(t *testing.T) {
 	txParams.Values = 10000
 	txParams.Fees = 10000
 	txParams.PubKey = "03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
-
+    txParams.Memo="test transfer"
 	hash, err := SignCommonTx(privateKey, &txParams)
 	if err != nil {
 		t.Error("SignCommonTx err: ", err)

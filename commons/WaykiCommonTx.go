@@ -12,6 +12,7 @@ type WaykiCommonTx struct {
 	WaykiBaseSignTx
 	Fees   uint64
 	Values uint64
+	Memo   string
 	DestId *UserIdWraper //< the dest id(reg id or address or public key) received the wicc values
 }
 
@@ -31,7 +32,7 @@ func (tx WaykiCommonTx) SignTx(wifKey *btcutil.WIF) string {
 	writer.WriteUserId(tx.DestId)
 	writer.WriteVarInt(int64(tx.Fees))
 	writer.WriteVarInt(int64(tx.Values))
-	writer.WriteVarInt(0) // write the empty contract script data
+	writer.WriteString(tx.Memo)
 
 	signedBytes := tx.doSignTx(wifKey)
 	writer.WriteBytes(signedBytes)
@@ -56,7 +57,7 @@ func (tx WaykiCommonTx) doSignTx(wifKey *btcutil.WIF) []byte {
 	writer.WriteUserId(tx.DestId)
 	writer.WriteVarInt(int64(tx.Fees))
 	writer.WriteVarInt(int64(tx.Values))
-	writer.WriteVarInt(0) // write the empty contract script data
+	writer.WriteString(tx.Memo)
 
 	hash := hash2.DoubleHash256(buf.Bytes())
 	key := wifKey.PrivKey

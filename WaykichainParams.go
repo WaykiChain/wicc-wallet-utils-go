@@ -69,6 +69,7 @@ type CommonTxParam struct {
 	Values      int64  // transfer values
 	Fees        int64  // fees for mining
 	PubKey      string
+	Memo        string
 }
 
 //DelegateTxParam param of the delegate tx
