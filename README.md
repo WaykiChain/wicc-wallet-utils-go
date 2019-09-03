@@ -23,8 +23,8 @@ func GetAddressFromPrivateKey(privateKey string, netType int) string
 func GetAddressFromMnemonic(words string, netType int) string
 ```
 - GenerateMnemonics. You will get 12 words.
-- GetPrivateKeyFromMnemonic. You should provide your mnemonic and network Type (1 MainNet 2 TestNet),then return private Key,Mainnet Private key start with "P" ,Testnet
+- GetPrivateKeyFromMnemonic. You should provide your mnemonic and network Type (1 MainNet,2 TestNet),function return private Key,MainNet Private key start with "P" ,TestNet
 private key start with "Y".
-- GetPubKeyFromPrivateKey. You will get 12 words.
-- GetAddressFromPrivateKey. You will get 12 words.
-- GetAddressFromMnemonic. You will get 12 words.
+- GetPubKeyFromPrivateKey. you should provide your Private Key,the function return wallet public key as hex string.
+- GetAddressFromPrivateKey. you should provide your Private Key,the function return wallet Address as base58 encode string,MainNet Address start with "W",TestNet Address start with "w".
+- GetAddressFromMnemonic. you should provide your mnemonic,the function return wallet Address as base58 encode string,MainNet Address start with "W",TestNet Address start with "w".
