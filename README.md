@@ -8,7 +8,7 @@ WaykiChain Wallet Library for Offline Operation written in golang
 
 ## Usage
 
-### Create Wallet
+### WaykiChain Create Wallet
 Generate mnemonics and private keys to manage your wallet.
 
 ```go
@@ -57,9 +57,9 @@ Get address from mnemonic:
 mnemonic := "empty regular curve turtle student prize toy accuse develop spike scatter ginger"
 address := GetAddressFromMnemonic(mnemonic, WAYKI_MAINTNET)
 ```
-### Sign Transaction
-Signing a transaction with a private key,you can submit your offline signature transaction via bass,Mainnet<https://baas.wiccdev.org/v2/api/swagger-ui.html#!/transaction-controller/offlinTransactionUsingPOST> ,
-TestNet<https://baas-test.wiccdev.org/v2/api/swagger-ui.html#!/transaction-controller/offlinTransactionUsingPOST>
+### WaykiChain sign transaction
+Signing a transaction with a private key,you can submit your offline signature rawtx transaction via bass,Mainnet <https://baas.wiccdev.org/v2/api/swagger-ui.html#!/transaction-controller/offlinTransactionUsingPOST> ,TestNet <https://baas-test.wiccdev.org/v2/api/swagger-ui.html#!/transaction-controller/offlinTransactionUsingPOST>,
+Get block height:MainNet<https://baas.wiccdev.org/v2/api/swagger-ui.html#!/block-controller/getBlockCountUsingPOST>,TestNet <https://baas-test.wiccdev.org/v2/api/swagger-ui.html#!/block-controller/getBlockCountUsingPOST>
 
 
 ```go
@@ -73,11 +73,31 @@ func SignCallContractTx(privateKey string, param *CallContractTxParam) (string, 
 
 func SignRegisterContractTx(privateKey string, param *RegisterContractTxParam) (string, error)
 ```
-- SignRegisterAccountTx. Get the signature of the wallet registration.  
-- SignCommonTx.
-- SignDelegateTx.
-- SignCallContractTx.
-- SignRegisterContractTx.
+- SignRegisterAccountTx.sign registration transaction with a private key , return the rawtx string.
+- SignCommonTx.sign transfer transaction with a private key , return the rawtx string.
+- SignDelegateTx.sign delegate transaction with a private key , return the rawtx string.
+- SignCallContractTx.sign invoke contract transaction with a private key , return the rawtx string.
+- SignRegisterContractTx.sign deploy contract transaction with a private key , return the rawtx string.
+
+Example:
+
+Sign register account transaction:
+```go
+	privateKey := "YAa1wFCfFnZ5bt4hg9MDeDevTMd1Nu874Mn83hEXwtfAL2vkQE9f"
+	var txParam RegisterAccountTxParam  
+	txParam.ValidHeight = 630314 //WaykiChain block height 
+	txParam.Fees = 10000         //Miner fee,minimum 1000sawi
+
+	hash, err := SignRegisterAccountTx(privateKey, &txParam)
+	if err != nil {
+		t.Error("SignRegisterAccountTx err: ", err)
+	}
+```
+
+
+
+
+
 
 
 
