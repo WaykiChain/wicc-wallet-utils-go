@@ -170,9 +170,77 @@ Sign deploy contract Transaction:
 ```
 
 #### cdp transaction
-Any user holding a WICC can send a WICC to the CDP (Collaterized Debt Position) to obtain a certain percentage of WUSD.user can only have one cdp unless the previous cdp has been destroyed.
+Any user holding a WICC can send a WICC to the CDP (Collaterized Debt Position) to obtain a certain percentage of WUSD.a user can only have one cdp unless the previous cdp has been destroyed.
 
-- 
+```go
+func SignCdpStakeTx(privateKey string, param *CdpStakeTxParam) (string, error) 
+
+func SignCdpRedeemTx(privateKey string, param *CdpRedeemTxParam) (string, error) 
+
+func SignCdpLiquidateTx(privateKey string, param *CdpLiquidateTxParam) (string, error)
+```
+- SignCdpStakeTx.sign cdp stake transaction with a private key , return the rawtx string.
+- SignCdpRedeemTx.sign cdp redeem transaction with a private key , return the rawtx string.
+- SignCdpLiquidateTx.sign cdp liquidate transaction with a private key , return the rawtx string.
+
+Example:
+
+Sign cdp stake transaction:
+```go
+    privateKey := "Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEnmFEYMqQd13"
+	var txParam CdpStakeTxParam
+	txParam.CdpTxid = "0b9734e5db3cfa38e76bb273dba4f65a210cc76ca2cf739f3c131d0b24ff89c1"  //user cdp transaction hash,If the user has not created a cdp, then do not fill out
+	txParam.BcoinSymbol = string(commons.WICC)   //pay WICC
+	txParam.ScoinSymbol = string(commons.WUSD)   //get WUSD
+	txParam.FeeSymbol = string(commons.WICC)    //fee symbol (WICC/WUSD)
+	txParam.BcoinStake = 100000000
+	txParam.ScoinMint = 50000000
+	txParam.Fees = 100000
+	txParam.ValidHeight = 283308
+	txParam.SrcRegId = "0-1"
+	txParam.PubKey = "03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
+
+	hash, err := SignCdpStakeTx(privateKey, &txParam)
+	if err != nil {
+		t.Error("SignCdpStakeTx err: ", err)
+	}
+```
+Sign cdp redeem transaction:
+```go
+    privateKey := "Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEnmFEYMqQd13"
+	var txParam CdpRedeemTxParam
+	txParam.CdpTxid = "0b9734e5db3cfa38e76bb273dba4f65a210cc76ca2cf739f3c131d0b24ff89c1"//user cdp create transaction hash
+	txParam.FeeSymbol = string(commons.WICC)
+	txParam.ScoinsToRepay = 20000000
+	txParam.BcoinsToRedeem = 100000000
+	txParam.Fees = 100000
+	txParam.ValidHeight = 25
+	txParam.SrcRegId = "0-1"
+	txParam.PubKey = "03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
+
+	hash, err := SignCdpRedeemTx(privateKey, &txParam)
+	if err != nil {
+		t.Error("SignCdpStakeTx err: ", err)
+	}
+```
+Sign cdp liquidate transaction:
+```go
+    privateKey := "Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEnmFEYMqQd13"
+	var txParam CdpLiquidateTxParam
+	txParam.CdpTxid = "0b9734e5db3cfa38e76bb273dba4f65a210cc76ca2cf739f3c131d0b24ff89c1"//Liquidated cdp transaction hash id
+	txParam.FeeSymbol = string(commons.WICC)
+	txParam.ScoinsLiquidate = 100000000
+	txParam.Fees = 100000
+	txParam.ValidHeight = 25
+	txParam.SrcRegId = "0-1"
+	txParam.PubKey = "03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
+
+	hash, err := SignCdpLiquidateTx(privateKey, &txParam)
+	if err != nil {
+		t.Error("SignCdpStakeTx err: ", err)
+	}
+```
+
 
 
 
