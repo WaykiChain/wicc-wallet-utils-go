@@ -58,8 +58,8 @@ mnemonic := "empty regular curve turtle student prize toy accuse develop spike s
 address := GetAddressFromMnemonic(mnemonic, WAYKI_MAINTNET)
 ```
 ### WaykiChain sign transaction
-Signing a transaction with a private key,you can submit your offline signature rawtx transaction via bass,Mainnet <https://baas.wiccdev.org/v2/api/swagger-ui.html#!/transaction-controller/offlinTransactionUsingPOST> ,TestNet <https://baas-test.wiccdev.org/v2/api/swagger-ui.html#!/transaction-controller/offlinTransactionUsingPOST>,
-Get block height:MainNet<https://baas.wiccdev.org/v2/api/swagger-ui.html#!/block-controller/getBlockCountUsingPOST>,TestNet <https://baas-test.wiccdev.org/v2/api/swagger-ui.html#!/block-controller/getBlockCountUsingPOST>
+Signing a transaction with a private key,you can submit your offline signature rawtx transaction via bass,  Mainnet <https://baas.wiccdev.org/v2/api/swagger-ui.html#!/transaction-controller/offlinTransactionUsingPOST> ,  TestNet <https://baas-test.wiccdev.org/v2/api/swagger-ui.html#!/transaction-controller/offlinTransactionUsingPOST>,
+  Get block height:MainNet<https://baas.wiccdev.org/v2/api/swagger-ui.html#!/block-controller/getBlockCountUsingPOST>,TestNet <https://baas-test.wiccdev.org/v2/api/swagger-ui.html#!/block-controller/getBlockCountUsingPOST>
 
 
 ```go
@@ -93,6 +93,23 @@ Sign register account transaction:
 		t.Error("SignRegisterAccountTx err: ", err)
 	}
 ```
+Sign common transfer transaction:
+```go
+    privateKey := "YAa1wFCfFnZ5bt4hg9MDeDevTMd1Nu874Mn83hEXwtfAL2vkQE9f" 
+	var txParams CommonTxParam
+	txParams.ValidHeight = 630314
+	txParams.SrcRegId = "158-1"                                //user regid
+	txParams.DestAddr = "wSSbTePArv6BkDsQW9gpGCTX55AXVxVKbd"  //dest address
+	txParams.Values = 10000                                   //transfer amount
+	txParams.Fees = 10000
+	txParams.PubKey = "03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"  //wallet public key hex string
+    txParams.Memo="test transfer"                                                           //transfer memo   
+	hash, err := SignCommonTx(privateKey, &txParams)
+	if err != nil {
+		t.Error("SignCommonTx err: ", err)
+	}
+```
+
 
 
 
