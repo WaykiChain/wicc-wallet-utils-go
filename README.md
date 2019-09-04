@@ -93,7 +93,8 @@ func SignRegisterContractTx(privateKey string, param *RegisterContractTxParam) (
 
 Example:
 
-**This transaction is not required, you can activate wallet by public key in other transactions**
+**The register transaction is not required, you can activate wallet by public key in other transactions**
+
 Sign register account transaction:
 ```go
 	privateKey := "YAa1wFCfFnZ5bt4hg9MDeDevTMd1Nu874Mn83hEXwtfAL2vkQE9f"
