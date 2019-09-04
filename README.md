@@ -202,7 +202,7 @@ Sign Multi-coin transfer transaction:
 	}
 ```
 
-#### cdp transaction
+#### CDP Transaction
 Any user holding a WICC can send a WICC to the CDP (Collaterized Debt Position) to obtain a certain percentage of WUSD.a user can only have one cdp unless the previous cdp has been destroyed.
 
 ```go
@@ -274,7 +274,7 @@ Sign cdp liquidate transaction:
 	}
 ```
 
-#### dex transaction
+#### DEX Transaction
 WaykiChain decentralized exchange.
 
 ```go
