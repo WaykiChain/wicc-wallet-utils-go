@@ -58,8 +58,15 @@ mnemonic := "empty regular curve turtle student prize toy accuse develop spike s
 address := GetAddressFromMnemonic(mnemonic, WAYKI_MAINTNET)
 ```
 ### WaykiChain sign transaction
-Signing a transaction with a private key,you can submit your offline signature rawtx transaction via bass,  Mainnet <https://baas.wiccdev.org/v2/api/swagger-ui.html#!/transaction-controller/offlinTransactionUsingPOST> ,  TestNet <https://baas-test.wiccdev.org/v2/api/swagger-ui.html#!/transaction-controller/offlinTransactionUsingPOST>,
-  Get block height:MainNet<https://baas.wiccdev.org/v2/api/swagger-ui.html#!/block-controller/getBlockCountUsingPOST>,TestNet <https://baas-test.wiccdev.org/v2/api/swagger-ui.html#!/block-controller/getBlockCountUsingPOST>
+Signing a transaction with a private key,you can submit your offline signature rawtx transaction via bass.
+
+Submit raw string:
+Mainnet <https://baas.wiccdev.org/v2/api/swagger-ui.html#!/transaction-controller/offlinTransactionUsingPOST> ,
+TestNet <https://baas-test.wiccdev.org/v2/api/swagger-ui.html#!/transaction-controller/offlinTransactionUsingPOST>,
+
+Get block height:
+MainNet<https://baas.wiccdev.org/v2/api/swagger-ui.html#!/block-controller/getBlockCountUsingPOST>,
+TestNet <https://baas-test.wiccdev.org/v2/api/swagger-ui.html#!/block-controller/getBlockCountUsingPOST>
 
 
 ```go
@@ -109,6 +116,59 @@ Sign common transfer transaction:
 		t.Error("SignCommonTx err: ", err)
 	}
 ```
+Sign Delegate transaction:
+```go
+    privateKey := "Y9sx4Y8sBAbWDAqAWytYuUnJige3ZPwKDZp1SCDqqRby1YMgRG9c"
+	var txParams DelegateTxParam
+	txParams.ValidHeight = 95728
+	txParams.SrcRegId = "0-1"
+	txParams.Fees = 10000
+	txParams.PubKey = "03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
+	txParams.Votes = NewOperVoteFunds()
+	pubKey, _ := hex.DecodeString("025a37cb6ec9f63bb17e562865e006f0bafa9afbd8a846bd87fc8ff9e35db1252e") //Voted public key
+	vote := OperVoteFund{PubKey: pubKey, VoteValue: 10000}
+	txParams.Votes.Add(&vote)
+
+	hash, err := SignDelegateTx(privateKey, &txParams)
+	if err != nil {
+		t.Error("SignDelegateTx err: ", err)
+	}
+```
+Sign invoke contract transaction:
+```go
+	privateKey := "Y9sx4Y8sBAbWDAqAWytYuUnJige3ZPwKDZp1SCDqqRby1YMgRG9c"
+	var txParam CallContractTxParam
+	txParam.ValidHeight = 22365
+	txParam.SrcRegId = "0-1"
+	txParam.AppId = "20988-1"          //contract regid
+	txParam.Fees = 100000
+	txParam.Values = 10000
+	txParam.ContractHex = "f017"      //call contract method
+	txParam.PubKey = "03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
+	hash, err := SignCallContractTx(privateKey, &txParam)
+	if err != nil {
+		t.Error("SignCallContractTx err: ", err)
+	}
+```
+Sign deploy contract Transaction:
+```go
+	privateKey := "YAa1wFCfFnZ5bt4hg9MDeDevTMd1Nu874Mn83hEXwtfAL2vkQE9f"
+	script, err := ioutil.ReadFile("./demo/data/hello.lua")
+	if err != nil {
+		t.Error("Read contract script file err: ", err)
+	}
+	var txParam RegisterContractTxParam
+	txParam.ValidHeight = 630314 
+	txParam.SrcRegId = "0-1"     
+	txParam.Fees = 110000000
+	txParam.Script = script                        //contract bytearray
+	txParam.Description = "My hello contract!!!"  //contract description
+	hash, err := SignRegisterContractTx(privateKey, &txParam)
+	if err != nil {
+		t.Error("SignRegisterContractTx err: ", err)
+	}
+```
+
 
 
 
