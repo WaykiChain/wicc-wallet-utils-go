@@ -98,7 +98,7 @@ Sign register account transaction:
 	privateKey := "YAa1wFCfFnZ5bt4hg9MDeDevTMd1Nu874Mn83hEXwtfAL2vkQE9f"
 	var txParam RegisterAccountTxParam  
 	txParam.ValidHeight = 630314 //WaykiChain block height 
-	txParam.Fees = 10000         //Miner fee,minimum 1000sawi
+	txParam.Fees = 10000         //Miner fee,minimum 10000sawi
 
 	hash, err := SignRegisterAccountTx(privateKey, &txParam)
 	if err != nil {
@@ -165,7 +165,7 @@ Sign deploy contract Transaction:
 	var txParam RegisterContractTxParam
 	txParam.ValidHeight = 630314 
 	txParam.SrcRegId = "0-1"     
-	txParam.Fees = 110000000
+	txParam.Fees = 110000000                       //Miner fee,minimum 11000000sawi 
 	txParam.Script = script                        //contract bytearray
 	txParam.Description = "My hello contract!!!"  //contract description
 	hash, err := SignRegisterContractTx(privateKey, &txParam)
@@ -200,7 +200,7 @@ Sign cdp stake transaction:
 	txParam.FeeSymbol = string(commons.WICC)    //fee symbol (WICC/WUSD)
 	txParam.BcoinStake = 100000000
 	txParam.ScoinMint = 50000000
-	txParam.Fees = 100000
+	txParam.Fees = 100000                       //Miner fee,minimum 100000sawi
 	txParam.ValidHeight = 283308
 	txParam.SrcRegId = "0-1"
 	txParam.PubKey = "03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
@@ -218,7 +218,7 @@ Sign cdp redeem transaction:
 	txParam.FeeSymbol = string(commons.WICC)
 	txParam.ScoinsToRepay = 20000000
 	txParam.BcoinsToRedeem = 100000000
-	txParam.Fees = 100000
+	txParam.Fees = 100000                                     //Miner fee,minimum 100000sawi
 	txParam.ValidHeight = 25
 	txParam.SrcRegId = "0-1"
 	txParam.PubKey = "03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
@@ -235,7 +235,7 @@ Sign cdp liquidate transaction:
 	txParam.CdpTxid = "0b9734e5db3cfa38e76bb273dba4f65a210cc76ca2cf739f3c131d0b24ff89c1"//Liquidated cdp transaction hash id
 	txParam.FeeSymbol = string(commons.WICC)
 	txParam.ScoinsLiquidate = 100000000
-	txParam.Fees = 100000
+	txParam.Fees = 100000                                                    //Miner fee,minimum 100000sawi
 	txParam.ValidHeight = 25
 	txParam.SrcRegId = "0-1"
 	txParam.PubKey = "03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
@@ -249,7 +249,114 @@ Sign cdp liquidate transaction:
 #### dex transaction
 WaykiChain decentralized exchange.
 
+```go
+func SignDexSellLimitTx(privateKey string, param *DexLimitTxParam) (string, error)
 
+func SignDexMarketSellTx(privateKey string, param *DexMarketTxParam) (string, error)
+
+func SignDexBuyLimitTx(privateKey string, param *DexLimitTxParam) (string, error)
+
+func SignDexMarketBuyTx(privateKey string, param *DexMarketTxParam) (string, error)
+
+func SignDexCancelTx(privateKey string, param *DexCancelTxParam) (string, error)
+```
+- SignDexSellLimitTx.sign dex sell limit price transaction with a private key , return the rawtx string.
+- SignDexMarketSellTx.sign dex sell market price transaction with a private key , return the rawtx string.
+- SignDexBuyLimitTx.sign dex buy limit price transaction with a private key , return the rawtx string.
+- SignDexMarketBuyTx.sign dex buy market price transaction with a private key , return the rawtx string.
+- SignDexCancelTx.sign cancel dex order transaction with a private key , return the rawtx string.
+
+Sign dex Buy limit price transaction:
+```go
+	privateKey := "Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEnmFEYMqQd13"
+	var txParam DexLimitTxParam
+	txParam.FeeSymbol = string(commons.WICC)
+	txParam.Fees = 100000
+	txParam.CoinSymbol = string(commons.WUSD)
+	txParam.AssetSymbol = string(commons.WICC)
+	txParam.AssetAmount = 10000
+	txParam.ValidHeight = 25
+	txParam.Price = 25                      
+	txParam.SrcRegId = "0-1"
+	txParam.PubKey = "03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
+
+	hash, err := SignDexBuyLimitTx(privateKey, &txParam)
+	if err != nil {
+		t.Error("SignCdpStakeTx err: ", err)
+	}
+```
+Sign dex sell limit price transaction:
+```go
+    privateKey := "Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEnmFEYMqQd13"
+	var txParam DexLimitTxParam
+	txParam.FeeSymbol = string(commons.WICC)
+	txParam.Fees = 10000
+	txParam.CoinSymbol = string(commons.WUSD)
+	txParam.AssetSymbol = string(commons.WICC)
+	txParam.AssetAmount = 1000000
+	txParam.ValidHeight = 282956
+	txParam.Price = 200000000
+	txParam.SrcRegId = "0-1"
+	txParam.PubKey = "03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
+
+	hash, err := SignDexSellLimitTx(privateKey, &txParam)
+	if err != nil {
+		t.Error("SignCdpStakeTx err: ", err)
+	}
+```
+Sign dex sell market price transaction:
+```go
+    privateKey := "Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEnmFEYMqQd13"
+	var txParam DexMarketTxParam
+	txParam.FeeSymbol = string(commons.WICC)
+	txParam.Fees = 100000
+	txParam.CoinSymbol = string(commons.WUSD)
+	txParam.AssetSymbol = string(commons.WICC)
+	txParam.AssetAmount = 10000
+	txParam.ValidHeight = 25
+	txParam.SrcRegId = "0-1"
+	txParam.PubKey = "03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
+
+	hash, err := SignDexMarketSellTx(privateKey, &txParam)
+	if err != nil {
+		t.Error("SignCdpStakeTx err: ", err)
+	}
+```
+
+Sign dex buy market price transaction:
+```go
+    privateKey := "Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEnmFEYMqQd13"
+	var txParam DexMarketTxParam
+	txParam.FeeSymbol = string(commons.WICC)
+	txParam.Fees = 100000
+	txParam.CoinSymbol = string(commons.WUSD)
+	txParam.AssetSymbol = string(commons.WICC)
+	txParam.AssetAmount = 10000
+	txParam.ValidHeight = 25
+	txParam.SrcRegId = "0-1"
+	txParam.PubKey = "03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
+
+	hash, err := SignDexMarketBuyTx(privateKey, &txParam)
+	if err != nil {
+		t.Error("SignCdpStakeTx err: ", err)
+	}
+```
+Sign dex cancel order transaction:
+```go
+	privateKey := "Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEnmFEYMqQd13"
+	var txParam DexCancelTxParam
+	txParam.FeeSymbol = string(commons.WICC)
+	txParam.Fees = 100000
+	txParam.DexTxid = "009c0e665acdd9e8ae754f9a51337b85bb8996980a93d6175b61edccd3cdc144"//dex transaction tx id
+	txParam.ValidHeight = 25
+	txParam.SrcRegId = "0-1"
+	txParam.PubKey = "03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
+
+	hash, err := SignDexCancelTx(privateKey, &txParam)
+	if err != nil {
+		t.Error("SignCdpStakeTx err: ", err)
+	}
+```
 
 
 

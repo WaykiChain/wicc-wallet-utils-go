@@ -256,7 +256,7 @@ func TestSignDexSellLimitTx(t *testing.T) {
 	txParam.ValidHeight = 282956
 	txParam.Price = 200000000
 	txParam.SrcRegId = "0-1"
-	//txParam.PubKey = "03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
+	txParam.PubKey = "03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
 
 	hash, err := SignDexSellLimitTx(privateKey, &txParam)
 	if err != nil {
