@@ -546,10 +546,10 @@ func SignDexSellLimitTx(privateKey string, param *DexLimitTxParam) (string, erro
 
 	tx.TxType = commons.DEX_SELL_LIMIT_ORDER_TX
 	tx.Version = TX_VERSION
-	if param.AskPrice <= 0 {
+	if param.Price <= 0 {
 		return "", ERR_ASK_PRICE
 	}
-	tx.AskPrice = uint64(param.AskPrice)
+	tx.AskPrice = uint64(param.Price)
 	if param.CoinSymbol == "" || param.AssetSymbol == "" {
 		return "", ERR_COIN_TYPE
 	}
@@ -648,10 +648,10 @@ func SignDexBuyLimitTx(privateKey string, param *DexLimitTxParam) (string, error
 
 	tx.TxType = commons.DEX_BUY_LIMIT_ORDER_TX
 	tx.Version = TX_VERSION
-	if param.AskPrice <= 0 {
+	if param.Price <= 0 {
 		return "", ERR_ASK_PRICE
 	}
-	tx.AskPrice = uint64(param.AskPrice)
+	tx.AskPrice = uint64(param.Price)
 	if param.CoinSymbol == "" || param.AssetSymbol == "" {
 		return "", ERR_COIN_TYPE
 	}

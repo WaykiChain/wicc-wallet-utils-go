@@ -60,6 +60,11 @@ address := GetAddressFromMnemonic(mnemonic, WAYKI_MAINTNET)
 ### WaykiChain sign transaction
 Signing a transaction with a private key,you can submit your offline signature rawtx transaction via bass.
 
+|  BassNetwork |  ApiAddr | 
+|-------------- |----------------------------------|
+|   TestNetwork | https://baas-test.wiccdev.org/v2/api/swagger-ui.html#!/  |  
+|   ProdNetwork | https://baas.wiccdev.org/v2/api/swagger-ui.html#!/       |                                |
+
 Submit raw string:
 Mainnet <https://baas.wiccdev.org/v2/api/swagger-ui.html#!/transaction-controller/offlinTransactionUsingPOST> ,
 TestNet <https://baas-test.wiccdev.org/v2/api/swagger-ui.html#!/transaction-controller/offlinTransactionUsingPOST>,
@@ -240,6 +245,11 @@ Sign cdp liquidate transaction:
 		t.Error("SignCdpStakeTx err: ", err)
 	}
 ```
+
+#### dex transaction
+WaykiChain decentralized exchange.
+
+
 
 
 

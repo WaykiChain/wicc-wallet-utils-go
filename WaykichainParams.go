@@ -162,7 +162,7 @@ type DexLimitTxParam struct {
 	AssetSymbol string
 	CoinSymbol  string
 	AssetAmount  int64
-	AskPrice     int64
+	Price     int64
 }
 
 //Dex market Sell param of the tx

@@ -229,7 +229,7 @@ func TestSignDexBuyLimitTx(t *testing.T) {
 	txParam.AssetSymbol = string(commons.WICC)
 	txParam.AssetAmount = 10000
 	txParam.ValidHeight = 25
-	txParam.AskPrice = 25
+	txParam.Price = 25
 	txParam.SrcRegId = "0-1"
 	txParam.PubKey = "03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
 
@@ -254,7 +254,7 @@ func TestSignDexSellLimitTx(t *testing.T) {
 	txParam.AssetSymbol = string(commons.WICC)
 	txParam.AssetAmount = 1000000
 	txParam.ValidHeight = 282956
-	txParam.AskPrice = 200000000
+	txParam.Price = 200000000
 	txParam.SrcRegId = "0-1"
 	//txParam.PubKey = "03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
 
