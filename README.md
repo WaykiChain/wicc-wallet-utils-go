@@ -68,7 +68,7 @@ Get block height:
 MainNet<https://baas.wiccdev.org/v2/api/swagger-ui.html#!/block-controller/getBlockCountUsingPOST>,
 TestNet <https://baas-test.wiccdev.org/v2/api/swagger-ui.html#!/block-controller/getBlockCountUsingPOST>
 
-
+#### common transaction
 ```go
 func SignRegisterAccountTx(privateKey string, param *RegisterAccountTxParam) (string, error)
 
@@ -168,6 +168,11 @@ Sign deploy contract Transaction:
 		t.Error("SignRegisterContractTx err: ", err)
 	}
 ```
+
+#### cdp transaction
+Any user holding a WICC can send a WICC to the CDP (Collaterized Debt Position) to obtain a certain percentage of WUSD.user can only have one cdp unless the previous cdp has been destroyed.
+
+- 
 
 
 
