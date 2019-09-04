@@ -35,4 +35,16 @@ private key start with "Y".
 
 Examples:
 
-From mnemonic:
+Generate mnemonic:
+```go
+mnemonic := GenerateMnemonics()
+```
+Get private key from mnemonic
+```go
+mnemonic := "empty regular curve turtle student prize toy accuse develop spike scatter ginger"
+privateKey := GetPrivateKeyFromMnemonic(mnemonic, WAYKI_MAINTNET)
+```
+Get public key from private key
+```go
+publicKey,_:=GetPubKeyFromPrivateKey("Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEnmFEYMqQd13")
+```
