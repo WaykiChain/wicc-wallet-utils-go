@@ -66,11 +66,15 @@ Signing a transaction with a private key,you can submit your offline signature r
 |   ProdNetwork | https://baas.wiccdev.org/v2/api/swagger-ui.html#!/       |                                |
 
 Submit raw string:
+
 Mainnet <https://baas.wiccdev.org/v2/api/swagger-ui.html#!/transaction-controller/offlinTransactionUsingPOST> ,
+
 TestNet <https://baas-test.wiccdev.org/v2/api/swagger-ui.html#!/transaction-controller/offlinTransactionUsingPOST>,
 
 Get block height:
+
 MainNet<https://baas.wiccdev.org/v2/api/swagger-ui.html#!/block-controller/getBlockCountUsingPOST>,
+
 TestNet <https://baas-test.wiccdev.org/v2/api/swagger-ui.html#!/block-controller/getBlockCountUsingPOST>
 
 #### common transaction
@@ -84,12 +88,15 @@ func SignDelegateTx(privateKey string, param *DelegateTxParam) (string, error)
 func SignCallContractTx(privateKey string, param *CallContractTxParam) (string, error)
 
 func SignRegisterContractTx(privateKey string, param *RegisterContractTxParam) (string, error)
+
+func SignUCoinTransferTx(privateKey string, param *UCoinTransferTxParam) (string, error) 
 ```
 - SignRegisterAccountTx.sign registration transaction with a private key , return the rawtx string.
 - SignCommonTx.sign transfer transaction with a private key , return the rawtx string.
 - SignDelegateTx.sign delegate transaction with a private key , return the rawtx string.
 - SignCallContractTx.sign invoke contract transaction with a private key , return the rawtx string.
 - SignRegisterContractTx.sign deploy contract transaction with a private key , return the rawtx string.
+- SignUCoinTransferTx.sign Multi-coin transfer transaction with a private key , return the rawtx string.
 
 Example:
 
@@ -174,6 +181,24 @@ Sign deploy contract Transaction:
 	hash, err := SignRegisterContractTx(privateKey, &txParam)
 	if err != nil {
 		t.Error("SignRegisterContractTx err: ", err)
+	}
+```
+Sign Multi-coin transfer transaction:
+```go
+    privateKey := "Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEnmFEYMqQd13"
+	var txParam UCoinTransferTxParam
+	txParam.FeeSymbol = string(commons.WICC)
+	txParam.CoinSymbol = string(commons.WICC)
+	txParam.CoinAmount = 1000000
+	txParam.Fees = 10000
+	txParam.ValidHeight = 297449
+	txParam.SrcRegId = "0-1"
+	txParam.DestAddr = "wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6"
+	txParam.PubKey = "036c5397f3227a1e209952829d249b7ad0f615e43b763ac15e3a6f52627a10df21"
+	txParam.Memo = ""
+	hash, err := SignUCoinTransferTx(privateKey, &txParam)
+	if err != nil {
+		t.Error("SignCdpStakeTx err: ", err)
 	}
 ```
 
