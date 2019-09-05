@@ -1,14 +1,18 @@
 # wicc-wallet-utils-go
+（维基go语言离线签名钱包库）
+
 WaykiChain Wallet Library for Offline Operation written in golang
 
-## Install
+## 下载(Install)
 
 * go get github.com/WaykiChain/wicc-wallet-utils-go
 * go get github.com/btcsuite
 
-## Usage
+## 用法（Usage）
 
-### WaykiChain Create Wallet
+### 创建钱包（WaykiChain Create Wallet）
+生成助记词和私钥管理你的钱包。
+
 Generate mnemonics and private keys to manage your wallet.
 
 ```go
@@ -22,7 +26,7 @@ func GetAddressFromPrivateKey(privateKey string, netType int) string
 
 func GetAddressFromMnemonic(words string, netType int) string
 ```
-- GenerateMnemonics. You will get 12 words.
+- GenerateMnemonics. 生成12个助记词(You will get 12 words).
 
 - GetPrivateKeyFromMnemonic. You should provide your mnemonic and network Type (1 MainNet,2 TestNet),function return private Key,MainNet Private key start with "P" ,TestNet
 private key start with "Y".
