@@ -34,36 +34,39 @@ func GetAddressFromMnemonic(words string, netType int) string
 （提供私钥获得公钥，获得公钥的16进制字符串）  
 you should provide your Private Key,the function return wallet public key as hex string.  
 - **GetAddressFromPrivateKey.**  
+私钥获得钱包地址，地址是Base58编码的字符串，主网地址大写字母W开头，测试网地址小写字母w开头。  
 you should provide your Private Key,the function return wallet Address as base58 encode string,MainNet Address start with "W",TestNet Address start with "w".  
 - **GetAddressFromMnemonic.**  
+从助记词获得地址。  
 you should provide your mnemonic,the function return wallet Address as base58 encode string,MainNet Address start with "W",TestNet Address start with "w".
 
-Examples:
+示例(Examples):
 
-Generate mnemonic:
+[生成助记词(Generate mnemonic:)](https://github.com/WaykiChain/wicc-wallet-utils-go/blob/master/WaykichainWallet_test.go)
 ```go
 mnemonic := GenerateMnemonics()
 ```
-Get private key from mnemonic:
+[助记词生成钱包私钥(Get private key from mnemonic:)](https://github.com/WaykiChain/wicc-wallet-utils-go/blob/master/WaykichainWallet_test.go)
 ```go
 mnemonic := "empty regular curve turtle student prize toy accuse develop spike scatter ginger"
 privateKey := GetPrivateKeyFromMnemonic(mnemonic, WAYKI_MAINTNET)
 ```
-Get public key from private key:
+[私钥获得公钥(Get public key from private key:)](https://github.com/WaykiChain/wicc-wallet-utils-go/blob/master/WaykichainWallet_test.go)
 ```go
 publicKey,_:=GetPubKeyFromPrivateKey("Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEnmFEYMqQd13")
 ```
-Get address from private key:
+[私钥获得钱包地址(Get address from private key:)](https://github.com/WaykiChain/wicc-wallet-utils-go/blob/master/WaykichainWallet_test.go)
 ```go
 address := GetAddressFromPrivateKey(privateKey, WAYKI_MAINTNET)
 ```
-Get address from mnemonic:
+[助记词获得钱包地址(Get address from mnemonic:)](https://github.com/WaykiChain/wicc-wallet-utils-go/blob/master/WaykichainWallet_test.go)
 ```go
 mnemonic := "empty regular curve turtle student prize toy accuse develop spike scatter ginger"
 address := GetAddressFromMnemonic(mnemonic, WAYKI_MAINTNET)
 ```
-### WaykiChain sign transaction
-Signing a transaction with a private key,you can submit your offline signature rawtx transaction via bass.
+### 维基链签名交易(WaykiChain Sign Transaction)
+用私钥签名交易，你可以使用bass提交钱包库生成的rawtx字符串。  
+Signing a transaction with a private key,you can submit your offline signature rawtx transaction by bass.
 
 |  BassNetwork |  ApiAddr | 
 |-------------- |----------------------------------|
@@ -82,7 +85,7 @@ MainNet<https://baas.wiccdev.org/v2/api/swagger-ui.html#!/block-controller/getBl
 
 TestNet <https://baas-test.wiccdev.org/v2/api/swagger-ui.html#!/block-controller/getBlockCountUsingPOST>
 
-#### common transaction
+#### 普通交易(Common Transaction)
 ```go
 func SignRegisterAccountTx(privateKey string, param *RegisterAccountTxParam) (string, error)
 
@@ -96,18 +99,30 @@ func SignRegisterContractTx(privateKey string, param *RegisterContractTxParam) (
 
 func SignUCoinTransferTx(privateKey string, param *UCoinTransferTxParam) (string, error) 
 ```
-- SignRegisterAccountTx.sign registration transaction with a private key , return the rawtx string.
-- SignCommonTx.sign transfer transaction with a private key , return the rawtx string.
-- SignDelegateTx.sign delegate transaction with a private key , return the rawtx string.
-- SignCallContractTx.sign invoke contract transaction with a private key , return the rawtx string.
-- SignRegisterContractTx.sign deploy contract transaction with a private key , return the rawtx string.
-- SignUCoinTransferTx.sign Multi-coin transfer transaction with a private key , return the rawtx string.
+- **SignRegisterAccountTx.**  
+钱包注册交易  
+sign registration transaction with a private key , return the rawtx string.
+- **SignCommonTx.**  
+普通转账交易  
+sign transfer transaction with a private key , return the rawtx string.
+- **SignDelegateTx.**  
+投票交易  
+sign delegate transaction with a private key , return the rawtx string.
+- **SignCallContractTx.**  
+调用合约交易  
+sign invoke contract transaction with a private key , return the rawtx string.
+- **SignRegisterContractTx.**  
+合约部署交易  
+sign deploy contract transaction with a private key , return the rawtx string.
+- **SignUCoinTransferTx.**  
+多币种转账  
+sign Multi-coin transfer transaction with a private key , return the rawtx string.
 
-Example:
-
+示例(Example:)  
+合约交易已经不是必须的，你可以在其他交易通过公钥激活。  
 **The register transaction is not required, you can activate wallet by public key in other transactions**
 
-Sign register account transaction:
+[钱包注册交易(Sign register account transaction:)]()
 ```go
 	privateKey := "YAa1wFCfFnZ5bt4hg9MDeDevTMd1Nu874Mn83hEXwtfAL2vkQE9f"
 	var txParam RegisterAccountTxParam  
@@ -120,7 +135,7 @@ Sign register account transaction:
 	}
 ```
 
-Sign common transfer transaction:
+[转账交易(Sign common transfer transaction:)]()
 ```go
     privateKey := "YAa1wFCfFnZ5bt4hg9MDeDevTMd1Nu874Mn83hEXwtfAL2vkQE9f" 
 	var txParams CommonTxParam
@@ -136,7 +151,7 @@ Sign common transfer transaction:
 		t.Error("SignCommonTx err: ", err)
 	}
 ```
-Sign Delegate transaction:
+[投票交易(Sign Delegate transaction:)]()
 ```go
     privateKey := "Y9sx4Y8sBAbWDAqAWytYuUnJige3ZPwKDZp1SCDqqRby1YMgRG9c"
 	var txParams DelegateTxParam
@@ -154,7 +169,7 @@ Sign Delegate transaction:
 		t.Error("SignDelegateTx err: ", err)
 	}
 ```
-Sign invoke contract transaction:
+[合约调用交易(Sign invoke contract transaction:)]()
 ```go
 	privateKey := "Y9sx4Y8sBAbWDAqAWytYuUnJige3ZPwKDZp1SCDqqRby1YMgRG9c"
 	var txParam CallContractTxParam
@@ -170,7 +185,7 @@ Sign invoke contract transaction:
 		t.Error("SignCallContractTx err: ", err)
 	}
 ```
-Sign deploy contract Transaction:
+[合约部署交易(Sign deploy contract Transaction:)]()
 ```go
 	privateKey := "YAa1wFCfFnZ5bt4hg9MDeDevTMd1Nu874Mn83hEXwtfAL2vkQE9f"
 	script, err := ioutil.ReadFile("./demo/data/hello.lua")
@@ -188,7 +203,7 @@ Sign deploy contract Transaction:
 		t.Error("SignRegisterContractTx err: ", err)
 	}
 ```
-Sign Multi-coin transfer transaction:
+[多币种转账交易(Sign Multi-coin transfer transaction:)]()
 ```go
     privateKey := "Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEnmFEYMqQd13"
 	var txParam UCoinTransferTxParam
@@ -207,7 +222,8 @@ Sign Multi-coin transfer transaction:
 	}
 ```
 
-#### CDP Transaction
+#### CDP交易(CDP Transaction)
+用户可以通过抵押WICC获得WUSD,一个用户只能拥有一个cdp，除非之前的cdp已经关闭。  
 Any user holding a WICC can send a WICC to the CDP (Collaterized Debt Position) to obtain a certain percentage of WUSD.a user can only have one cdp unless the previous cdp has been destroyed.
 
 ```go
@@ -217,11 +233,17 @@ func SignCdpRedeemTx(privateKey string, param *CdpRedeemTxParam) (string, error)
 
 func SignCdpLiquidateTx(privateKey string, param *CdpLiquidateTxParam) (string, error)
 ```
-- SignCdpStakeTx.sign cdp stake transaction with a private key , return the rawtx string.
-- SignCdpRedeemTx.sign cdp redeem transaction with a private key , return the rawtx string.
-- SignCdpLiquidateTx.sign cdp liquidate transaction with a private key , return the rawtx string.
+- **SignCdpStakeTx.**  
+CDP抵押交易签名。  
+sign cdp stake transaction with a private key , return the rawtx string.
+- **SignCdpRedeemTx.**  
+cdp赎回交易签名。  
+sign cdp redeem transaction with a private key , return the rawtx string.
+- **SignCdpLiquidateTx.**  
+CDP清算交易签名。  
+sign cdp liquidate transaction with a private key , return the rawtx string.
 
-Example:
+示例(Example:)
 
 Sign cdp stake transaction:
 ```go
@@ -280,6 +302,7 @@ Sign cdp liquidate transaction:
 ```
 
 #### DEX Transaction
+维基链去中心化交易所。  
 WaykiChain decentralized exchange.
 
 ```go
@@ -293,11 +316,21 @@ func SignDexMarketBuyTx(privateKey string, param *DexMarketTxParam) (string, err
 
 func SignDexCancelTx(privateKey string, param *DexCancelTxParam) (string, error)
 ```
-- SignDexSellLimitTx.sign dex sell limit price transaction with a private key , return the rawtx string.
-- SignDexMarketSellTx.sign dex sell market price transaction with a private key , return the rawtx string.
-- SignDexBuyLimitTx.sign dex buy limit price transaction with a private key , return the rawtx string.
-- SignDexMarketBuyTx.sign dex buy market price transaction with a private key , return the rawtx string.
-- SignDexCancelTx.sign cancel dex order transaction with a private key , return the rawtx string.
+- **SignDexSellLimitTx.**  
+限价卖单。 
+sign dex sell limit price transaction with a private key , return the rawtx string.
+- **SignDexMarketSellTx.**  
+市价卖单。  
+sign dex sell market price transaction with a private key , return the rawtx string.
+- **SignDexBuyLimitTx.**  
+限价买单。  
+sign dex buy limit price transaction with a private key , return the rawtx string.
+- **SignDexMarketBuyTx.**  
+市价买单。  
+sign dex buy market price transaction with a private key , return the rawtx string.
+- **SignDexCancelTx.**  
+取消挂单。  
+sign cancel dex order transaction with a private key , return the rawtx string.
 
 Sign dex Buy limit price transaction:
 ```go
