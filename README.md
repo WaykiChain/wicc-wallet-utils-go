@@ -1,6 +1,6 @@
 # wicc-wallet-utils-go  
-（维基go语言离线签名钱包库）  
-WaykiChain Wallet Library for Offline Operation written in golang
+维基链go语言离线签名钱包库 
+(WaykiChain Wallet Library for Offline Operation written in golang)
 
 ## 下载(Install)
 
