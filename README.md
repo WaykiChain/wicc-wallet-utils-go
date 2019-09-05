@@ -28,16 +28,21 @@ func GetAddressFromMnemonic(words string, netType int) string
 ```
 - GenerateMnemonics. 
 
-生成12个助记词(You will get 12 words).
+  生成12个助记词
+  
+  (You will get 12 words).
 
 - GetPrivateKeyFromMnemonic. 
 
-你提供你的助记词和网络类型（1 主网，2 测试网），函数会给你返回私钥，主网私钥大写P开头，测试网大写Y开头。
+  你提供你的助记词和网络类型（1 主网，2 测试网），函数会给你返回私钥，主网私钥大写P开头，测试网大写Y开头。
 
-（You should provide your mnemonic and network Type (1 MainNet,2 TestNet),function return private Key,MainNet Private key start with "P" ,TestNet
-private key start with "Y".）
+ （You should provide your mnemonic and network Type (1 MainNet,2 TestNet),function return private Key,MainNet Private key start with "P" ,TestNet private key start with "Y".）
 
-- GetPubKeyFromPrivateKey. you should provide your Private Key,the function return wallet public key as hex string.
+- GetPubKeyFromPrivateKey. 
+
+ （提供私钥获得公钥，获得公钥的16进制字符串）
+   
+  you should provide your Private Key,the function return wallet public key as hex string.
 
 - GetAddressFromPrivateKey. you should provide your Private Key,the function return wallet Address as base58 encode string,MainNet Address start with "W",TestNet Address start with "w".
 
