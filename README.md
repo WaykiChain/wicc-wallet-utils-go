@@ -122,7 +122,8 @@ sign deploy contract transaction with a private key , return the rawtx string.
 sign Multi-coin transfer transaction with a private key , return the rawtx string.
 
 示例(Example:)  
-合约交易已经不是必须的，你可以在其他交易通过公钥参数激活。  
+
+钱包注册交易已经不是必须的，你可以在其他交易通过公钥参数激活。  
 **The register transaction is not required, you can activate wallet by public key in other transactions**
 
 [钱包注册交易(Sign register account transaction:)]()
