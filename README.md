@@ -86,6 +86,9 @@ MainNet<https://baas.wiccdev.org/v2/api/swagger-ui.html#!/block-controller/getBl
 TestNet <https://baas-test.wiccdev.org/v2/api/swagger-ui.html#!/block-controller/getBlockCountUsingPOST>
 
 #### 普通交易(Common Transaction)
+
+ [**WICC交易单位说明 (WICC Transaction Unit description)**](https://wicc-devbook.readthedocs.io/zh_CN/latest/Problem/question/)
+
 ```go
 func SignRegisterAccountTx(privateKey string, param *RegisterAccountTxParam) (string, error)
 
@@ -119,7 +122,7 @@ sign deploy contract transaction with a private key , return the rawtx string.
 sign Multi-coin transfer transaction with a private key , return the rawtx string.
 
 示例(Example:)  
-合约交易已经不是必须的，你可以在其他交易通过公钥激活。  
+合约交易已经不是必须的，你可以在其他交易通过公钥参数激活。  
 **The register transaction is not required, you can activate wallet by public key in other transactions**
 
 [钱包注册交易(Sign register account transaction:)]()
@@ -149,6 +152,26 @@ sign Multi-coin transfer transaction with a private key , return the rawtx strin
 	hash, err := SignCommonTx(privateKey, &txParams)
 	if err != nil {
 		t.Error("SignCommonTx err: ", err)
+	}
+```
+[多币种转账交易(Sign Multi-coin transfer transaction:)]()
+```go
+    //CointSymbol:Supported (WICC WUSD  WGRT) 
+    //FeeSymbol:Supported (WICC WUSD  WGRT) 
+    privateKey := "Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEnmFEYMqQd13"
+	var txParam UCoinTransferTxParam
+	txParam.FeeSymbol = string(commons.WICC)
+	txParam.CoinSymbol = string(commons.WICC)
+	txParam.CoinAmount = 1000000
+	txParam.Fees = 10000
+	txParam.ValidHeight = 297449
+	txParam.SrcRegId = "0-1"
+	txParam.DestAddr = "wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6"
+	txParam.PubKey = "036c5397f3227a1e209952829d249b7ad0f615e43b763ac15e3a6f52627a10df21"
+	txParam.Memo = ""
+	hash, err := SignUCoinTransferTx(privateKey, &txParam)
+	if err != nil {
+		t.Error("SignCdpStakeTx err: ", err)
 	}
 ```
 [投票交易(Sign Delegate transaction:)]()
@@ -201,24 +224,6 @@ sign Multi-coin transfer transaction with a private key , return the rawtx strin
 	hash, err := SignRegisterContractTx(privateKey, &txParam)
 	if err != nil {
 		t.Error("SignRegisterContractTx err: ", err)
-	}
-```
-[多币种转账交易(Sign Multi-coin transfer transaction:)]()
-```go
-    privateKey := "Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEnmFEYMqQd13"
-	var txParam UCoinTransferTxParam
-	txParam.FeeSymbol = string(commons.WICC)
-	txParam.CoinSymbol = string(commons.WICC)
-	txParam.CoinAmount = 1000000
-	txParam.Fees = 10000
-	txParam.ValidHeight = 297449
-	txParam.SrcRegId = "0-1"
-	txParam.DestAddr = "wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6"
-	txParam.PubKey = "036c5397f3227a1e209952829d249b7ad0f615e43b763ac15e3a6f52627a10df21"
-	txParam.Memo = ""
-	hash, err := SignUCoinTransferTx(privateKey, &txParam)
-	if err != nil {
-		t.Error("SignCdpStakeTx err: ", err)
 	}
 ```
 
