@@ -22,6 +22,8 @@ const (
 	DELEGATE_TX                        //!< delegate tx
 
 	FCOIN_STAKE_TX           = 8
+	ASSET_ISSUE_TX=9  //!< a user issues onchain asset
+    ASSET_UPDATE_TX=10   //!< a user update onchain asset
 	UCOIN_TRANSFER_TX        = 11
 	UCOIN_CONTRACT_INVOKE_TX = 15
 	PRICE_FEED_TX            = 16

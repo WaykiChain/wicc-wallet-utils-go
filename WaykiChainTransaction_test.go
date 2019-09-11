@@ -334,3 +334,51 @@ func TestSignDexCancelTx(t *testing.T) {
 	}
 	println(hash)
 }
+
+/*
+Asset Create 创建资产
+fee Minimum 550 wicc
+*/
+func TestAssetCreateTx(t *testing.T) {
+	privateKey := "Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEnmFEYMqQd13"
+	var txParam AssetIssueTxParam
+	txParam.FeeSymbol = string(commons.WICC)
+	txParam.Fees = 55000000000
+	txParam.ValidHeight = 688709
+	txParam.SrcRegId = "0-1"
+	txParam.PubKey = "03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
+	txParam.AssetOwner="0-1"
+	txParam.AssetTotal=100*100000000
+	txParam.AssetSymbol="S"
+	txParam.AssetName="SK Token"
+	txParam.MinTable=true
+	hash, err := SignAssetCreateTx(privateKey, &txParam)
+	if err != nil {
+		t.Error("SignCdpStakeTx err: ", err)
+	}
+	println(hash)
+}
+
+/*
+Asset Update 更新资产
+fee Minimum 110 wicc
+*/
+func TestAssetUpdateTx(t *testing.T) {
+	privateKey := "Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEnmFEYMqQd13"
+	var txParam AssetUpdateTxParam
+	txParam.FeeSymbol = string(commons.WICC)
+	txParam.Fees = 11000000000
+	txParam.ValidHeight = 688709
+	txParam.SrcRegId = "0-1"
+	txParam.UpdateType=int(commons.ASSET_MINT_AMOUNT)
+	txParam.PubKey = "03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
+	txParam.AssetOwner="0-1"
+	txParam.AssetTotal=100*100000000
+	txParam.AssetSymbol="S"
+	txParam.AssetName="SK Token"
+	hash, err := SignAssetUpdateTx(privateKey, &txParam)
+	if err != nil {
+		t.Error("SignCdpStakeTx err: ", err)
+	}
+	println(hash)
+}

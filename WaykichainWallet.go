@@ -2,9 +2,10 @@ package wiccwallet
 
 import (
 	"encoding/hex"
-
+	hash2 "github.com/WaykiChain/wicc-wallet-utils-go/commons/hash"
 	"github.com/WaykiChain/wicc-wallet-utils-go/commons"
 	"github.com/btcsuite/btcutil"
+	"github.com/btcsuite/btcutil/base58"
 )
 
 //Generate Mnemonics string, saprated by space, default language is EN(english)
@@ -15,6 +16,44 @@ func GenerateMnemonics() string {
 		return ""
 	}
 	return words
+}
+
+func CheckWalletAddress(address string, netType int) (bool, error) {
+	versionAndDataBytes, version, error := base58.CheckDecode(address)
+	if (len(versionAndDataBytes) < 1 || error != nil) {
+		return false, ERR_INVALID_DEST_ADDR
+	}
+	//version:=versionAndDataBytes[0] & 0xFF
+	netParams, err := commons.NetworkToChainConfig(commons.Network(netType))
+	if (err != nil) {
+		return false, ERR_INVALID_NETWORK
+	}
+	if (netParams.PubKeyHashAddrID == version) {
+		return true, nil
+	} else {
+		return false, nil
+	}
+}
+
+func CheckPrivateKey(privateKey string, netType int) (bool, error) {
+	_, err := btcutil.DecodeWIF(privateKey)
+	if err != nil {
+		return false, ERR_INVALID_PRIVATE_KEY
+	}
+	versionAndDataBytes := base58.Decode(privateKey)
+	if (len(versionAndDataBytes) < 1) {
+		return false, ERR_INVALID_PRIVATE_KEY
+	}
+	version := versionAndDataBytes[0] & 0xFF
+	netParams, err := commons.NetworkToChainConfig(commons.Network(netType))
+	if (err != nil) {
+		return false, ERR_INVALID_NETWORK
+	}
+	if (netParams.PrivateKeyID == version) {
+		return true, nil
+	} else {
+		return false, nil
+	}
 }
 
 //助记词转换地址
@@ -32,13 +71,13 @@ func GetPrivateKeyFromMnemonic(words string, netType int) string {
 }
 
 // get publickey from privatekey
-func GetPubKeyFromPrivateKey(privKey string) (string,error) {
+func GetPubKeyFromPrivateKey(privKey string) (string, error) {
 	wifKey, err := btcutil.DecodeWIF(privKey)
 	if err != nil {
 		return "", ERR_INVALID_PRIVATE_KEY
 	}
-	pubHex:=hex.EncodeToString(wifKey.SerializePubKey())
-	return pubHex,nil
+	pubHex := hex.EncodeToString(wifKey.SerializePubKey())
+	return pubHex, nil
 }
 
 //GetAddressFromPrivateKey get address from private key
@@ -125,7 +164,7 @@ func SignCommonTx(privateKey string, param *CommonTxParam) (string, error) {
 
 	tx.TxType = commons.COMMON_TX
 	tx.Version = TX_VERSION
-	tx.Memo=param.Memo
+	tx.Memo = param.Memo
 	hash := tx.SignTx(wifKey)
 	return hash, nil
 }
@@ -249,6 +288,23 @@ func SignCallContractTx(privateKey string, param *CallContractTxParam) (string, 
 	return hash, nil
 }
 
+//Sign message by private Key
+func SignMessage(privateKey string, message string) (*SignMessageParam, error) {
+	hash := hash2.Hash160([]byte(message))
+	wifKey, errorDecode := btcutil.DecodeWIF(privateKey)
+	if (errorDecode != nil) {
+		return nil, ERR_INVALID_PRIVATE_KEY
+	}
+	key := wifKey.PrivKey
+	signMsg, errorSign := key.Sign(hash)
+	if (errorSign != nil) {
+		return nil, ERR_SIGNATURE_ERROR
+	}
+	sign := SignMessageParam{hex.EncodeToString(wifKey.SerializePubKey()),
+		hex.EncodeToString(signMsg.Serialize())}
+	return &sign, nil
+}
+
 //SignRegisterContractTx sign for call register contract tx
 // returns the signature hex string and nil error, or returns empty string and the error if it has error
 func SignRegisterContractTx(privateKey string, param *RegisterContractTxParam) (string, error) {
@@ -310,7 +366,7 @@ func SignUCoinTransferTx(privateKey string, param *UCoinTransferTxParam) (string
 	}
 	tx.ValidHeight = param.ValidHeight
 
-	tx.DestId =parseUserId(param.DestAddr)
+	tx.DestId = parseUserId(param.DestAddr)
 	tx.UserId = parseRegId(param.SrcRegId)
 
 	pubKey, err := hex.DecodeString(param.PubKey)
@@ -395,8 +451,8 @@ func SignCdpStakeTx(privateKey string, param *CdpStakeTxParam) (string, error) {
 	}
 	tx.BcoinSymbol = string(param.BcoinSymbol)
 	tx.ScoinSymbol = string(param.ScoinSymbol)
-	if(param.CdpTxid==""){
-      param.CdpTxid="0000000000000000000000000000000000000000000000000000000000000000"
+	if (param.CdpTxid == "") {
+		param.CdpTxid = "0000000000000000000000000000000000000000000000000000000000000000"
 	}
 	txHash, err := hex.DecodeString(param.CdpTxid)
 	if (err != nil) {
@@ -553,8 +609,8 @@ func SignDexSellLimitTx(privateKey string, param *DexLimitTxParam) (string, erro
 	if param.CoinSymbol == "" || param.AssetSymbol == "" {
 		return "", ERR_COIN_TYPE
 	}
-	tx.AssetSymbol=param.AssetSymbol
-	tx.CoinSymbol=param.CoinSymbol
+	tx.AssetSymbol = param.AssetSymbol
+	tx.CoinSymbol = param.CoinSymbol
 	if (param.FeeSymbol == "") {
 		tx.FeeSymbol = string(commons.WICC)
 	} else {
@@ -602,8 +658,8 @@ func SignDexMarketSellTx(privateKey string, param *DexMarketTxParam) (string, er
 	if param.CoinSymbol == "" || param.AssetSymbol == "" {
 		return "", ERR_COIN_TYPE
 	}
-	tx.AssetSymbol=param.AssetSymbol
-	tx.CoinSymbol=param.CoinSymbol
+	tx.AssetSymbol = param.AssetSymbol
+	tx.CoinSymbol = param.CoinSymbol
 	if (param.FeeSymbol == "") {
 		tx.FeeSymbol = string(commons.WICC)
 	} else {
@@ -655,8 +711,8 @@ func SignDexBuyLimitTx(privateKey string, param *DexLimitTxParam) (string, error
 	if param.CoinSymbol == "" || param.AssetSymbol == "" {
 		return "", ERR_COIN_TYPE
 	}
-	tx.AssetSymbol=param.AssetSymbol
-	tx.CoinSymbol=param.CoinSymbol
+	tx.AssetSymbol = param.AssetSymbol
+	tx.CoinSymbol = param.CoinSymbol
 	if (param.FeeSymbol == "") {
 		tx.FeeSymbol = string(commons.WICC)
 	} else {
@@ -704,8 +760,8 @@ func SignDexMarketBuyTx(privateKey string, param *DexMarketTxParam) (string, err
 	if param.CoinSymbol == "" || param.AssetSymbol == "" {
 		return "", ERR_COIN_TYPE
 	}
-	tx.AssetSymbol=param.AssetSymbol
-	tx.CoinSymbol=param.CoinSymbol
+	tx.AssetSymbol = param.AssetSymbol
+	tx.CoinSymbol = param.CoinSymbol
 	if (param.FeeSymbol == "") {
 		tx.FeeSymbol = string(commons.WICC)
 	} else {
@@ -760,6 +816,133 @@ func SignDexCancelTx(privateKey string, param *DexCancelTxParam) (string, error)
 		return "", ERR_CDP_TX_HASH
 	}
 	tx.DexHash = txHash
+	hash := tx.SignTx(wifKey)
+	return hash, nil
+}
+
+//SignAssetIssueTx sign
+// returns the signature hex string and nil error, or returns empty string and the error if it has error
+func SignAssetCreateTx(privateKey string, param *AssetIssueTxParam) (string, error) {
+
+	wifKey, err := btcutil.DecodeWIF(privateKey)
+	if err != nil {
+		return "", ERR_INVALID_PRIVATE_KEY
+	}
+	var tx commons.WaykiAssetIssueTx
+
+	if param.ValidHeight < 0 {
+		return "", ERR_NEGATIVE_VALID_HEIGHT
+	}
+	tx.ValidHeight = param.ValidHeight
+	tx.UserId = parseRegId(param.SrcRegId)
+
+	pubKey, err := hex.DecodeString(param.PubKey)
+	if (err != nil) {
+		return "", ERR_USER_PUBLICKEY
+	}
+	tx.PubKey = pubKey
+	if (tx.UserId == nil && tx.PubKey == nil) {
+		return "", ERR_INVALID_SRC_REG_ID
+	}
+	if param.Fees < 55000000000 {
+		return "", ERR_RANGE_FEE
+	}
+	tx.Fees = uint64(param.Fees)
+
+	tx.TxType = commons.ASSET_ISSUE_TX
+	tx.Version = TX_VERSION
+
+	if !checkAssetSymbol(param.AssetSymbol) {
+		return "", ERR_SYMBOL_ERROR
+	}
+	tx.AssetSymbol = param.AssetSymbol
+	if (param.FeeSymbol == "") {
+		tx.FeeSymbol = string(commons.WICC)
+	} else {
+		tx.FeeSymbol = string(param.FeeSymbol)
+	}
+	tx.MinTable = param.MinTable
+	if (param.AssetName == "") {
+		return "", ERR_ASSET_NAME_ERROR
+	}
+	tx.AssetName = param.AssetName
+	if (param.AssetTotal < 100000000) {
+		return "", ERR_TOTAl_SUPPLY_ERROR
+	}
+	tx.AssetTotal = param.AssetTotal
+	tx.AssetOwner = parseRegId(param.AssetOwner)
+	if (tx.AssetOwner == nil) {
+		return "", ERR_ASSET_UPDATE_OWNER_ERROR
+	}
+	hash := tx.SignTx(wifKey)
+	return hash, nil
+}
+
+//SignAssetUpdateTx sign
+// returns the signature hex string and nil error, or returns empty string and the error if it has error
+func SignAssetUpdateTx(privateKey string, param *AssetUpdateTxParam) (string, error) {
+
+	wifKey, err := btcutil.DecodeWIF(privateKey)
+	if err != nil {
+		return "", ERR_INVALID_PRIVATE_KEY
+	}
+	var tx commons.WaykiAssetUpdateTx
+
+	if param.ValidHeight < 0 {
+		return "", ERR_NEGATIVE_VALID_HEIGHT
+	}
+	tx.ValidHeight = param.ValidHeight
+	tx.UserId = parseRegId(param.SrcRegId)
+
+	pubKey, err := hex.DecodeString(param.PubKey)
+	if (err != nil) {
+		return "", ERR_USER_PUBLICKEY
+	}
+	tx.PubKey = pubKey
+	if (tx.UserId == nil && tx.PubKey == nil) {
+		return "", ERR_INVALID_SRC_REG_ID
+	}
+	if param.Fees < 11000000000 {
+		return "", ERR_RANGE_FEE
+	}
+	tx.Fees = uint64(param.Fees)
+
+	tx.TxType = commons.ASSET_UPDATE_TX
+	tx.Version = TX_VERSION
+
+	if !checkAssetSymbol(param.AssetSymbol) {
+		return "", ERR_SYMBOL_ERROR
+	}
+	tx.AssetSymbol = param.AssetSymbol
+	if (param.FeeSymbol == "") {
+		tx.FeeSymbol = string(commons.WICC)
+	} else {
+		tx.FeeSymbol = string(param.FeeSymbol)
+	}
+    tx.UpdateType=param.UpdateType
+	switch param.UpdateType {
+	case 1:
+		tx.AssetOwner = parseRegId(param.AssetOwner)
+		if (tx.AssetOwner == nil) {
+			return "", ERR_ASSET_UPDATE_OWNER_ERROR
+		}
+		break
+	case 2:
+		if (param.AssetName == "") {
+			return "", ERR_ASSET_NAME_ERROR
+		}
+		tx.AssetName = param.AssetName
+		break
+	case 3:
+		if (param.AssetTotal < 100000000) {
+			return "", ERR_TOTAl_SUPPLY_ERROR
+		}
+		tx.AssetTotal = param.AssetTotal
+		break
+	default:
+		return "", ERR_ASSET_UPDATE_TYPE_ERROR
+	}
+
 	hash := tx.SignTx(wifKey)
 	return hash, nil
 }

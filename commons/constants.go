@@ -45,7 +45,9 @@ const (
 	KOREAN                    = "KR"
 	SPANISH                   = "ES"
 )
+
 type CoinType string
+
 const (
 	WICC CoinType = "WICC"
 	WGRT          = "WGRT"
@@ -61,6 +63,13 @@ const (
 	USDT          = "USDT"
 	GOLD          = "GOLD"
 	KWH           = "KWH"
+)
+
+type AssetUpdateType int
+const (
+	ASSET_OWNER_UID   AssetUpdateType = 1
+	ASSET_NAME                        = 2
+	ASSET_MINT_AMOUNT                 = 3
 )
 
 func NetworkToChainConfig(net Network) (*chaincfg.Params, error) {

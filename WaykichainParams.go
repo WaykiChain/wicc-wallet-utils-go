@@ -5,6 +5,7 @@ import (
 
 	"github.com/WaykiChain/wicc-wallet-utils-go/commons"
 	"github.com/btcsuite/btcutil/base58"
+	"regexp"
 )
 
 const (
@@ -101,6 +102,11 @@ type RegisterContractTxParam struct {
 	Description string // description of contract
 }
 
+type SignMessageParam struct {
+	PublicKey string
+	SignMessage string
+}
+
 //Cdp Stake param of the tx
 type CdpStakeTxParam struct {
 	ValidHeight int64  // valid height Within the height of the latest block
@@ -186,8 +192,35 @@ type DexCancelTxParam struct {
 	DexTxid     string
 }
 
+type AssetIssueTxParam struct {
+	ValidHeight int64  // valid height Within the height of the latest block
+	SrcRegId    string // the reg id of the register
+	Fees       int64
+	PubKey      string
+	FeeSymbol string      //Fee Type (WICC/WUSD)
+	AssetSymbol string   //From Coin Type
+	AssetName   string
+	AssetTotal   uint64
+	AssetOwner   string //owner regid
+	MinTable     bool
+}
+
+type AssetUpdateTxParam struct {
+	ValidHeight int64  // valid height Within the height of the latest block
+	SrcRegId    string // the reg id of the register
+	Fees       int64
+	PubKey      string
+	UpdateType int
+	FeeSymbol string      //Fee Type (WICC/WUSD)
+	AssetSymbol string   //From Coin Type
+	AssetName   string
+	AssetTotal   uint64
+	AssetOwner   string //owner regid
+}
+
 // errors
 var (
+	ERR_INVALID_NETWORK   = errors.New("Invalid Network type")
 	ERR_INVALID_PRIVATE_KEY   = errors.New("privateKey invalid")
 	ERR_NEGATIVE_VALID_HEIGHT = errors.New("ValidHeight can not be negative")
 	ERR_INVALID_SRC_REG_ID    = errors.New("SrcRegId must be a valid RegID")
@@ -209,6 +242,12 @@ var (
 	ERR_USER_PUBLICKEY   = errors.New("PublicKey invalid")
 
 	ERR_ASK_PRICE   = errors.New("Ask Price invalid")
+	ERR_SIGNATURE_ERROR       = errors.New("Signature error")
+	ERR_SYMBOL_ERROR       = errors.New("Symbol Capital letter A-Z 1-7 digits [A_Z] error")
+	ERR_ASSET_NAME_ERROR       = errors.New("Asset Name error")
+	ERR_TOTAl_SUPPLY_ERROR       = errors.New("Asset Total Supply error")
+	ERR_ASSET_UPDATE_TYPE_ERROR       = errors.New("Asset Update Type error")
+	ERR_ASSET_UPDATE_OWNER_ERROR       = errors.New("Asset Update Owner error")
 )
 
 func abs(x int64) int64 {
@@ -230,6 +269,13 @@ func checkCdpMinTxFee(fees int64) bool {
 
 func checkMinTxFee(fees int64) bool {
 	return fees >= MIN_TX_FEE
+}
+
+func checkAssetSymbol(symbol string) bool {
+	var symbolMatch="^[A-Z]{1,7}$"
+	var match=regexp.MustCompile(symbolMatch)
+	var ma=match.MatchString(symbol)
+	return ma
 }
 
 func parseRegId(idStr string) *commons.UserIdWraper {
