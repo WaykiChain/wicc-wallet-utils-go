@@ -158,6 +158,19 @@ type UCoinTransferTxParam struct {
 	Memo        string
 }
 
+//UCoin Contract param of the tx
+type UCoinContractTxParam struct {
+	ValidHeight int64  // valid height Within the height of the latest block
+	SrcRegId    string // the reg id of the caller
+	AppId       string // the reg id of the contract app
+	Fees        int64  // fees for mining
+	CoinAmount      int64  // the values send to the contract app
+	ContractHex string // the command of contract, hex format
+	PubKey      string
+	FeeSymbol string      //Fee Type (WICC/WUSD)
+	CoinSymbol string   //From Coin Type
+}
+
 //Dex Sell Limit param of the tx
 type DexLimitTxParam struct {
 	ValidHeight int64  // valid height Within the height of the latest block

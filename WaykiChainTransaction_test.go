@@ -143,6 +143,30 @@ func TestSignUCoinTransferTx(t *testing.T) {
 }
 
 /*
+  * 多币种合约调用交易 ,支持多种币种转账
+  * Test nUniversal Coin Contract Tx
+  * fee Minimum 0.0001 wicc
+  * */
+func TestSignUCoinContractTransferTx(t *testing.T) {
+	privateKey := "Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEnmFEYMqQd13"
+	var txParam UCoinContractTxParam
+	txParam.FeeSymbol = string(commons.WICC)
+	txParam.CoinSymbol = string(commons.WICC)
+	txParam.CoinAmount = 1000000
+	txParam.Fees = 10000
+	txParam.ValidHeight = 297449
+	txParam.SrcRegId = "0-1"
+	txParam.AppId = "0-1"
+	txParam.PubKey = "036c5397f3227a1e209952829d249b7ad0f615e43b763ac15e3a6f52627a10df21"
+	txParam.ContractHex = "f017"
+	hash, err := SignUCoinCallContractTx(privateKey, &txParam)
+	if err != nil {
+		t.Error("SignUCoinCallContractTx err: ", err)
+	}
+	println(hash)
+}
+
+/*
     * 创建,追加cdp交易
     * Create or append an  cdp transaction
     * fee Minimum 0.001 wicc

@@ -288,6 +288,65 @@ func SignCallContractTx(privateKey string, param *CallContractTxParam) (string, 
 	return hash, nil
 }
 
+//SignUCoinCallContractTx sign for call contract tx
+// returns the signature hex string and nil error, or returns empty string and the error if it has error
+func SignUCoinCallContractTx(privateKey string, param *UCoinContractTxParam) (string, error) {
+	// check and convert params
+	wifKey, err := btcutil.DecodeWIF(privateKey)
+	if err != nil {
+		return "", ERR_INVALID_PRIVATE_KEY
+	}
+
+	var tx commons.WaykiUCoinCallContractTx
+
+	if param.ValidHeight < 0 {
+		return "", ERR_NEGATIVE_VALID_HEIGHT
+	}
+	tx.ValidHeight = param.ValidHeight
+	tx.UserId = parseRegId(param.SrcRegId)
+	tx.AppId = parseRegId(param.AppId)
+	if tx.AppId == nil {
+		return "", ERR_INVALID_APP_ID
+	}
+	if !checkMoneyRange(param.CoinAmount) {
+		return "", ERR_RANGE_VALUES
+	}
+	tx.CoinAmount = int64(param.CoinAmount)
+	if !checkMoneyRange(param.Fees) {
+		return "", ERR_RANGE_FEE
+	}
+	if !checkMinTxFee(param.Fees) {
+		return "", ERR_FEE_SMALLER_MIN
+	}
+	tx.Fees = int64(param.Fees)
+	binary, errHex := hex.DecodeString(param.ContractHex)
+	if errHex != nil {
+		return "", ERR_INVALID_CONTRACT_HEX
+	}
+	tx.Contract = []byte(binary)
+	pubKey, err := hex.DecodeString(param.PubKey)
+	if (err != nil) {
+		return "", ERR_USER_PUBLICKEY
+	}
+	tx.PubKey = pubKey
+	if (tx.UserId == nil && tx.PubKey == nil) {
+		return "", ERR_INVALID_SRC_REG_ID
+	}
+	if param.CoinSymbol == "" {
+		return "", ERR_COIN_TYPE
+	}
+	tx.CoinSymbol = param.CoinSymbol
+	if (param.FeeSymbol == "") {
+		tx.FeeSymbol = string(commons.WICC)
+	} else {
+		tx.FeeSymbol = string(param.FeeSymbol)
+	}
+	tx.TxType = commons.UCOIN_CONTRACT_INVOKE_TX
+	tx.Version = TX_VERSION
+	hash := tx.SignTx(wifKey)
+	return hash, nil
+}
+
 //Sign message by private Key
 func SignMessage(privateKey string, message string) (*SignMessageParam, error) {
 	hash := hash2.Hash160([]byte(message))
@@ -387,17 +446,16 @@ func SignUCoinTransferTx(privateKey string, param *UCoinTransferTxParam) (string
 	if param.CoinAmount < 0 {
 		return "", ERR_RANGE_VALUES
 	}
-
+	tx.CoinAmount = param.CoinAmount
 	if param.CoinSymbol == "" {
 		return "", ERR_COIN_TYPE
 	}
+	tx.CoinSymbol = string(param.CoinSymbol)
 	if (param.FeeSymbol == "") {
 		tx.FeeSymbol = string(commons.WICC)
 	} else {
 		tx.FeeSymbol = string(param.FeeSymbol)
 	}
-	tx.CoinSymbol = string(param.CoinSymbol)
-	tx.CoinAmount = param.CoinAmount
 	tx.Memo = param.Memo
 	hash := tx.SignTx(wifKey)
 	return hash, nil
