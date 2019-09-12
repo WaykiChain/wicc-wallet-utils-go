@@ -25,6 +25,7 @@ const (
 	ASSET_ISSUE_TX=9  //!< a user issues onchain asset
     ASSET_UPDATE_TX=10   //!< a user update onchain asset
 	UCOIN_TRANSFER_TX        = 11
+	UCONTRACT_DEPLOY_TX         = 14   //!< universal VM contract deployment
 	UCOIN_CONTRACT_INVOKE_TX = 15
 	PRICE_FEED_TX            = 16
 

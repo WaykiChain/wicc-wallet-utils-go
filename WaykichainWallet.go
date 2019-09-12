@@ -410,6 +410,59 @@ func SignRegisterContractTx(privateKey string, param *RegisterContractTxParam) (
 	return hash, nil
 }
 
+//SignUCoinRegisterContractTx sign for call register contract tx
+// returns the signature hex string and nil error, or returns empty string and the error if it has error
+func SignUCoinRegisterContractTx(privateKey string, param *UCoinRegisterContractTxParam) (string, error) {
+
+	// check and convert params
+	wifKey, err := btcutil.DecodeWIF(privateKey)
+	if err != nil {
+		return "", ERR_INVALID_PRIVATE_KEY
+	}
+
+	var tx commons.WaykiUCoinRegisterContractTx
+
+	if param.ValidHeight < 0 {
+		return "", ERR_NEGATIVE_VALID_HEIGHT
+	}
+	tx.ValidHeight = param.ValidHeight
+
+	tx.UserId = parseRegId(param.SrcRegId)
+
+	if !checkMoneyRange(param.Fees) {
+		return "", ERR_RANGE_FEE
+	}
+	if !checkMinTxFee(param.Fees) {
+		return "", ERR_FEE_SMALLER_MIN
+	}
+	tx.Fees = uint64(param.Fees)
+
+	tx.TxType = commons.UCONTRACT_DEPLOY_TX
+	tx.Version = TX_VERSION
+
+	if len(param.Script) == 0 || len(param.Script) > CONTRACT_SCRIPT_MAX_SIZE {
+		return "", ERR_INVALID_SCRIPT
+	}
+	tx.Script = param.Script
+
+	if len(param.Description) > CONTRACT_SCRIPT_DESC_MAX_SIZE {
+		return "", ERR_INVALID_SCRIPT_DESC
+	}
+	tx.Description = param.Description
+	if (tx.UserId == nil && tx.PubKey == nil) {
+		return "", ERR_INVALID_SRC_REG_ID
+	}
+
+	if (param.FeeSymbol == "") {
+		tx.FeeSymbol = string(commons.WICC)
+	} else {
+		tx.FeeSymbol = string(param.FeeSymbol)
+	}
+
+	hash := tx.SignTx(wifKey)
+	return hash, nil
+}
+
 //SignUCoinTransferTx sign for Multi-currency transfer
 // returns the signature hex string and nil error, or returns empty string and the error if it has error
 func SignUCoinTransferTx(privateKey string, param *UCoinTransferTxParam) (string, error) {
@@ -928,7 +981,7 @@ func SignAssetCreateTx(privateKey string, param *AssetIssueTxParam) (string, err
 		return "", ERR_TOTAl_SUPPLY_ERROR
 	}
 	tx.AssetTotal = param.AssetTotal
-	tx.AssetOwner = parseRegId(param.AssetOwner)
+	tx.AssetOwner = parseUserId(param.AssetOwner)
 	if (tx.AssetOwner == nil) {
 		return "", ERR_ASSET_UPDATE_OWNER_ERROR
 	}
@@ -980,7 +1033,7 @@ func SignAssetUpdateTx(privateKey string, param *AssetUpdateTxParam) (string, er
     tx.UpdateType=param.UpdateType
 	switch param.UpdateType {
 	case 1:
-		tx.AssetOwner = parseRegId(param.AssetOwner)
+		tx.AssetOwner = parseUserId(param.AssetOwner)
 		if (tx.AssetOwner == nil) {
 			return "", ERR_ASSET_UPDATE_OWNER_ERROR
 		}

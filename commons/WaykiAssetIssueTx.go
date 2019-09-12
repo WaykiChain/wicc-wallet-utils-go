@@ -34,7 +34,7 @@ func (tx WaykiAssetIssueTx) SignTx(wifKey *btcutil.WIF) string {
 	writer.WriteString(tx.FeeSymbol)
 	writer.WriteVarInt(int64(tx.Fees))
 	writer.WriteString(tx.AssetSymbol)
-	writer.WriteUserId(tx.UserId)
+	writer.WriteUserId(tx.AssetOwner)
 	writer.WriteString(tx.AssetName)
 	if(tx.MinTable){
 		writer.WriteByte(1)
@@ -66,7 +66,7 @@ func (tx WaykiAssetIssueTx) doSignTx(wifKey *btcutil.WIF) []byte {
 	writer.WriteString(tx.FeeSymbol)
 	writer.WriteVarInt(int64(tx.Fees))
 	writer.WriteString(tx.AssetSymbol)
-	writer.WriteUserId(tx.UserId)
+	writer.WriteUserId(tx.AssetOwner)
 	writer.WriteString(tx.AssetName)
 	if(tx.MinTable){
 		writer.WriteByte(1)

@@ -102,6 +102,16 @@ type RegisterContractTxParam struct {
 	Description string // description of contract
 }
 
+//RegisterUCoinContractTxParam param of the register contract tx
+type UCoinRegisterContractTxParam struct {
+	ValidHeight int64  // valid height Within the height of the latest block
+	SrcRegId    string // the reg id of the register
+	Fees        int64  // fees for mining
+	FeeSymbol   string //WICC/WUSD
+	Script      []byte // the contract script, binary format
+	Description string // description of contract
+}
+
 type SignMessageParam struct {
 	PublicKey string
 	SignMessage string

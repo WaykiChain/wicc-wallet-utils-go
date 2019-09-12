@@ -37,7 +37,7 @@ func (tx WaykiAssetUpdateTx) SignTx(wifKey *btcutil.WIF) string {
 	writer.WriteByte(byte(tx.UpdateType))
 	switch tx.UpdateType {
 	case 1:
-		writer.WriteUserId(tx.UserId)
+		writer.WriteUserId(tx.AssetOwner)
 		break
 	case 2:
 		writer.WriteString(tx.AssetName)
@@ -73,7 +73,7 @@ func (tx WaykiAssetUpdateTx) doSignTx(wifKey *btcutil.WIF) []byte {
 	writer.WriteByte(byte(tx.UpdateType))
 	switch tx.UpdateType {
 	case 1:
-		writer.WriteUserId(tx.UserId)
+		writer.WriteUserId(tx.AssetOwner)
 		break
 	case 2:
 		writer.WriteString(tx.AssetName)

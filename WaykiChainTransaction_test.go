@@ -95,7 +95,10 @@ func TestSignDelegateTx(t *testing.T) {
 	}
 	println(hash)
 }
-
+/*
+部署合约
+deploy contract
+*/
 func TestSignRegisterContractTx(t *testing.T) {
 
 	privateKey := "YAa1wFCfFnZ5bt4hg9MDeDevTMd1Nu874Mn83hEXwtfAL2vkQE9f" //"Y9sx4Y8sBAbWDAqAWytYuUnJige3ZPwKDZp1SCDqqRby1YMgRG9c"
@@ -112,6 +115,34 @@ func TestSignRegisterContractTx(t *testing.T) {
 	txParam.Script = script
 	txParam.Description = "My hello contract!!!"
 	hash, err := SignRegisterContractTx(privateKey, &txParam)
+	if err != nil {
+		t.Error("SignRegisterContractTx err: ", err)
+	}
+	println(hash)
+}
+/*
+部署合约 多币种
+小费类型 WICC/WUSD 默认WICC
+fee Minimum 1.1 wicc/wusd
+*/
+func TestSignUCoinRegisterContractTx(t *testing.T) {
+
+	privateKey := "YAa1wFCfFnZ5bt4hg9MDeDevTMd1Nu874Mn83hEXwtfAL2vkQE9f" //"Y9sx4Y8sBAbWDAqAWytYuUnJige3ZPwKDZp1SCDqqRby1YMgRG9c"
+
+	script, err := ioutil.ReadFile("./demo/data/hello.lua")
+	if err != nil {
+		t.Error("Read contract script file err: ", err)
+	}
+
+	var txParam UCoinRegisterContractTxParam
+	txParam.ValidHeight = 630314 //20999
+	txParam.SrcRegId = "0-1"     //"7849-1"
+	txParam.Fees = 110000000
+	txParam.Script = script
+	txParam.Description = "My hello contract!!!"
+	txParam.FeeSymbol = string(commons.WICC)
+
+	hash, err := SignUCoinRegisterContractTx(privateKey, &txParam)
 	if err != nil {
 		t.Error("SignRegisterContractTx err: ", err)
 	}
@@ -368,12 +399,12 @@ func TestAssetCreateTx(t *testing.T) {
 	var txParam AssetIssueTxParam
 	txParam.FeeSymbol = string(commons.WICC)
 	txParam.Fees = 55000000000
-	txParam.ValidHeight = 688709
+	txParam.ValidHeight = 713581
 	txParam.SrcRegId = "0-1"
 	txParam.PubKey = "03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
-	txParam.AssetOwner="0-1"
+	txParam.AssetOwner="wbZTWpEnbYoYsedMm2knnP4q7KiSdS3yVq"
 	txParam.AssetTotal=100*100000000
-	txParam.AssetSymbol="S"
+	txParam.AssetSymbol="SSSSSSS"
 	txParam.AssetName="SK Token"
 	txParam.MinTable=true
 	hash, err := SignAssetCreateTx(privateKey, &txParam)
@@ -394,12 +425,12 @@ func TestAssetUpdateTx(t *testing.T) {
 	txParam.Fees = 11000000000
 	txParam.ValidHeight = 688709
 	txParam.SrcRegId = "0-1"
-	txParam.UpdateType=int(commons.ASSET_MINT_AMOUNT)
+	txParam.UpdateType=int(commons.ASSET_OWNER_UID)
+	txParam.AssetSymbol="STOKEN"
 	txParam.PubKey = "03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
-	txParam.AssetOwner="0-1"
-	txParam.AssetTotal=100*100000000
-	txParam.AssetSymbol="S"
-	txParam.AssetName="SK Token"
+	txParam.AssetOwner="wbZTWpEnbYoYsedMm2knnP4q7KiSdS3yVq"
+	//txParam.AssetTotal=100*100000000
+	//txParam.AssetName="SK Token"
 	hash, err := SignAssetUpdateTx(privateKey, &txParam)
 	if err != nil {
 		t.Error("SignCdpStakeTx err: ", err)
