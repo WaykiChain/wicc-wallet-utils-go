@@ -8,16 +8,18 @@ import (
 	hash2 "github.com/WaykiChain/wicc-wallet-utils-go/commons/hash"
 )
 
-type WaykiCommonTx struct {
+type WaykiAssetUpdateTx struct {
 	WaykiBaseSignTx
 	Fees   uint64
-	Values uint64
-	Memo   string
-	DestId *UserIdWraper //< the dest id(reg id or address or public key) received the wicc values
+	UpdateType int
+	FeeSymbol string      //Fee Type (WICC/WUSD)
+	AssetSymbol string   //From Coin Type
+	AssetName   string
+	AssetTotal   uint64
+	AssetOwner   *UserIdWraper
 }
 
-func (tx WaykiCommonTx) SignTx(wifKey *btcutil.WIF) string {
-	//uid := ParseRegId(tx.UserId)
+func (tx WaykiAssetUpdateTx) SignTx(wifKey *btcutil.WIF) string {
 	buf := bytes.NewBuffer([]byte{})
 	writer := NewWriterHelper(buf)
 
@@ -29,10 +31,21 @@ func (tx WaykiCommonTx) SignTx(wifKey *btcutil.WIF) string {
 	}else if(tx.PubKey!=nil){
 		writer.WritePubKeyId(tx.PubKey)
 	}
-	writer.WriteUserId(tx.DestId)
+	writer.WriteString(tx.FeeSymbol)
 	writer.WriteVarInt(int64(tx.Fees))
-	writer.WriteVarInt(int64(tx.Values))
-	writer.WriteString(tx.Memo)
+	writer.WriteString(tx.AssetSymbol)
+	writer.WriteByte(byte(tx.UpdateType))
+	switch tx.UpdateType {
+	case 1:
+		writer.WriteUserId(tx.AssetOwner)
+		break
+	case 2:
+		writer.WriteString(tx.AssetName)
+		break
+	case 3:
+		writer.WriteVarInt(int64(tx.AssetTotal))
+		break
+	}
 
 	signedBytes := tx.doSignTx(wifKey)
 	writer.WriteBytes(signedBytes)
@@ -41,7 +54,7 @@ func (tx WaykiCommonTx) SignTx(wifKey *btcutil.WIF) string {
 	return rawTx
 }
 
-func (tx WaykiCommonTx) doSignTx(wifKey *btcutil.WIF) []byte {
+func (tx WaykiAssetUpdateTx) doSignTx(wifKey *btcutil.WIF) []byte {
 
 	buf := bytes.NewBuffer([]byte{})
 	writer := NewWriterHelper(buf)
@@ -52,12 +65,23 @@ func (tx WaykiCommonTx) doSignTx(wifKey *btcutil.WIF) []byte {
 	if(tx.UserId!=nil){
 		writer.WriteUserId(tx.UserId)
 	}else if(tx.PubKey!=nil){
-		writer.WritePubKeyId(tx.PubKey)
+		writer.WriteReverse(tx.PubKey)
 	}
-	writer.WriteUserId(tx.DestId)
+	writer.WriteString(tx.FeeSymbol)
 	writer.WriteVarInt(int64(tx.Fees))
-	writer.WriteVarInt(int64(tx.Values))
-	writer.WriteString(tx.Memo)
+	writer.WriteString(tx.AssetSymbol)
+	writer.WriteByte(byte(tx.UpdateType))
+	switch tx.UpdateType {
+	case 1:
+		writer.WriteUserId(tx.AssetOwner)
+		break
+	case 2:
+		writer.WriteString(tx.AssetName)
+		break
+	case 3:
+		writer.WriteVarInt(int64(tx.AssetTotal))
+		break
+	}
 
 	hash := hash2.DoubleHash256(buf.Bytes())
 	key := wifKey.PrivKey

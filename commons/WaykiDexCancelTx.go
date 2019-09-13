@@ -8,20 +8,14 @@ import (
 	hash2 "github.com/WaykiChain/wicc-wallet-utils-go/commons/hash"
 )
 
-type OperVoteFund struct {
-	VoteType  WaykiVoteType
-	PubKey    *PubKeyId
-	VoteValue int64
-}
-
-type WaykiDelegateTx struct {
+type WaykiDexCancelTx struct {
 	WaykiBaseSignTx
-	OperVoteFunds []OperVoteFund
-	Fees          uint64
+	Fees   uint64
+	FeeSymbol string      //Fee Type (WICC/WUSD)
+	DexHash []byte   //From Coin Type
 }
 
-func (tx WaykiDelegateTx) SignTx(wifKey *btcutil.WIF) string {
-
+func (tx WaykiDexCancelTx) SignTx(wifKey *btcutil.WIF) string {
 	buf := bytes.NewBuffer([]byte{})
 	writer := NewWriterHelper(buf)
 
@@ -33,13 +27,9 @@ func (tx WaykiDelegateTx) SignTx(wifKey *btcutil.WIF) string {
 	}else if(tx.PubKey!=nil){
 		writer.WritePubKeyId(tx.PubKey)
 	}
-	writer.WriteVarInt(int64(len(tx.OperVoteFunds)))
-	for _, fund := range tx.OperVoteFunds {
-		writer.WriteByte(byte(fund.VoteType))
-		writer.WritePubKeyId(*fund.PubKey)
-		writer.WriteVarInt(fund.VoteValue)
-	}
+	writer.WriteString(tx.FeeSymbol)
 	writer.WriteVarInt(int64(tx.Fees))
+	writer.WriteReverse(tx.DexHash)
 	signedBytes := tx.doSignTx(wifKey)
 	writer.WriteBytes(signedBytes)
 
@@ -47,7 +37,7 @@ func (tx WaykiDelegateTx) SignTx(wifKey *btcutil.WIF) string {
 	return rawTx
 }
 
-func (tx WaykiDelegateTx) doSignTx(wifKey *btcutil.WIF) []byte {
+func (tx WaykiDexCancelTx) doSignTx(wifKey *btcutil.WIF) []byte {
 
 	buf := bytes.NewBuffer([]byte{})
 	writer := NewWriterHelper(buf)
@@ -58,17 +48,12 @@ func (tx WaykiDelegateTx) doSignTx(wifKey *btcutil.WIF) []byte {
 	if(tx.UserId!=nil){
 		writer.WriteUserId(tx.UserId)
 	}else if(tx.PubKey!=nil){
-		writer.WritePubKeyId(tx.PubKey)
+		writer.WriteReverse(tx.PubKey)
 	}
-	writer.WriteVarInt(int64(len(tx.OperVoteFunds)))
-	for _, fund := range tx.OperVoteFunds {
-		writer.WriteByte(byte(fund.VoteType))
-		writer.WriteBytes(*fund.PubKey)
-		writer.WriteVarInt(fund.VoteValue)
-	}
+	writer.WriteString(tx.FeeSymbol)
 	writer.WriteVarInt(int64(tx.Fees))
+	writer.WriteReverse(tx.DexHash)
 	hash := hash2.DoubleHash256(buf.Bytes())
-
 	key := wifKey.PrivKey
 	ss, _ := key.Sign(hash)
 	return ss.Serialize()

@@ -46,6 +46,32 @@ const (
 	SPANISH                   = "ES"
 )
 
+type CoinType string
+
+const (
+	WICC CoinType = "WICC"
+	WGRT          = "WGRT"
+	WUSD          = "WUSD"
+	WCNY          = "WCNY"
+	WBTC          = "WBTC"
+	WETH          = "WETH"
+	WEOS          = "WEOS"
+	USD           = "USD"
+	CNY           = "CNY"
+	EUR           = "EUR"
+	BTC           = "BTC"
+	USDT          = "USDT"
+	GOLD          = "GOLD"
+	KWH           = "KWH"
+)
+
+type AssetUpdateType int
+const (
+	ASSET_OWNER_UID   AssetUpdateType = 1
+	ASSET_NAME                        = 2
+	ASSET_MINT_AMOUNT                 = 3
+)
+
 func NetworkToChainConfig(net Network) (*chaincfg.Params, error) {
 	switch net {
 	case 1:

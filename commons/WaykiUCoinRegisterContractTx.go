@@ -8,15 +8,16 @@ import (
 	hash2 "github.com/WaykiChain/wicc-wallet-utils-go/commons/hash"
 )
 
-type WaykiRegisterContractTx struct {
+type WaykiUCoinRegisterContractTx struct {
 	WaykiBaseSignTx
 	Script      []byte
 	Description string
 	Fees        uint64
+	FeeSymbol   string
 }
 
 // sign transaction
-func (tx WaykiRegisterContractTx) SignTx(wifKey *btcutil.WIF) string {
+func (tx WaykiUCoinRegisterContractTx) SignTx(wifKey *btcutil.WIF) string {
 
 	buf := bytes.NewBuffer([]byte{})
 	writer := NewWriterHelper(buf)
@@ -24,9 +25,9 @@ func (tx WaykiRegisterContractTx) SignTx(wifKey *btcutil.WIF) string {
 	writer.WriteVarInt(tx.Version)
 	writer.WriteVarInt(tx.ValidHeight)
 	writer.WriteUserId(tx.UserId)
-	WriteContractScript(writer, tx.Script, tx.Description)
-
 	writer.WriteVarInt(int64(tx.Fees))
+	writer.WriteString(tx.FeeSymbol)
+	WriteContractScript(writer, tx.Script, tx.Description)
 	signedBytes := tx.doSign(wifKey)
 	writer.WriteBytes(signedBytes)
 
@@ -34,15 +35,17 @@ func (tx WaykiRegisterContractTx) SignTx(wifKey *btcutil.WIF) string {
 	return rawTx
 }
 
-func (tx WaykiRegisterContractTx) doSign(wifKey *btcutil.WIF) []byte {
+func (tx WaykiUCoinRegisterContractTx) doSign(wifKey *btcutil.WIF) []byte {
 	buf := bytes.NewBuffer([]byte{})
 	writer := NewWriterHelper(buf)
 	writer.WriteVarInt(tx.Version)
 	writer.WriteByte(byte(tx.TxType))
 	writer.WriteVarInt(tx.ValidHeight)
-    writer.WriteUserId(tx.UserId)
-	WriteContractScript(writer, tx.Script, tx.Description)
+	writer.WriteUserId(tx.UserId)
 	writer.WriteVarInt(int64(tx.Fees))
+	writer.WriteString(tx.FeeSymbol)
+	WriteContractScript(writer, tx.Script, tx.Description)
+
 
 	hash := hash2.DoubleHash256(buf.Bytes())
 	key := wifKey.PrivKey
@@ -50,10 +53,3 @@ func (tx WaykiRegisterContractTx) doSign(wifKey *btcutil.WIF) []byte {
 	return ss.Serialize()
 }
 
-func WriteContractScript(writer *WriterHelper, script []byte, description string) {
-
-	scriptWriter := NewWriterHelper(bytes.NewBuffer([]byte{}))
-	scriptWriter.WriteBytes(script)
-	scriptWriter.WriteString(description)
-	writer.WriteBytes(scriptWriter.GetBuf().Bytes())
-}

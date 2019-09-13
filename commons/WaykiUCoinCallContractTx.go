@@ -8,19 +8,17 @@ import (
 	hash2 "github.com/WaykiChain/wicc-wallet-utils-go/commons/hash"
 )
 
-type OperVoteFund struct {
-	VoteType  WaykiVoteType
-	PubKey    *PubKeyId
-	VoteValue int64
-}
-
-type WaykiDelegateTx struct {
+type WaykiUCoinCallContractTx struct {
 	WaykiBaseSignTx
-	OperVoteFunds []OperVoteFund
-	Fees          uint64
+	AppId    *UserIdWraper //user regid or user key id or app regid
+	Fees     int64
+	CoinAmount   int64 //transfer amount
+	FeeSymbol string      //Fee Type (WICC/WUSD)
+	CoinSymbol string   //From Coin Type
+	Contract []byte
 }
 
-func (tx WaykiDelegateTx) SignTx(wifKey *btcutil.WIF) string {
+func (tx WaykiUCoinCallContractTx) SignTx(wifKey *btcutil.WIF) string {
 
 	buf := bytes.NewBuffer([]byte{})
 	writer := NewWriterHelper(buf)
@@ -33,13 +31,14 @@ func (tx WaykiDelegateTx) SignTx(wifKey *btcutil.WIF) string {
 	}else if(tx.PubKey!=nil){
 		writer.WritePubKeyId(tx.PubKey)
 	}
-	writer.WriteVarInt(int64(len(tx.OperVoteFunds)))
-	for _, fund := range tx.OperVoteFunds {
-		writer.WriteByte(byte(fund.VoteType))
-		writer.WritePubKeyId(*fund.PubKey)
-		writer.WriteVarInt(fund.VoteValue)
-	}
+	writer.WriteUserId(tx.AppId)
+	writer.WriteBytes(tx.Contract)
 	writer.WriteVarInt(int64(tx.Fees))
+	writer.WriteString(tx.FeeSymbol)
+	writer.WriteString(tx.CoinSymbol)
+	writer.WriteVarInt(int64(tx.CoinAmount))
+
+
 	signedBytes := tx.doSignTx(wifKey)
 	writer.WriteBytes(signedBytes)
 
@@ -47,7 +46,7 @@ func (tx WaykiDelegateTx) SignTx(wifKey *btcutil.WIF) string {
 	return rawTx
 }
 
-func (tx WaykiDelegateTx) doSignTx(wifKey *btcutil.WIF) []byte {
+func (tx WaykiUCoinCallContractTx) doSignTx(wifKey *btcutil.WIF) []byte {
 
 	buf := bytes.NewBuffer([]byte{})
 	writer := NewWriterHelper(buf)
@@ -60,13 +59,12 @@ func (tx WaykiDelegateTx) doSignTx(wifKey *btcutil.WIF) []byte {
 	}else if(tx.PubKey!=nil){
 		writer.WritePubKeyId(tx.PubKey)
 	}
-	writer.WriteVarInt(int64(len(tx.OperVoteFunds)))
-	for _, fund := range tx.OperVoteFunds {
-		writer.WriteByte(byte(fund.VoteType))
-		writer.WriteBytes(*fund.PubKey)
-		writer.WriteVarInt(fund.VoteValue)
-	}
+	writer.WriteUserId(tx.AppId)
+	writer.WriteBytes(tx.Contract)
 	writer.WriteVarInt(int64(tx.Fees))
+	writer.WriteString(tx.FeeSymbol)
+	writer.WriteString(tx.CoinSymbol)
+	writer.WriteVarInt(int64(tx.CoinAmount))
 	hash := hash2.DoubleHash256(buf.Bytes())
 
 	key := wifKey.PrivKey

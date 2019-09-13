@@ -8,20 +8,18 @@ import (
 	hash2 "github.com/WaykiChain/wicc-wallet-utils-go/commons/hash"
 )
 
-type OperVoteFund struct {
-	VoteType  WaykiVoteType
-	PubKey    *PubKeyId
-	VoteValue int64
-}
-
-type WaykiDelegateTx struct {
+type WaykiAssetIssueTx struct {
 	WaykiBaseSignTx
-	OperVoteFunds []OperVoteFund
-	Fees          uint64
+	Fees   uint64
+	FeeSymbol string      //Fee Type (WICC/WUSD)
+	AssetSymbol string   //From Coin Type
+	AssetName   string
+	AssetTotal   uint64
+	AssetOwner   *UserIdWraper
+    MinTable     bool
 }
 
-func (tx WaykiDelegateTx) SignTx(wifKey *btcutil.WIF) string {
-
+func (tx WaykiAssetIssueTx) SignTx(wifKey *btcutil.WIF) string {
 	buf := bytes.NewBuffer([]byte{})
 	writer := NewWriterHelper(buf)
 
@@ -33,13 +31,18 @@ func (tx WaykiDelegateTx) SignTx(wifKey *btcutil.WIF) string {
 	}else if(tx.PubKey!=nil){
 		writer.WritePubKeyId(tx.PubKey)
 	}
-	writer.WriteVarInt(int64(len(tx.OperVoteFunds)))
-	for _, fund := range tx.OperVoteFunds {
-		writer.WriteByte(byte(fund.VoteType))
-		writer.WritePubKeyId(*fund.PubKey)
-		writer.WriteVarInt(fund.VoteValue)
-	}
+	writer.WriteString(tx.FeeSymbol)
 	writer.WriteVarInt(int64(tx.Fees))
+	writer.WriteString(tx.AssetSymbol)
+	writer.WriteUserId(tx.AssetOwner)
+	writer.WriteString(tx.AssetName)
+	if(tx.MinTable){
+		writer.WriteByte(1)
+	}else {
+		writer.WriteByte(0)
+	}
+	writer.WriteVarInt(int64(tx.AssetTotal))
+
 	signedBytes := tx.doSignTx(wifKey)
 	writer.WriteBytes(signedBytes)
 
@@ -47,7 +50,7 @@ func (tx WaykiDelegateTx) SignTx(wifKey *btcutil.WIF) string {
 	return rawTx
 }
 
-func (tx WaykiDelegateTx) doSignTx(wifKey *btcutil.WIF) []byte {
+func (tx WaykiAssetIssueTx) doSignTx(wifKey *btcutil.WIF) []byte {
 
 	buf := bytes.NewBuffer([]byte{})
 	writer := NewWriterHelper(buf)
@@ -58,17 +61,21 @@ func (tx WaykiDelegateTx) doSignTx(wifKey *btcutil.WIF) []byte {
 	if(tx.UserId!=nil){
 		writer.WriteUserId(tx.UserId)
 	}else if(tx.PubKey!=nil){
-		writer.WritePubKeyId(tx.PubKey)
+		writer.WriteReverse(tx.PubKey)
 	}
-	writer.WriteVarInt(int64(len(tx.OperVoteFunds)))
-	for _, fund := range tx.OperVoteFunds {
-		writer.WriteByte(byte(fund.VoteType))
-		writer.WriteBytes(*fund.PubKey)
-		writer.WriteVarInt(fund.VoteValue)
-	}
+	writer.WriteString(tx.FeeSymbol)
 	writer.WriteVarInt(int64(tx.Fees))
-	hash := hash2.DoubleHash256(buf.Bytes())
+	writer.WriteString(tx.AssetSymbol)
+	writer.WriteUserId(tx.AssetOwner)
+	writer.WriteString(tx.AssetName)
+	if(tx.MinTable){
+		writer.WriteByte(1)
+	}else {
+		writer.WriteByte(0)
+	}
+	writer.WriteVarInt(int64(tx.AssetTotal))
 
+	hash := hash2.DoubleHash256(buf.Bytes())
 	key := wifKey.PrivKey
 	ss, _ := key.Sign(hash)
 	return ss.Serialize()

@@ -121,6 +121,20 @@ func (writer WriterHelper) WritePubKeyId(value PubKeyId) {
 	writer.WriteBytes(value)
 }
 
+func (writer WriterHelper) WriteReverse(value []byte) {
+	length := uint64(len(value))
+	buf := bytes.NewBuffer([]byte{})
+	//writer.WriteVarInt(int64(len(value)))
+	for  i:= 0; i < int(length); i++{
+		a:=len(value)
+		buf.WriteByte(value[int(a)- i - 1]) ;
+	}
+
+	if length > 0 {
+		writer.Write(buf.Bytes())
+	}
+}
+
 func (writer WriterHelper) WriteAddressId(value AddressId) {
 	writer.WriteBytes(value)
 }

@@ -8,20 +8,16 @@ import (
 	hash2 "github.com/WaykiChain/wicc-wallet-utils-go/commons/hash"
 )
 
-type OperVoteFund struct {
-	VoteType  WaykiVoteType
-	PubKey    *PubKeyId
-	VoteValue int64
-}
-
-type WaykiDelegateTx struct {
+type WaykiCdpRedeemTx struct {
 	WaykiBaseSignTx
-	OperVoteFunds []OperVoteFund
-	Fees          uint64
+	Fees   uint64
+	ScoinValues uint64   //Stake Coin
+	BcoinValues uint64   // get Coin
+	FeeSymbol string      //Fee Type (WICC/WUSD)
+	CdpTxHash []byte
 }
 
-func (tx WaykiDelegateTx) SignTx(wifKey *btcutil.WIF) string {
-
+func (tx WaykiCdpRedeemTx) SignTx(wifKey *btcutil.WIF) string {
 	buf := bytes.NewBuffer([]byte{})
 	writer := NewWriterHelper(buf)
 
@@ -33,21 +29,18 @@ func (tx WaykiDelegateTx) SignTx(wifKey *btcutil.WIF) string {
 	}else if(tx.PubKey!=nil){
 		writer.WritePubKeyId(tx.PubKey)
 	}
-	writer.WriteVarInt(int64(len(tx.OperVoteFunds)))
-	for _, fund := range tx.OperVoteFunds {
-		writer.WriteByte(byte(fund.VoteType))
-		writer.WritePubKeyId(*fund.PubKey)
-		writer.WriteVarInt(fund.VoteValue)
-	}
+	writer.WriteString(tx.FeeSymbol)
 	writer.WriteVarInt(int64(tx.Fees))
+	writer.WriteReverse(tx.CdpTxHash)
+	writer.WriteVarInt(int64(tx.ScoinValues))
+	writer.WriteVarInt(int64(tx.BcoinValues))
 	signedBytes := tx.doSignTx(wifKey)
 	writer.WriteBytes(signedBytes)
-
 	rawTx := hex.EncodeToString(buf.Bytes())
 	return rawTx
 }
 
-func (tx WaykiDelegateTx) doSignTx(wifKey *btcutil.WIF) []byte {
+func (tx WaykiCdpRedeemTx) doSignTx(wifKey *btcutil.WIF) []byte {
 
 	buf := bytes.NewBuffer([]byte{})
 	writer := NewWriterHelper(buf)
@@ -58,18 +51,17 @@ func (tx WaykiDelegateTx) doSignTx(wifKey *btcutil.WIF) []byte {
 	if(tx.UserId!=nil){
 		writer.WriteUserId(tx.UserId)
 	}else if(tx.PubKey!=nil){
-		writer.WritePubKeyId(tx.PubKey)
+		writer.WriteReverse(tx.PubKey)
 	}
-	writer.WriteVarInt(int64(len(tx.OperVoteFunds)))
-	for _, fund := range tx.OperVoteFunds {
-		writer.WriteByte(byte(fund.VoteType))
-		writer.WriteBytes(*fund.PubKey)
-		writer.WriteVarInt(fund.VoteValue)
-	}
+	writer.WriteString(tx.FeeSymbol)
 	writer.WriteVarInt(int64(tx.Fees))
-	hash := hash2.DoubleHash256(buf.Bytes())
+	writer.WriteReverse(tx.CdpTxHash)
+	writer.WriteVarInt(int64(tx.ScoinValues))
+	writer.WriteVarInt(int64(tx.BcoinValues))
 
+	hash := hash2.DoubleHash256(buf.Bytes())
 	key := wifKey.PrivKey
 	ss, _ := key.Sign(hash)
 	return ss.Serialize()
 }
+

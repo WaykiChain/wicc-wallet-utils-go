@@ -20,6 +20,25 @@ const (
 	CONTRACT_TX                        //!< contract tx
 	REG_CONT_TX                        //!< register contract
 	DELEGATE_TX                        //!< delegate tx
+
+	FCOIN_STAKE_TX           = 8
+	ASSET_ISSUE_TX=9  //!< a user issues onchain asset
+    ASSET_UPDATE_TX=10   //!< a user update onchain asset
+	UCOIN_TRANSFER_TX        = 11
+	UCONTRACT_DEPLOY_TX         = 14   //!< universal VM contract deployment
+	UCOIN_CONTRACT_INVOKE_TX = 15
+	PRICE_FEED_TX            = 16
+
+	CDP_STAKE_TX     = 21
+	CDP_REDEEMP_TX   = 22
+	CDP_LIQUIDATE_TX = 23
+
+	DEX_SETTLE_TX            = 89 //!< dex settle Tx
+	DEX_CANCEL_ORDER_TX      = 88 //!< dex cancel order Tx
+	DEX_BUY_LIMIT_ORDER_TX   = 84 //!< dex buy limit price order Tx
+	DEX_SELL_LIMIT_ORDER_TX  = 85 //!< dex sell limit price order Tx
+	DEX_BUY_MARKET_ORDER_TX  = 86 //!< dex buy market price order Tx
+	DEX_SELL_MARKET_ORDER_TX = 87 //!< dex sell market price order Tx
 )
 
 type WaykiVoteType uint32
@@ -125,5 +144,6 @@ type WaykiBaseSignTx struct {
 	TxType      WaykiTxType
 	Version     int64
 	ValidHeight int64
+	PubKey      []byte
 	UserId      *UserIdWraper // current operating user id, the one want to do something
 }
