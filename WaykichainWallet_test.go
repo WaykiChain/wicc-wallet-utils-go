@@ -55,7 +55,8 @@ get publicKey hex String
 */
 func TestGetPubKey(t *testing.T) {
 	str,_:=GetPubKeyFromPrivateKey("Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEnmFEYMqQd13")
-	println(str)
+	checkPriv,_:=CheckPrivateKey("Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEnmFEYMqQd13",2)
+	fmt.Println("公钥",str,"测试私钥？",checkPriv)
 }
 
 

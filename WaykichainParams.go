@@ -117,6 +117,24 @@ type SignMessageParam struct {
 	SignMessage string
 }
 
+// cdp stake Asset
+type AssetModel struct {
+	AssetAmount    int64 //stake asset amount
+	AssetSymbol string  //stake asset symbol
+}
+//cdp stake asset list
+type AssetModels struct {
+	assetArray []*AssetModel
+}
+
+func (assetModels *AssetModels) Add(model *AssetModel)  {
+	assetModels.assetArray= append(assetModels.assetArray, model)
+}
+
+func NewCdpAssets() *AssetModels {
+	return &AssetModels{}
+}
+
 //Cdp Stake param of the tx
 type CdpStakeTxParam struct {
 	ValidHeight int64  // valid height Within the height of the latest block
@@ -125,10 +143,9 @@ type CdpStakeTxParam struct {
 	FeeSymbol   string
 	Fees        int64 // fees for mining
 	CdpTxid     string
-	BcoinSymbol string
 	ScoinSymbol string
-	BcoinStake  uint64
-	ScoinMint   uint64
+	ScoinMint   int64
+	Assets   *AssetModels
 }
 
 //Cdp Redeem param of the tx
@@ -139,8 +156,8 @@ type CdpRedeemTxParam struct {
 	FeeSymbol   string
 	Fees        int64 // fees for mining
 	CdpTxid     string
-	ScoinsToRepay  uint64  // stablecoin amount to redeem or burn, including interest
-	BcoinsToRedeem   uint64
+	ScoinsToRepay  int64 //repay coin number
+	Assets   *AssetModels
 }
 
 //Cdp Redeem param of the tx
@@ -151,7 +168,8 @@ type CdpLiquidateTxParam struct {
 	FeeSymbol   string
 	Fees        int64 // fees for mining
 	CdpTxid     string // target CDP to liquidate
-	ScoinsLiquidate  uint64   // partial liquidation is allowed, must include penalty fees in
+	ScoinsLiquidate  int64   // partial liquidation is allowed, must include penalty fees in
+	AssetSymbol  string  //stake asset symbol
 }
 
 
@@ -163,7 +181,7 @@ type UCoinTransferTxParam struct {
 	PubKey      string
 	FeeSymbol   string
 	Fees        int64 // fees for mining
-	CoinAmount  uint64
+	CoinAmount  int64
 	CoinSymbol  string
 	Memo        string
 }
@@ -223,7 +241,7 @@ type AssetIssueTxParam struct {
 	FeeSymbol string      //Fee Type (WICC/WUSD)
 	AssetSymbol string   //From Coin Type
 	AssetName   string
-	AssetTotal   uint64
+	AssetTotal   int64
 	AssetOwner   string //owner regid
 	MinTable     bool
 }
@@ -237,7 +255,7 @@ type AssetUpdateTxParam struct {
 	FeeSymbol string      //Fee Type (WICC/WUSD)
 	AssetSymbol string   //From Coin Type
 	AssetName   string
-	AssetTotal   uint64
+	AssetTotal   int64
 	AssetOwner   string //owner regid
 }
 

@@ -12,7 +12,7 @@ type WaykiCdpRedeemTx struct {
 	WaykiBaseSignTx
 	Fees   uint64
 	ScoinValues uint64   //Stake Coin
-	BcoinValues uint64   // get Coin
+	Assets   []AssetModel
 	FeeSymbol string      //Fee Type (WICC/WUSD)
 	CdpTxHash []byte
 }
@@ -33,7 +33,7 @@ func (tx WaykiCdpRedeemTx) SignTx(wifKey *btcutil.WIF) string {
 	writer.WriteVarInt(int64(tx.Fees))
 	writer.WriteReverse(tx.CdpTxHash)
 	writer.WriteVarInt(int64(tx.ScoinValues))
-	writer.WriteVarInt(int64(tx.BcoinValues))
+	writer.WriteCdpAsset(tx.Assets)
 	signedBytes := tx.doSignTx(wifKey)
 	writer.WriteBytes(signedBytes)
 	rawTx := hex.EncodeToString(buf.Bytes())
@@ -57,7 +57,7 @@ func (tx WaykiCdpRedeemTx) doSignTx(wifKey *btcutil.WIF) []byte {
 	writer.WriteVarInt(int64(tx.Fees))
 	writer.WriteReverse(tx.CdpTxHash)
 	writer.WriteVarInt(int64(tx.ScoinValues))
-	writer.WriteVarInt(int64(tx.BcoinValues))
+	writer.WriteCdpAsset(tx.Assets)
 
 	hash := hash2.DoubleHash256(buf.Bytes())
 	key := wifKey.PrivKey

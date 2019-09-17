@@ -14,6 +14,7 @@ type WaykiCdpLiquidateTx struct {
 	ScoinsLiquidate uint64   //Scoin  Liquidate
 	FeeSymbol string      //Fee Type (WICC/WUSD)
 	CdpTxHash []byte
+	AseetSymbol string
 }
 
 func (tx WaykiCdpLiquidateTx) SignTx(wifKey *btcutil.WIF) string {
@@ -31,6 +32,7 @@ func (tx WaykiCdpLiquidateTx) SignTx(wifKey *btcutil.WIF) string {
 	writer.WriteString(tx.FeeSymbol)
 	writer.WriteVarInt(int64(tx.Fees))
 	writer.WriteReverse(tx.CdpTxHash)
+	writer.WriteString(tx.AseetSymbol)
 	writer.WriteVarInt(int64(tx.ScoinsLiquidate))
 	signedBytes := tx.doSignTx(wifKey)
 	writer.WriteBytes(signedBytes)
@@ -55,8 +57,8 @@ func (tx WaykiCdpLiquidateTx) doSignTx(wifKey *btcutil.WIF) []byte {
 	writer.WriteString(tx.FeeSymbol)
 	writer.WriteVarInt(int64(tx.Fees))
 	writer.WriteReverse(tx.CdpTxHash)
+	writer.WriteString(tx.AseetSymbol)
 	writer.WriteVarInt(int64(tx.ScoinsLiquidate))
-
 	hash := hash2.DoubleHash256(buf.Bytes())
 	key := wifKey.PrivKey
 	ss, _ := key.Sign(hash)

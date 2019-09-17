@@ -206,10 +206,13 @@ func TestCdpStakeTx(t *testing.T) {
 	privateKey := "Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEnmFEYMqQd13"
 	var txParam CdpStakeTxParam
 	txParam.CdpTxid = "0b9734e5db3cfa38e76bb273dba4f65a210cc76ca2cf739f3c131d0b24ff89c1"
-	txParam.BcoinSymbol = string(commons.WICC)
 	txParam.ScoinSymbol = string(commons.WUSD)
 	txParam.FeeSymbol = string(commons.WICC)
-	txParam.BcoinStake = 10
+	AssetSymbol:= string(commons.WICC)
+	AssetAmount:= 1000
+	model:=AssetModel{int64(AssetAmount),AssetSymbol}
+	txParam.Assets=NewCdpAssets()
+	txParam.Assets.Add(&model)
 	txParam.ScoinMint = 10
 	txParam.Fees = 100000
 	txParam.ValidHeight = 283308
@@ -234,7 +237,11 @@ func TestSignCdpRedeemTx(t *testing.T) {
 	txParam.CdpTxid = "0b9734e5db3cfa38e76bb273dba4f65a210cc76ca2cf739f3c131d0b24ff89c1"
 	txParam.FeeSymbol = string(commons.WICC)
 	txParam.ScoinsToRepay = 0
-	txParam.BcoinsToRedeem = 10
+	AssetSymbol:= string(commons.WICC)
+	AssetAmount:= 1000
+	model:=AssetModel{int64(AssetAmount),AssetSymbol}
+	txParam.Assets=NewCdpAssets()
+	txParam.Assets.Add(&model)
 	txParam.Fees = 100000
 	txParam.ValidHeight = 25
 	txParam.SrcRegId = "0-1"
@@ -262,6 +269,7 @@ func TestSignCdpLiquidateTx(t *testing.T) {
 	txParam.ValidHeight = 25
 	txParam.SrcRegId = "0-1"
 	txParam.PubKey = "03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
+	txParam.AssetSymbol=string(commons.WICC)
 
 	hash, err := SignCdpLiquidateTx(privateKey, &txParam)
 	if err != nil {

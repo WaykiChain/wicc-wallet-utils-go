@@ -125,13 +125,22 @@ func (writer WriterHelper) WriteReverse(value []byte) {
 	length := uint64(len(value))
 	buf := bytes.NewBuffer([]byte{})
 	//writer.WriteVarInt(int64(len(value)))
-	for  i:= 0; i < int(length); i++{
-		a:=len(value)
-		buf.WriteByte(value[int(a)- i - 1]) ;
+	for i := 0; i < int(length); i++ {
+		a := len(value)
+		buf.WriteByte(value[int(a)-i-1]);
 	}
 
 	if length > 0 {
 		writer.Write(buf.Bytes())
+	}
+}
+
+func (write WriterHelper) WriteCdpAsset(assets []AssetModel) {
+     len:= len(assets)
+     write.WriteVarInt(int64(len))
+	for i:=0; i<len;i++  {
+		write.WriteString(assets[i].AssetSymbol)
+		write.WriteVarInt(assets[i].AssetAmount)
 	}
 }
 
