@@ -143,8 +143,8 @@ type CdpStakeTxParam struct {
 	FeeSymbol   string
 	Fees        int64 // fees for mining
 	CdpTxid     string
-	ScoinSymbol string
-	ScoinMint   int64
+	ScoinSymbol string  //get coin symbol
+	ScoinMint   int64 // get coin amount
 	Assets   *AssetModels
 }
 
@@ -172,17 +172,30 @@ type CdpLiquidateTxParam struct {
 	AssetSymbol  string  //stake asset symbol
 }
 
+type Dest struct {
+	CoinSymbol string   //From Coin Type
+	CoinAmount uint64
+	DestAddr    string
+}
 
+type DestArr struct {
+	destArray []*Dest
+}
+func NewDestArr() *DestArr {
+	return &DestArr{}
+}
+
+func (dests *DestArr) Add(dest *Dest)  {
+	dests.destArray= append(dests.destArray, dest)
+}
 //UCoin Transfer param of the tx
 type UCoinTransferTxParam struct {
 	ValidHeight int64  // valid height Within the height of the latest block
 	SrcRegId    string // the reg id of the register
-	DestAddr    string // the reg id of the register
 	PubKey      string
 	FeeSymbol   string
 	Fees        int64 // fees for mining
-	CoinAmount  int64
-	CoinSymbol  string
+    Dests       *DestArr
 	Memo        string
 }
 

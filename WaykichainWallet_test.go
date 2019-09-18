@@ -28,8 +28,8 @@ func TestGenerateMnemonics(t *testing.T) {
 Mnemonics to Address
 */
 func TestGetAddressFromMnemonic(t *testing.T) {
-	mnemonic := "empty regular curve turtle student prize toy accuse develop spike scatter ginger"
-	address := GetAddressFromMnemonic(mnemonic, WAYKI_MAINTNET)
+	mnemonic := "vote despair mind rescue crumble choice garden elite venture cattle oxygen voyage"//"empty regular curve turtle student prize toy accuse develop spike scatter ginger"
+	address := GetAddressFromMnemonic(mnemonic, WAYKI_TESTNET)
 	if address == "" {
 		t.Error("GenerateAddress err!")
 	}

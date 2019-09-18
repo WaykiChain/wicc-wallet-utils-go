@@ -478,7 +478,6 @@ func SignUCoinTransferTx(privateKey string, param *UCoinTransferTxParam) (string
 	}
 	tx.ValidHeight = param.ValidHeight
 
-	tx.DestId = parseUserId(param.DestAddr)
 	tx.UserId = parseRegId(param.SrcRegId)
 
 	pubKey, err := hex.DecodeString(param.PubKey)
@@ -496,14 +495,22 @@ func SignUCoinTransferTx(privateKey string, param *UCoinTransferTxParam) (string
 
 	tx.TxType = commons.UCOIN_TRANSFER_TX
 	tx.Version = TX_VERSION
-	if param.CoinAmount < 0 {
-		return "", ERR_RANGE_VALUES
+
+	var dests []commons.Dest
+	for i:=0;i< len(param.Dests.destArray);i++{
+		var dest commons.Dest
+		dest.DestAddr = parseUserId(param.Dests.destArray[i].DestAddr)
+		if param.Dests.destArray[i].CoinAmount < 0 {
+			return "", ERR_RANGE_VALUES
+		}
+		dest.CoinAmount = uint64(param.Dests.destArray[i].CoinAmount)
+		if param.Dests.destArray[i].CoinSymbol == "" {
+			return "", ERR_COIN_TYPE
+		}
+		dest.CoinSymbol = string(param.Dests.destArray[i].CoinSymbol)
+		dests=append(dests,dest)
 	}
-	tx.CoinAmount = uint64(param.CoinAmount)
-	if param.CoinSymbol == "" {
-		return "", ERR_COIN_TYPE
-	}
-	tx.CoinSymbol = string(param.CoinSymbol)
+	tx.Dests=dests
 	if (param.FeeSymbol == "") {
 		tx.FeeSymbol = string(commons.WICC)
 	} else {

@@ -158,12 +158,12 @@ func TestSignUCoinTransferTx(t *testing.T) {
 	privateKey := "Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEnmFEYMqQd13"
 	var txParam UCoinTransferTxParam
 	txParam.FeeSymbol = string(commons.WICC)
-	txParam.CoinSymbol = string(commons.WICC)
-	txParam.CoinAmount = 1000000
 	txParam.Fees = 10000
 	txParam.ValidHeight = 297449
 	txParam.SrcRegId = "0-1"
-	txParam.DestAddr = "wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6"
+	txParam.Dests=NewDestArr()
+	dest:=Dest{string(commons.WICC),1000000, "wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6"}
+	txParam.Dests.Add(&dest)
 	txParam.PubKey = "036c5397f3227a1e209952829d249b7ad0f615e43b763ac15e3a6f52627a10df21"
 	txParam.Memo = ""
 	hash, err := SignUCoinTransferTx(privateKey, &txParam)
