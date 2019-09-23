@@ -10,13 +10,14 @@ import (
 /*
     * 账户注册交易,新版本已基本废弃，可改用公钥注册，免注册费用
     * Account registration transaction, the new version has been abandoned, you can use public key registration, free registration fee
+    * Minimum fee 0.1WICC
     * */
 func TestSignRegisterAccountTx(t *testing.T) {
 
 	privateKey := "YAa1wFCfFnZ5bt4hg9MDeDevTMd1Nu874Mn83hEXwtfAL2vkQE9f" //"Y9sx4Y8sBAbWDAqAWytYuUnJige3ZPwKDZp1SCDqqRby1YMgRG9c"
 	var txParam RegisterAccountTxParam
 	txParam.ValidHeight = 630314
-	txParam.Fees = 10000
+	txParam.Fees = 10000000
 
 	hash, err := SignRegisterAccountTx(privateKey, &txParam)
 	if err != nil {
@@ -28,7 +29,7 @@ func TestSignRegisterAccountTx(t *testing.T) {
 /*
   * 转账交易
   * common transfer
-  * fee Minimum 0.0001 wicc
+  * fee Minimum 0.1 wicc
   * */
 func TestSignCommonTx(t *testing.T) {
 
@@ -38,7 +39,7 @@ func TestSignCommonTx(t *testing.T) {
 	txParams.SrcRegId = "158-1"
 	txParams.DestAddr = "wSSbTePArv6BkDsQW9gpGCTX55AXVxVKbd"
 	txParams.Values = 10000
-	txParams.Fees = 10000
+	txParams.Fees = 10000000
 	txParams.PubKey = "03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
     txParams.Memo="test transfer"
 	hash, err := SignCommonTx(privateKey, &txParams)
@@ -51,7 +52,7 @@ func TestSignCommonTx(t *testing.T) {
 /*
    * 合约调用交易
    * Contract transaction sample
-   * fee Minimum 0.0001 wicc
+   * fee Minimum 0.01 wicc
    * */
 func TestSignCallContractTx(t *testing.T) {
 
@@ -62,7 +63,7 @@ func TestSignCallContractTx(t *testing.T) {
 	txParam.SrcRegId = "0-1"
 	txParam.AppId = "20988-1"
 	txParam.Fees = 100000
-	txParam.Values = 10000
+	txParam.Values = 1000000
 	txParam.ContractHex = "f017"
 	txParam.PubKey = "03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
 	hash, err := SignCallContractTx(privateKey, &txParam)
@@ -75,14 +76,14 @@ func TestSignCallContractTx(t *testing.T) {
 /*
 * 投票交易
 * Voting transaction
-* fee Minimum 0.0001 wicc
+* fee Minimum 0.01 wicc
 * */
 func TestSignDelegateTx(t *testing.T) {
 	privateKey := "Y9sx4Y8sBAbWDAqAWytYuUnJige3ZPwKDZp1SCDqqRby1YMgRG9c"
 	var txParams DelegateTxParam
 	txParams.ValidHeight = 95728
 	txParams.SrcRegId = ""
-	txParams.Fees = 10000
+	txParams.Fees = 1000000
 	txParams.PubKey = "03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
 	txParams.Votes = NewOperVoteFunds()
 	pubKey, _ := hex.DecodeString("025a37cb6ec9f63bb17e562865e006f0bafa9afbd8a846bd87fc8ff9e35db1252e")
@@ -98,6 +99,7 @@ func TestSignDelegateTx(t *testing.T) {
 /*
 部署合约
 deploy contract
+fee Minimum 1.1 wicc
 */
 func TestSignRegisterContractTx(t *testing.T) {
 
@@ -152,13 +154,13 @@ func TestSignUCoinRegisterContractTx(t *testing.T) {
 /*
   * 多币种转账交易 ,支持多种币种转账
   * Test nUniversal Coin Transfer Tx
-  * fee Minimum 0.0001 wicc
+  * fee Minimum 0.01 wicc
   * */
 func TestSignUCoinTransferTx(t *testing.T) {
 	privateKey := "Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEnmFEYMqQd13"
 	var txParam UCoinTransferTxParam
 	txParam.FeeSymbol = string(commons.WICC)
-	txParam.Fees = 10000
+	txParam.Fees = 1000000
 	txParam.ValidHeight = 297449
 	txParam.SrcRegId = "0-1"
 	txParam.Dests=NewDestArr()
@@ -176,7 +178,7 @@ func TestSignUCoinTransferTx(t *testing.T) {
 /*
   * 多币种合约调用交易 ,支持多种币种转账
   * Test nUniversal Coin Contract Tx
-  * fee Minimum 0.0001 wicc
+  * fee Minimum 0.01 wicc
   * */
 func TestSignUCoinContractTransferTx(t *testing.T) {
 	privateKey := "Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEnmFEYMqQd13"
@@ -184,7 +186,7 @@ func TestSignUCoinContractTransferTx(t *testing.T) {
 	txParam.FeeSymbol = string(commons.WICC)
 	txParam.CoinSymbol = string(commons.WICC)
 	txParam.CoinAmount = 1000000
-	txParam.Fees = 10000
+	txParam.Fees = 1000000
 	txParam.ValidHeight = 297449
 	txParam.SrcRegId = "0-1"
 	txParam.AppId = "0-1"
@@ -200,7 +202,7 @@ func TestSignUCoinContractTransferTx(t *testing.T) {
 /*
     * 创建,追加cdp交易
     * Create or append an  cdp transaction
-    * fee Minimum 0.001 wicc
+    * fee Minimum 0.01 wicc
     * */
 func TestCdpStakeTx(t *testing.T) {
 	privateKey := "Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEnmFEYMqQd13"
@@ -214,7 +216,7 @@ func TestCdpStakeTx(t *testing.T) {
 	txParam.Assets=NewCdpAssets()
 	txParam.Assets.Add(&model)
 	txParam.ScoinMint = 10
-	txParam.Fees = 100000
+	txParam.Fees = 10000000
 	txParam.ValidHeight = 283308
 	txParam.SrcRegId = "0-1"
 	txParam.PubKey = "03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
@@ -229,7 +231,7 @@ func TestCdpStakeTx(t *testing.T) {
 /*
   * 赎回cdp交易
   * Redeem cdp transaction
-  * fee Minimum 0.001 wicc
+  * fee Minimum 0.01 wicc
   * */
 func TestSignCdpRedeemTx(t *testing.T) {
 	privateKey := "Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEnmFEYMqQd13"
@@ -242,7 +244,7 @@ func TestSignCdpRedeemTx(t *testing.T) {
 	model:=AssetModel{int64(AssetAmount),AssetSymbol}
 	txParam.Assets=NewCdpAssets()
 	txParam.Assets.Add(&model)
-	txParam.Fees = 100000
+	txParam.Fees = 1000000
 	txParam.ValidHeight = 25
 	txParam.SrcRegId = "0-1"
 	txParam.PubKey = "03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
@@ -257,7 +259,7 @@ func TestSignCdpRedeemTx(t *testing.T) {
 /*
   * 清算cdp交易
   * Liquidate cdp transaction
-  * fee Minimum 0.001 wicc
+  * fee Minimum 0.01 wicc
   * */
 func TestSignCdpLiquidateTx(t *testing.T) {
 	privateKey := "Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEnmFEYMqQd13"
@@ -265,7 +267,7 @@ func TestSignCdpLiquidateTx(t *testing.T) {
 	txParam.CdpTxid = "0b9734e5db3cfa38e76bb273dba4f65a210cc76ca2cf739f3c131d0b24ff89c1"
 	txParam.FeeSymbol = string(commons.WICC)
 	txParam.ScoinsLiquidate = 100
-	txParam.Fees = 100000
+	txParam.Fees = 1000000
 	txParam.ValidHeight = 25
 	txParam.SrcRegId = "0-1"
 	txParam.PubKey = "03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
@@ -281,13 +283,13 @@ func TestSignCdpLiquidateTx(t *testing.T) {
 /*
  * Dex 限价买单交易
  * Dex limit price transaction
- * fee Minimum 0.0001 wicc
+ * fee Minimum 0.001 wicc
  * */
 func TestSignDexBuyLimitTx(t *testing.T) {
 	privateKey := "Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEnmFEYMqQd13"
 	var txParam DexLimitTxParam
 	txParam.FeeSymbol = string(commons.WICC)
-	txParam.Fees = 100000
+	txParam.Fees = 1000000
 	txParam.CoinSymbol = string(commons.WUSD)
 	txParam.AssetSymbol = string(commons.WICC)
 	txParam.AssetAmount = 10000
@@ -306,13 +308,13 @@ func TestSignDexBuyLimitTx(t *testing.T) {
 /*
    * Dex 限价卖单交易
    * Dex limit sell price transaction
-   * fee Minimum 0.0001 wicc
+   * fee Minimum 0.001 wicc
   * */
 func TestSignDexSellLimitTx(t *testing.T) {
 	privateKey := "Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEnmFEYMqQd13"
 	var txParam DexLimitTxParam
 	txParam.FeeSymbol = string(commons.WICC)
-	txParam.Fees = 10000
+	txParam.Fees = 100000
 	txParam.CoinSymbol = string(commons.WUSD)
 	txParam.AssetSymbol = string(commons.WICC)
 	txParam.AssetAmount = 1000000
@@ -331,13 +333,13 @@ func TestSignDexSellLimitTx(t *testing.T) {
 /*
      *  Dex 市价卖单交易
      * Dex market sell price transaction
-     * fee Minimum 0.0001 wicc
+     * fee Minimum 0.001 wicc
     * */
 func TestSignDexMarketSellTx(t *testing.T) {
 	privateKey := "Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEnmFEYMqQd13"
 	var txParam DexMarketTxParam
 	txParam.FeeSymbol = string(commons.WICC)
-	txParam.Fees = 100000
+	txParam.Fees = 1000000
 	txParam.CoinSymbol = string(commons.WUSD)
 	txParam.AssetSymbol = string(commons.WICC)
 	txParam.AssetAmount = 10000
@@ -355,13 +357,13 @@ func TestSignDexMarketSellTx(t *testing.T) {
 /*
      *  Dex 市价买单交易
      * Dex market buy price transaction
-     * fee Minimum 0.0001 wicc
+     * fee Minimum 0.001 wicc
     * */
 func TestSignDexMarketBuyTx(t *testing.T) {
 	privateKey := "Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEnmFEYMqQd13"
 	var txParam DexMarketTxParam
 	txParam.FeeSymbol = string(commons.WICC)
-	txParam.Fees = 100000
+	txParam.Fees = 1000000
 	txParam.CoinSymbol = string(commons.WUSD)
 	txParam.AssetSymbol = string(commons.WICC)
 	txParam.AssetAmount = 10000
@@ -379,7 +381,7 @@ func TestSignDexMarketBuyTx(t *testing.T) {
 /*
  *  Dex 取消挂单交易
  * Dex cancel order tx
- * fee Minimum 0.0001 wicc
+ * fee Minimum 0.001 wicc
 * */
 func TestSignDexCancelTx(t *testing.T) {
 	privateKey := "Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEnmFEYMqQd13"
@@ -400,13 +402,16 @@ func TestSignDexCancelTx(t *testing.T) {
 
 /*
 Asset Create 创建资产
-fee Minimum 550 wicc
+
+fee Minimum 0.01WICC
+make sure account balance >550.01 wicc
+发布资产需要扣除550wicc的发布费用
 */
 func TestAssetCreateTx(t *testing.T) {
 	privateKey := "Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEnmFEYMqQd13"
 	var txParam AssetIssueTxParam
 	txParam.FeeSymbol = string(commons.WICC)
-	txParam.Fees = 55000000000
+	txParam.Fees = 1000000
 	txParam.ValidHeight = 713581
 	txParam.SrcRegId = "0-1"
 	txParam.PubKey = "03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
@@ -424,13 +429,15 @@ func TestAssetCreateTx(t *testing.T) {
 
 /*
 Asset Update 更新资产
-fee Minimum 110 wicc
+fee Minimum 0.01WICC
+make sure account balance >110.01 wicc
+发布资产需要扣除110wicc的发布费用
 */
 func TestAssetUpdateTx(t *testing.T) {
 	privateKey := "Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEnmFEYMqQd13"
 	var txParam AssetUpdateTxParam
 	txParam.FeeSymbol = string(commons.WICC)
-	txParam.Fees = 11000000000
+	txParam.Fees = 1000000
 	txParam.ValidHeight = 688709
 	txParam.SrcRegId = "0-1"
 	txParam.UpdateType=int(commons.ASSET_OWNER_UID)
