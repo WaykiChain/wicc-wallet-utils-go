@@ -349,7 +349,7 @@ func SignUCoinCallContractTx(privateKey string, param *UCoinContractTxParam) (st
 
 //Sign message by private Key
 func SignMessage(privateKey string, message string) (*SignMessageParam, error) {
-	hash := hash2.Hash160([]byte(message))
+	hash := hash2.Hash256(hash2.Hash160([]byte(message)))
 	wifKey, errorDecode := btcutil.DecodeWIF(privateKey)
 	if (errorDecode != nil) {
 		return nil, ERR_INVALID_PRIVATE_KEY

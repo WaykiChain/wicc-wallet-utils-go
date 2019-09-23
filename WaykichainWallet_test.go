@@ -62,7 +62,7 @@ func TestGetPubKey(t *testing.T) {
 
 func TestSignMessage(t *testing.T) {
 	msg := "WaykiChain"
-	privateKey := "Y9sx4Y8sBAbWDAqAWytYuUnJige3ZPwKDZp1SCDqqRby1YMgRG9c"
+	privateKey := "Y9dJaHVk7Rs4sVq1Uk8TGLW4PQzzesA7Lss2Xz1inZY9KMfHBSPE"
 	signMsg,_:=SignMessage(privateKey,msg)
 	fmt.Println(signMsg)
 
