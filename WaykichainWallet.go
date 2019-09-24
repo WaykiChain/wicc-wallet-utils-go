@@ -349,7 +349,7 @@ func SignUCoinCallContractTx(privateKey string, param *UCoinContractTxParam) (st
 
 //Sign message by private Key
 func SignMessage(privateKey string, message string) (*SignMessageParam, error) {
-	hash := hash2.Hash160([]byte(message))
+	hash := hash2.Hash256(hash2.Hash160([]byte(message)))
 	wifKey, errorDecode := btcutil.DecodeWIF(privateKey)
 	if (errorDecode != nil) {
 		return nil, ERR_INVALID_PRIVATE_KEY
@@ -478,7 +478,6 @@ func SignUCoinTransferTx(privateKey string, param *UCoinTransferTxParam) (string
 	}
 	tx.ValidHeight = param.ValidHeight
 
-	tx.DestId = parseUserId(param.DestAddr)
 	tx.UserId = parseRegId(param.SrcRegId)
 
 	pubKey, err := hex.DecodeString(param.PubKey)
@@ -496,14 +495,22 @@ func SignUCoinTransferTx(privateKey string, param *UCoinTransferTxParam) (string
 
 	tx.TxType = commons.UCOIN_TRANSFER_TX
 	tx.Version = TX_VERSION
-	if param.CoinAmount < 0 {
-		return "", ERR_RANGE_VALUES
+
+	var dests []commons.Dest
+	for i:=0;i< len(param.Dests.destArray);i++{
+		var dest commons.Dest
+		dest.DestAddr = parseUserId(param.Dests.destArray[i].DestAddr)
+		if param.Dests.destArray[i].CoinAmount < 0 {
+			return "", ERR_RANGE_VALUES
+		}
+		dest.CoinAmount = uint64(param.Dests.destArray[i].CoinAmount)
+		if param.Dests.destArray[i].CoinSymbol == "" {
+			return "", ERR_COIN_TYPE
+		}
+		dest.CoinSymbol = string(param.Dests.destArray[i].CoinSymbol)
+		dests=append(dests,dest)
 	}
-	tx.CoinAmount = param.CoinAmount
-	if param.CoinSymbol == "" {
-		return "", ERR_COIN_TYPE
-	}
-	tx.CoinSymbol = string(param.CoinSymbol)
+	tx.Dests=dests
 	if (param.FeeSymbol == "") {
 		tx.FeeSymbol = string(commons.WICC)
 	} else {
@@ -546,13 +553,13 @@ func SignCdpStakeTx(privateKey string, param *CdpStakeTxParam) (string, error) {
 
 	tx.TxType = commons.CDP_STAKE_TX
 	tx.Version = TX_VERSION
-	if param.BcoinStake < 0 || param.ScoinMint < 0 {
+	if  param.ScoinMint < 0 {
 		return "", ERR_CDP_STAKE_NUMBER
 	}
-	tx.BcoinValues = param.BcoinStake
-	tx.ScoinValues = param.ScoinMint
 
-	if param.BcoinSymbol == "" || param.ScoinSymbol == "" {
+	tx.ScoinValues = uint64(param.ScoinMint)
+
+	if  param.ScoinSymbol == "" {
 		return "", ERR_COIN_TYPE
 	}
 	if (param.FeeSymbol == "") {
@@ -560,7 +567,22 @@ func SignCdpStakeTx(privateKey string, param *CdpStakeTxParam) (string, error) {
 	} else {
 		tx.FeeSymbol = string(param.FeeSymbol)
 	}
-	tx.BcoinSymbol = string(param.BcoinSymbol)
+	var models []commons.AssetModel
+	for i := 0; i < len(param.Assets.assetArray); i++ {
+		asset := param.Assets.assetArray[i]
+		var model commons.AssetModel
+		model.AssetSymbol=asset.AssetSymbol
+		if asset.AssetSymbol=="" {
+			return "", ERR_COIN_TYPE
+		}
+
+		model.AssetAmount = abs(asset.AssetAmount)
+		if !checkMoneyRange(model.AssetAmount) {
+			return "", ERR_CDP_STAKE_NUMBER
+		}
+		models = append(models, model)
+	}
+	tx.Assets=models
 	tx.ScoinSymbol = string(param.ScoinSymbol)
 	if (param.CdpTxid == "") {
 		param.CdpTxid = "0000000000000000000000000000000000000000000000000000000000000000"
@@ -607,11 +629,10 @@ func SignCdpRedeemTx(privateKey string, param *CdpRedeemTxParam) (string, error)
 
 	tx.TxType = commons.CDP_REDEEMP_TX
 	tx.Version = TX_VERSION
-	if param.BcoinsToRedeem < 0 || param.ScoinsToRepay < 0 {
+	if param.ScoinsToRepay < 0 {
 		return "", ERR_CDP_STAKE_NUMBER
 	}
-	tx.ScoinValues = param.ScoinsToRepay
-	tx.BcoinValues = param.BcoinsToRedeem
+	tx.ScoinValues = uint64(param.ScoinsToRepay)
 
 	if (param.FeeSymbol == "") {
 		tx.FeeSymbol = string(commons.WICC)
@@ -624,6 +645,23 @@ func SignCdpRedeemTx(privateKey string, param *CdpRedeemTxParam) (string, error)
 		return "", ERR_CDP_TX_HASH
 	}
 	tx.CdpTxHash = txHash
+
+	var models []commons.AssetModel
+	for i := 0; i < len(param.Assets.assetArray); i++ {
+		asset := param.Assets.assetArray[i]
+		var model commons.AssetModel
+		model.AssetSymbol=asset.AssetSymbol
+		if asset.AssetSymbol=="" {
+			return "", ERR_COIN_TYPE
+		}
+
+		model.AssetAmount = abs(asset.AssetAmount)
+		if !checkMoneyRange(model.AssetAmount) {
+			return "", ERR_CDP_STAKE_NUMBER
+		}
+		models = append(models, model)
+	}
+	tx.Assets=models
 
 	hash := tx.SignTx(wifKey)
 	return hash, nil
@@ -664,13 +702,18 @@ func SignCdpLiquidateTx(privateKey string, param *CdpLiquidateTxParam) (string, 
 	if param.ScoinsLiquidate < 0 {
 		return "", ERR_CDP_STAKE_NUMBER
 	}
-	tx.ScoinsLiquidate = param.ScoinsLiquidate
+	tx.ScoinsLiquidate = uint64(param.ScoinsLiquidate)
 
 	if (param.FeeSymbol == "") {
 		tx.FeeSymbol = string(commons.WICC)
 	} else {
 		tx.FeeSymbol = string(param.FeeSymbol)
 	}
+
+	if param.AssetSymbol==""{
+		return "",ERR_COIN_TYPE
+	}
+	tx.AseetSymbol=param.AssetSymbol
 
 	txHash, err := hex.DecodeString(param.CdpTxid)
 	if (err != nil) {
@@ -980,7 +1023,7 @@ func SignAssetCreateTx(privateKey string, param *AssetIssueTxParam) (string, err
 	if (param.AssetTotal < 100000000) {
 		return "", ERR_TOTAl_SUPPLY_ERROR
 	}
-	tx.AssetTotal = param.AssetTotal
+	tx.AssetTotal = uint64(param.AssetTotal)
 	tx.AssetOwner = parseUserId(param.AssetOwner)
 	if (tx.AssetOwner == nil) {
 		return "", ERR_ASSET_UPDATE_OWNER_ERROR
@@ -1048,7 +1091,7 @@ func SignAssetUpdateTx(privateKey string, param *AssetUpdateTxParam) (string, er
 		if (param.AssetTotal < 100000000) {
 			return "", ERR_TOTAl_SUPPLY_ERROR
 		}
-		tx.AssetTotal = param.AssetTotal
+		tx.AssetTotal = uint64(param.AssetTotal)
 		break
 	default:
 		return "", ERR_ASSET_UPDATE_TYPE_ERROR

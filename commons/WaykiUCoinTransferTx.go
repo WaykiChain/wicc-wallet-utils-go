@@ -8,14 +8,18 @@ import (
 	hash2 "github.com/WaykiChain/wicc-wallet-utils-go/commons/hash"
 )
 
+type Dest struct {
+	CoinSymbol string   //From Coin Type
+	CoinAmount uint64
+	DestAddr    *UserIdWraper
+}
+
 type WaykiUCoinTransferTx struct {
 	WaykiBaseSignTx
 	Fees   uint64
 	FeeSymbol string      //Fee Type (WICC/WUSD)
-	CoinSymbol string   //From Coin Type
-	CoinAmount uint64
+	Dests    []Dest
 	Memo       string
-	DestId    *UserIdWraper
 }
 
 func (tx WaykiUCoinTransferTx) SignTx(wifKey *btcutil.WIF) string {
@@ -30,11 +34,14 @@ func (tx WaykiUCoinTransferTx) SignTx(wifKey *btcutil.WIF) string {
 	}else if(tx.PubKey!=nil){
 		writer.WritePubKeyId(tx.PubKey)
 	}
-	writer.WriteUserId(tx.DestId)
-	writer.WriteString(tx.CoinSymbol)
-	writer.WriteVarInt(int64(tx.CoinAmount))
 	writer.WriteString(tx.FeeSymbol)
 	writer.WriteVarInt(int64(tx.Fees))
+	writer.WriteCompactSize(uint64(len(tx.Dests)))
+	for i:=0;i<len(tx.Dests);i++  {
+		writer.WriteUserId(tx.Dests[i].DestAddr)
+		writer.WriteString(tx.Dests[i].CoinSymbol)
+		writer.WriteVarInt(int64(tx.Dests[i].CoinAmount))
+	}
 	writer.WriteString(tx.Memo)
 	signedBytes := tx.doSignTx(wifKey)
 	writer.WriteBytes(signedBytes)
@@ -56,11 +63,14 @@ func (tx WaykiUCoinTransferTx) doSignTx(wifKey *btcutil.WIF) []byte {
 	}else if(tx.PubKey!=nil){
 		writer.WriteReverse(tx.PubKey)
 	}
-	writer.WriteUserId(tx.DestId)
-	writer.WriteString(tx.CoinSymbol)
-	writer.WriteVarInt(int64(tx.CoinAmount))
 	writer.WriteString(tx.FeeSymbol)
 	writer.WriteVarInt(int64(tx.Fees))
+	writer.WriteCompactSize(uint64(len(tx.Dests)))
+	for i:=0;i<len(tx.Dests);i++  {
+		writer.WriteUserId(tx.Dests[i].DestAddr)
+		writer.WriteString(tx.Dests[i].CoinSymbol)
+		writer.WriteVarInt(int64(tx.Dests[i].CoinAmount))
+	}
 	writer.WriteString(tx.Memo)
 
 	hash := hash2.DoubleHash256(buf.Bytes())

@@ -28,8 +28,8 @@ func TestGenerateMnemonics(t *testing.T) {
 Mnemonics to Address
 */
 func TestGetAddressFromMnemonic(t *testing.T) {
-	mnemonic := "empty regular curve turtle student prize toy accuse develop spike scatter ginger"
-	address := GetAddressFromMnemonic(mnemonic, WAYKI_MAINTNET)
+	mnemonic := "vote despair mind rescue crumble choice garden elite venture cattle oxygen voyage"//"empty regular curve turtle student prize toy accuse develop spike scatter ginger"
+	address := GetAddressFromMnemonic(mnemonic, WAYKI_TESTNET)
 	if address == "" {
 		t.Error("GenerateAddress err!")
 	}
@@ -55,13 +55,14 @@ get publicKey hex String
 */
 func TestGetPubKey(t *testing.T) {
 	str,_:=GetPubKeyFromPrivateKey("Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEnmFEYMqQd13")
-	println(str)
+	checkPriv,_:=CheckPrivateKey("Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEnmFEYMqQd13",2)
+	fmt.Println("公钥",str,"测试私钥？",checkPriv)
 }
 
 
 func TestSignMessage(t *testing.T) {
 	msg := "WaykiChain"
-	privateKey := "Y9sx4Y8sBAbWDAqAWytYuUnJige3ZPwKDZp1SCDqqRby1YMgRG9c"
+	privateKey := "Y9dJaHVk7Rs4sVq1Uk8TGLW4PQzzesA7Lss2Xz1inZY9KMfHBSPE"
 	signMsg,_:=SignMessage(privateKey,msg)
 	fmt.Println(signMsg)
 
