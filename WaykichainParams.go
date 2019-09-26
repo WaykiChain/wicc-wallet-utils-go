@@ -274,6 +274,7 @@ type AssetUpdateTxParam struct {
 
 // errors
 var (
+	ERR_INVALID_MNEMONIC       = errors.New("Invalid Mnemonic")
 	ERR_INVALID_NETWORK   = errors.New("Invalid Network type")
 	ERR_INVALID_PRIVATE_KEY   = errors.New("privateKey invalid")
 	ERR_NEGATIVE_VALID_HEIGHT = errors.New("ValidHeight can not be negative")
@@ -297,7 +298,7 @@ var (
 
 	ERR_ASK_PRICE   = errors.New("Ask Price invalid")
 	ERR_SIGNATURE_ERROR       = errors.New("Signature error")
-	ERR_SYMBOL_ERROR       = errors.New("Symbol Capital letter A-Z 1-7 digits [A_Z] error")
+	ERR_SYMBOL_ERROR       = errors.New("Symbol Capital letter A-Z 6-7 digits [A_Z] error")
 	ERR_ASSET_NAME_ERROR       = errors.New("Asset Name error")
 	ERR_TOTAl_SUPPLY_ERROR       = errors.New("Asset Total Supply error")
 	ERR_ASSET_UPDATE_TYPE_ERROR       = errors.New("Asset Update Type error")
@@ -326,7 +327,7 @@ func checkMinTxFee(fees int64) bool {
 }
 
 func checkAssetSymbol(symbol string) bool {
-	var symbolMatch="^[A-Z]{1,7}$"
+	var symbolMatch="^[A-Z]{6,7}$"
 	var match=regexp.MustCompile(symbolMatch)
 	var ma=match.MatchString(symbol)
 	return ma

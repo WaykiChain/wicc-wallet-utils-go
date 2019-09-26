@@ -422,7 +422,7 @@ func TestAssetCreateTx(t *testing.T) {
 	txParam.MinTable=true
 	hash, err := SignAssetCreateTx(privateKey, &txParam)
 	if err != nil {
-		t.Error("SignCdpStakeTx err: ", err)
+		t.Error("SignAssetIssueTx err: ", err)
 	}
 	println(hash)
 }

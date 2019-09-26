@@ -28,8 +28,8 @@ func TestGenerateMnemonics(t *testing.T) {
 Mnemonics to Address
 */
 func TestGetAddressFromMnemonic(t *testing.T) {
-	mnemonic := "vote despair mind rescue crumble choice garden elite venture cattle oxygen voyage"//"empty regular curve turtle student prize toy accuse develop spike scatter ginger"
-	address := GetAddressFromMnemonic(mnemonic, WAYKI_TESTNET)
+	mnemonic := "case impulse oxygen slot cry master lecture rough elevator drop machine two"//"vote despair mind rescue crumble choice garden elite venture cattle oxygen voyage"//"empty regular curve turtle student prize toy accuse develop spike scatter ginger"
+	address := GetAddressFromMnemonic(mnemonic, WAYKI_MAINTNET)
 	if address == "" {
 		t.Error("GenerateAddress err!")
 	}
@@ -39,9 +39,9 @@ func TestGetAddressFromMnemonic(t *testing.T) {
 
 func TestMnemonicWIF(t *testing.T) {
 	mnemonic := "empty regular curve turtle student prize toy accuse develop spike scatter ginger"
-	privateKey := GetPrivateKeyFromMnemonic(mnemonic, WAYKI_MAINTNET)
+	privateKey,err := GetPrivateKeyFromMnemonic(mnemonic, WAYKI_MAINTNET)
 	fmt.Println("私钥" + privateKey)
-	if privateKey == "" {
+	if err != nil {
 		t.Error("MnemonicWIF error!")
 		return
 	}

@@ -6,6 +6,7 @@ import (
 	"github.com/WaykiChain/wicc-wallet-utils-go/commons"
 	"github.com/btcsuite/btcutil"
 	"github.com/btcsuite/btcutil/base58"
+	"strings"
 )
 
 //Generate Mnemonics string, saprated by space, default language is EN(english)
@@ -65,9 +66,13 @@ func GetAddressFromMnemonic(words string, netType int) string {
 
 //助记词转私钥
 // netType: WAYKI_TESTNET or WAYKI_MAINTNET
-func GetPrivateKeyFromMnemonic(words string, netType int) string {
+func GetPrivateKeyFromMnemonic(words string, netType int) (string, error) {
+	wordArr:=strings.Split(words," ")
+	if(len(wordArr)!=12){
+		return "", ERR_INVALID_MNEMONIC
+	}
 	privateKey := commons.GetPrivateKeyFromMnemonic(words, commons.Network(netType))
-	return privateKey
+	return privateKey,nil
 }
 
 // get publickey from privatekey
@@ -998,9 +1003,7 @@ func SignAssetCreateTx(privateKey string, param *AssetIssueTxParam) (string, err
 	if (tx.UserId == nil && tx.PubKey == nil) {
 		return "", ERR_INVALID_SRC_REG_ID
 	}
-	if param.Fees < 55000000000 {
-		return "", ERR_RANGE_FEE
-	}
+
 	tx.Fees = uint64(param.Fees)
 
 	tx.TxType = commons.ASSET_ISSUE_TX
@@ -1056,9 +1059,7 @@ func SignAssetUpdateTx(privateKey string, param *AssetUpdateTxParam) (string, er
 	if (tx.UserId == nil && tx.PubKey == nil) {
 		return "", ERR_INVALID_SRC_REG_ID
 	}
-	if param.Fees < 11000000000 {
-		return "", ERR_RANGE_FEE
-	}
+
 	tx.Fees = uint64(param.Fees)
 
 	tx.TxType = commons.ASSET_UPDATE_TX
