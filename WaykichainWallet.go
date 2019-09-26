@@ -59,9 +59,13 @@ func CheckPrivateKey(privateKey string, netType int) (bool, error) {
 
 //助记词转换地址
 // netType: WAYKI_TESTNET or WAYKI_MAINTNET
-func GetAddressFromMnemonic(words string, netType int) string {
+func GetAddressFromMnemonic(words string, netType int) (string, error) {
+	wordArr:=strings.Split(words," ")
+	if(len(wordArr)!=12){
+		return "", ERR_INVALID_MNEMONIC
+	}
 	address := commons.GetAddressFromMnemonic(words, commons.Network(netType))
-	return address
+	return address,nil
 }
 
 //助记词转私钥
