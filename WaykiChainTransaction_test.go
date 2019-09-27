@@ -413,8 +413,7 @@ func TestAssetCreateTx(t *testing.T) {
 	txParam.FeeSymbol = string(commons.WICC)
 	txParam.Fees = 1000000
 	txParam.ValidHeight = 713581
-	txParam.SrcRegId = "0-1"
-	txParam.PubKey = "03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
+	txParam.SrcRegId = "0-2"
 	txParam.AssetOwner="wbZTWpEnbYoYsedMm2knnP4q7KiSdS3yVq"
 	txParam.AssetTotal=100*100000000
 	txParam.AssetSymbol="SSSSSSS"
@@ -439,10 +438,9 @@ func TestAssetUpdateTx(t *testing.T) {
 	txParam.FeeSymbol = string(commons.WICC)
 	txParam.Fees = 1000000
 	txParam.ValidHeight = 688709
-	txParam.SrcRegId = "0-1"
+	txParam.SrcRegId = "0-3"
 	txParam.UpdateType=int(commons.ASSET_OWNER_UID)
 	txParam.AssetSymbol="STOKEN"
-	txParam.PubKey = "03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
 	txParam.AssetOwner="wbZTWpEnbYoYsedMm2knnP4q7KiSdS3yVq"
 	//txParam.AssetTotal=100*100000000
 	//txParam.AssetName="SK Token"

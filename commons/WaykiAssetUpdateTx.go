@@ -28,8 +28,6 @@ func (tx WaykiAssetUpdateTx) SignTx(wifKey *btcutil.WIF) string {
 	writer.WriteVarInt(tx.ValidHeight)
 	if(tx.UserId!=nil){
 		writer.WriteUserId(tx.UserId)
-	}else if(tx.PubKey!=nil){
-		writer.WritePubKeyId(tx.PubKey)
 	}
 	writer.WriteString(tx.FeeSymbol)
 	writer.WriteVarInt(int64(tx.Fees))
@@ -64,8 +62,6 @@ func (tx WaykiAssetUpdateTx) doSignTx(wifKey *btcutil.WIF) []byte {
 	writer.WriteVarInt(tx.ValidHeight)
 	if(tx.UserId!=nil){
 		writer.WriteUserId(tx.UserId)
-	}else if(tx.PubKey!=nil){
-		writer.WriteReverse(tx.PubKey)
 	}
 	writer.WriteString(tx.FeeSymbol)
 	writer.WriteVarInt(int64(tx.Fees))

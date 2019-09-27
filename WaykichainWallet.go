@@ -999,12 +999,7 @@ func SignAssetCreateTx(privateKey string, param *AssetIssueTxParam) (string, err
 	tx.ValidHeight = param.ValidHeight
 	tx.UserId = parseRegId(param.SrcRegId)
 
-	pubKey, err := hex.DecodeString(param.PubKey)
-	if (err != nil) {
-		return "", ERR_USER_PUBLICKEY
-	}
-	tx.PubKey = pubKey
-	if (tx.UserId == nil && tx.PubKey == nil) {
+	if (tx.UserId == nil) {
 		return "", ERR_INVALID_SRC_REG_ID
 	}
 
@@ -1054,13 +1049,7 @@ func SignAssetUpdateTx(privateKey string, param *AssetUpdateTxParam) (string, er
 	}
 	tx.ValidHeight = param.ValidHeight
 	tx.UserId = parseRegId(param.SrcRegId)
-
-	pubKey, err := hex.DecodeString(param.PubKey)
-	if (err != nil) {
-		return "", ERR_USER_PUBLICKEY
-	}
-	tx.PubKey = pubKey
-	if (tx.UserId == nil && tx.PubKey == nil) {
+	if (tx.UserId == nil) {
 		return "", ERR_INVALID_SRC_REG_ID
 	}
 

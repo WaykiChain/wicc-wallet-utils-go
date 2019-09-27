@@ -250,7 +250,6 @@ type AssetIssueTxParam struct {
 	ValidHeight int64  // valid height Within the height of the latest block
 	SrcRegId    string // the reg id of the register
 	Fees       int64
-	PubKey      string
 	FeeSymbol string      //Fee Type (WICC/WUSD)
 	AssetSymbol string   //From Coin Type
 	AssetName   string
@@ -263,7 +262,6 @@ type AssetUpdateTxParam struct {
 	ValidHeight int64  // valid height Within the height of the latest block
 	SrcRegId    string // the reg id of the register
 	Fees       int64
-	PubKey      string
 	UpdateType int
 	FeeSymbol string      //Fee Type (WICC/WUSD)
 	AssetSymbol string   //From Coin Type
