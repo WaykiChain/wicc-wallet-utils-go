@@ -146,7 +146,7 @@ func TestSignUCoinRegisterContractTx(t *testing.T) {
 
 	hash, err := SignUCoinRegisterContractTx(privateKey, &txParam)
 	if err != nil {
-		t.Error("SignRegisterContractTx err: ", err)
+		t.Error("UCoinRegisterContractTx err: ", err)
 	}
 	println(hash)
 }
@@ -170,7 +170,7 @@ func TestSignUCoinTransferTx(t *testing.T) {
 	txParam.Memo = ""
 	hash, err := SignUCoinTransferTx(privateKey, &txParam)
 	if err != nil {
-		t.Error("SignCdpStakeTx err: ", err)
+		t.Error("UCoinTransferTx err: ", err)
 	}
 	println(hash)
 }
@@ -223,7 +223,7 @@ func TestCdpStakeTx(t *testing.T) {
 
 	hash, err := SignCdpStakeTx(privateKey, &txParam)
 	if err != nil {
-		t.Error("SignCdpStakeTx err: ", err)
+		t.Error("CdpStakeTx err: ", err)
 	}
 	println(hash)
 }
@@ -251,7 +251,7 @@ func TestSignCdpRedeemTx(t *testing.T) {
 
 	hash, err := SignCdpRedeemTx(privateKey, &txParam)
 	if err != nil {
-		t.Error("SignCdpStakeTx err: ", err)
+		t.Error("CdpRedeemTx err: ", err)
 	}
 	println(hash)
 }
@@ -275,7 +275,7 @@ func TestSignCdpLiquidateTx(t *testing.T) {
 
 	hash, err := SignCdpLiquidateTx(privateKey, &txParam)
 	if err != nil {
-		t.Error("SignCdpStakeTx err: ", err)
+		t.Error("CdpLiquidateTx err: ", err)
 	}
 	println(hash)
 }
@@ -300,7 +300,7 @@ func TestSignDexBuyLimitTx(t *testing.T) {
 
 	hash, err := SignDexBuyLimitTx(privateKey, &txParam)
 	if err != nil {
-		t.Error("SignCdpStakeTx err: ", err)
+		t.Error("DexBuyLimitTx err: ", err)
 	}
 	println(hash)
 }
@@ -325,7 +325,7 @@ func TestSignDexSellLimitTx(t *testing.T) {
 
 	hash, err := SignDexSellLimitTx(privateKey, &txParam)
 	if err != nil {
-		t.Error("SignCdpStakeTx err: ", err)
+		t.Error("DexSellLimitTx err: ", err)
 	}
 	println(hash)
 }
@@ -349,7 +349,7 @@ func TestSignDexMarketSellTx(t *testing.T) {
 
 	hash, err := SignDexMarketSellTx(privateKey, &txParam)
 	if err != nil {
-		t.Error("SignCdpStakeTx err: ", err)
+		t.Error("DexMarketSellTx err: ", err)
 	}
 	println(hash)
 }
@@ -373,7 +373,7 @@ func TestSignDexMarketBuyTx(t *testing.T) {
 
 	hash, err := SignDexMarketBuyTx(privateKey, &txParam)
 	if err != nil {
-		t.Error("SignCdpStakeTx err: ", err)
+		t.Error("DexMarketBuyTx err: ", err)
 	}
 	println(hash)
 }
@@ -395,7 +395,7 @@ func TestSignDexCancelTx(t *testing.T) {
 
 	hash, err := SignDexCancelTx(privateKey, &txParam)
 	if err != nil {
-		t.Error("SignCdpStakeTx err: ", err)
+		t.Error("DexCancelTx err: ", err)
 	}
 	println(hash)
 }
@@ -412,17 +412,16 @@ func TestAssetCreateTx(t *testing.T) {
 	var txParam AssetIssueTxParam
 	txParam.FeeSymbol = string(commons.WICC)
 	txParam.Fees = 1000000
-	txParam.ValidHeight = 713581
+	txParam.ValidHeight = 11625
 	txParam.SrcRegId = "0-1"
-	txParam.PubKey = "03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
-	txParam.AssetOwner="wbZTWpEnbYoYsedMm2knnP4q7KiSdS3yVq"
+	txParam.AssetOwner="0-1"//only support regid
 	txParam.AssetTotal=100*100000000
 	txParam.AssetSymbol="SSSSSSS"
 	txParam.AssetName="SK Token"
 	txParam.MinTable=true
 	hash, err := SignAssetCreateTx(privateKey, &txParam)
 	if err != nil {
-		t.Error("SignCdpStakeTx err: ", err)
+		t.Error("SignAssetIssueTx err: ", err)
 	}
 	println(hash)
 }
@@ -442,13 +441,12 @@ func TestAssetUpdateTx(t *testing.T) {
 	txParam.SrcRegId = "0-1"
 	txParam.UpdateType=int(commons.ASSET_OWNER_UID)
 	txParam.AssetSymbol="STOKEN"
-	txParam.PubKey = "03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
-	txParam.AssetOwner="wbZTWpEnbYoYsedMm2knnP4q7KiSdS3yVq"
+	txParam.AssetOwner="111-1" //only support regid
 	//txParam.AssetTotal=100*100000000
 	//txParam.AssetName="SK Token"
 	hash, err := SignAssetUpdateTx(privateKey, &txParam)
 	if err != nil {
-		t.Error("SignCdpStakeTx err: ", err)
+		t.Error("AssetUpdateTx err: ", err)
 	}
 	println(hash)
 }

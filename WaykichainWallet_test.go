@@ -8,6 +8,7 @@ import (
 	"crypto/ecdsa"
 	"github.com/btcsuite/btcutil"
 	"github.com/btcsuite/btcd/btcec"
+	"github.com/WaykiChain/wicc-wallet-utils-go/commons/hash"
 )
 
 /*
@@ -29,9 +30,9 @@ Mnemonics to Address
 */
 func TestGetAddressFromMnemonic(t *testing.T) {
 	mnemonic := "vote despair mind rescue crumble choice garden elite venture cattle oxygen voyage"//"empty regular curve turtle student prize toy accuse develop spike scatter ginger"
-	address := GetAddressFromMnemonic(mnemonic, WAYKI_TESTNET)
-	if address == "" {
-		t.Error("GenerateAddress err!")
+	address,err := GetAddressFromMnemonic(mnemonic, WAYKI_MAINTNET)
+	if err != nil {
+		t.Error("GenerateAddress err!",err)
 	}
 	t.Log("address: " + address)
 }
@@ -39,9 +40,9 @@ func TestGetAddressFromMnemonic(t *testing.T) {
 
 func TestMnemonicWIF(t *testing.T) {
 	mnemonic := "empty regular curve turtle student prize toy accuse develop spike scatter ginger"
-	privateKey := GetPrivateKeyFromMnemonic(mnemonic, WAYKI_MAINTNET)
+	privateKey,err := GetPrivateKeyFromMnemonic(mnemonic, WAYKI_MAINTNET)
 	fmt.Println("私钥" + privateKey)
-	if privateKey == "" {
+	if err != nil {
 		t.Error("MnemonicWIF error!")
 		return
 	}
@@ -72,6 +73,6 @@ func TestSignMessage(t *testing.T) {
 	decode,_:=	hex.DecodeString(signMsg.SignMessage)
 	fmt.Println(signMsg.PublicKey)
 	sign,_:=btcec.ParseDERSignature(decode, btcec.S256())
-	success := ecdsa.Verify(publicKey, btcutil.Hash160([]byte("WaykiChain")), sign.R, sign.S)
+	success := ecdsa.Verify(publicKey,  hash.Hash256(btcutil.Hash160([]byte("WaykiChain"))), sign.R, sign.S)
 	fmt.Println("验证签名成功？", success)
 }

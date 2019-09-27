@@ -6,6 +6,7 @@ import (
 	"github.com/WaykiChain/wicc-wallet-utils-go/commons"
 	"github.com/btcsuite/btcutil"
 	"github.com/btcsuite/btcutil/base58"
+	"strings"
 )
 
 //Generate Mnemonics string, saprated by space, default language is EN(english)
@@ -58,16 +59,24 @@ func CheckPrivateKey(privateKey string, netType int) (bool, error) {
 
 //助记词转换地址
 // netType: WAYKI_TESTNET or WAYKI_MAINTNET
-func GetAddressFromMnemonic(words string, netType int) string {
+func GetAddressFromMnemonic(words string, netType int) (string, error) {
+	wordArr:=strings.Split(words," ")
+	if(len(wordArr)!=12){
+		return "", ERR_INVALID_MNEMONIC
+	}
 	address := commons.GetAddressFromMnemonic(words, commons.Network(netType))
-	return address
+	return address,nil
 }
 
 //助记词转私钥
 // netType: WAYKI_TESTNET or WAYKI_MAINTNET
-func GetPrivateKeyFromMnemonic(words string, netType int) string {
+func GetPrivateKeyFromMnemonic(words string, netType int) (string, error) {
+	wordArr:=strings.Split(words," ")
+	if(len(wordArr)!=12){
+		return "", ERR_INVALID_MNEMONIC
+	}
 	privateKey := commons.GetPrivateKeyFromMnemonic(words, commons.Network(netType))
-	return privateKey
+	return privateKey,nil
 }
 
 // get publickey from privatekey
@@ -990,17 +999,10 @@ func SignAssetCreateTx(privateKey string, param *AssetIssueTxParam) (string, err
 	tx.ValidHeight = param.ValidHeight
 	tx.UserId = parseRegId(param.SrcRegId)
 
-	pubKey, err := hex.DecodeString(param.PubKey)
-	if (err != nil) {
-		return "", ERR_USER_PUBLICKEY
-	}
-	tx.PubKey = pubKey
-	if (tx.UserId == nil && tx.PubKey == nil) {
+	if (tx.UserId == nil) {
 		return "", ERR_INVALID_SRC_REG_ID
 	}
-	if param.Fees < 55000000000 {
-		return "", ERR_RANGE_FEE
-	}
+
 	tx.Fees = uint64(param.Fees)
 
 	tx.TxType = commons.ASSET_ISSUE_TX
@@ -1047,18 +1049,10 @@ func SignAssetUpdateTx(privateKey string, param *AssetUpdateTxParam) (string, er
 	}
 	tx.ValidHeight = param.ValidHeight
 	tx.UserId = parseRegId(param.SrcRegId)
-
-	pubKey, err := hex.DecodeString(param.PubKey)
-	if (err != nil) {
-		return "", ERR_USER_PUBLICKEY
-	}
-	tx.PubKey = pubKey
-	if (tx.UserId == nil && tx.PubKey == nil) {
+	if (tx.UserId == nil) {
 		return "", ERR_INVALID_SRC_REG_ID
 	}
-	if param.Fees < 11000000000 {
-		return "", ERR_RANGE_FEE
-	}
+
 	tx.Fees = uint64(param.Fees)
 
 	tx.TxType = commons.ASSET_UPDATE_TX
