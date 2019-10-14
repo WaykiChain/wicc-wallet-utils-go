@@ -562,7 +562,7 @@ func SignCdpStakeTx(privateKey string, param *CdpStakeTxParam) (string, error) {
 
 	tx.TxType = commons.CDP_STAKE_TX
 	tx.Version = TX_VERSION
-	if  param.ScoinMint < 0 {
+	if  param.ScoinMint <= 0 {
 		return "", ERR_CDP_STAKE_NUMBER
 	}
 

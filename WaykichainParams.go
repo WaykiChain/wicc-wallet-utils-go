@@ -311,7 +311,7 @@ func abs(x int64) int64 {
 }
 
 func checkMoneyRange(value int64) bool {
-	return value >= 0 && value <= MAX_MONEY
+	return value > 0 && value <= MAX_MONEY
 }
 
 
