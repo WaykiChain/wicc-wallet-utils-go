@@ -68,10 +68,10 @@ address := GetAddressFromMnemonic(mnemonic, WAYKI_MAINTNET)
 用私钥签名交易，你可以使用bass提交钱包库生成的rawtx字符串。  
 Signing a transaction with a private key,you can submit your offline signature rawtx transaction by bass.
 
-|  BassNetwork |  ApiAddr | 
+|  BassNetwork |  Api | 
 |-------------- |----------------------------------|
-|   TestNetwork | https://baas-test.wiccdev.org/v2/api/swagger-ui.html#!/  |  
-|   ProdNetwork | https://baas.wiccdev.org/v2/api/swagger-ui.html#!/       |                                |
+|   TestNet | https://baas-test.wiccdev.org/v2/api/swagger-ui.html#!/  |  
+|   MainNet | https://baas.wiccdev.org/v2/api/swagger-ui.html#!/       |                                |
 
 Submit raw string:
 
@@ -85,148 +85,9 @@ MainNet<https://baas.wiccdev.org/v2/api/swagger-ui.html#!/block-controller/getBl
 
 TestNet <https://baas-test.wiccdev.org/v2/api/swagger-ui.html#!/block-controller/getBlockCountUsingPOST>
 
-#### 普通交易(Common Transaction)
+#### 转账交易
 
- [**WICC交易单位说明 (WICC Transaction Unit description)**](https://wicc-devbook.readthedocs.io/zh_CN/latest/Problem/question/)
-
-```go
-func SignRegisterAccountTx(privateKey string, param *RegisterAccountTxParam) (string, error)
-
-func SignCommonTx(privateKey string, param *CommonTxParam) (string, error)
-
-func SignDelegateTx(privateKey string, param *DelegateTxParam) (string, error)
-
-func SignCallContractTx(privateKey string, param *CallContractTxParam) (string, error)
-
-func SignRegisterContractTx(privateKey string, param *RegisterContractTxParam) (string, error)
-
-func SignUCoinTransferTx(privateKey string, param *UCoinTransferTxParam) (string, error) 
-```
-- **SignRegisterAccountTx.**  
-钱包注册交易  
-sign registration transaction with a private key , return the rawtx string.
-- **SignCommonTx.**  
-普通转账交易  
-sign transfer transaction with a private key , return the rawtx string.
-- **SignDelegateTx.**  
-投票交易  
-sign delegate transaction with a private key , return the rawtx string.
-- **SignCallContractTx.**  
-调用合约交易  
-sign invoke contract transaction with a private key , return the rawtx string.
-- **SignRegisterContractTx.**  
-合约部署交易  
-sign deploy contract transaction with a private key , return the rawtx string.
-- **SignUCoinTransferTx.**  
-多币种转账  
-sign Multi-coin transfer transaction with a private key , return the rawtx string.
-
-示例(Example:)  
-
-钱包注册交易已经不是必须的，你可以在其他交易通过公钥参数激活。  
-**The register transaction is not required, you can activate wallet by public key in other transactions**
-
-[钱包注册交易(Sign register account transaction:)]()
-```go
-	privateKey := "YAa1wFCfFnZ5bt4hg9MDeDevTMd1Nu874Mn83hEXwtfAL2vkQE9f"
-	var txParam RegisterAccountTxParam  
-	txParam.ValidHeight = 630314 //WaykiChain block height 
-	txParam.Fees = 10000         //Miner fee,minimum 10000sawi
-
-	hash, err := SignRegisterAccountTx(privateKey, &txParam)
-	if err != nil {
-		t.Error("SignRegisterAccountTx err: ", err)
-	}
-```
-
-[转账交易(Sign common transfer transaction:)]()
-```go
-    privateKey := "YAa1wFCfFnZ5bt4hg9MDeDevTMd1Nu874Mn83hEXwtfAL2vkQE9f" 
-	var txParams CommonTxParam
-	txParams.ValidHeight = 630314
-	txParams.SrcRegId = "158-1"                                //user regid
-	txParams.DestAddr = "wSSbTePArv6BkDsQW9gpGCTX55AXVxVKbd"  //dest address
-	txParams.Values = 10000                                   //transfer amount
-	txParams.Fees = 10000
-	txParams.PubKey = "03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"  //wallet public key hex string
-    txParams.Memo="test transfer"                                                           //transfer memo   
-	hash, err := SignCommonTx(privateKey, &txParams)
-	if err != nil {
-		t.Error("SignCommonTx err: ", err)
-	}
-```
-[多币种转账交易(Sign Multi-coin transfer transaction:)]()
-```go
-    //CointSymbol:Supported (WICC WUSD  WGRT) 
-    //FeeSymbol:Supported (WICC WUSD  WGRT) 
-    privateKey := "Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEnmFEYMqQd13"
-	var txParam UCoinTransferTxParam
-	txParam.FeeSymbol = string(commons.WICC)
-	txParam.CoinSymbol = string(commons.WICC)
-	txParam.CoinAmount = 1000000
-	txParam.Fees = 10000
-	txParam.ValidHeight = 297449
-	txParam.SrcRegId = "0-1"
-	txParam.DestAddr = "wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6"
-	txParam.PubKey = "036c5397f3227a1e209952829d249b7ad0f615e43b763ac15e3a6f52627a10df21"
-	txParam.Memo = ""
-	hash, err := SignUCoinTransferTx(privateKey, &txParam)
-	if err != nil {
-		t.Error("SignCdpStakeTx err: ", err)
-	}
-```
-[投票交易(Sign Delegate transaction:)]()
-```go
-    privateKey := "Y9sx4Y8sBAbWDAqAWytYuUnJige3ZPwKDZp1SCDqqRby1YMgRG9c"
-	var txParams DelegateTxParam
-	txParams.ValidHeight = 95728
-	txParams.SrcRegId = "0-1"
-	txParams.Fees = 10000
-	txParams.PubKey = "03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
-	txParams.Votes = NewOperVoteFunds()
-	pubKey, _ := hex.DecodeString("025a37cb6ec9f63bb17e562865e006f0bafa9afbd8a846bd87fc8ff9e35db1252e") //Voted public key
-	vote := OperVoteFund{PubKey: pubKey, VoteValue: 10000}
-	txParams.Votes.Add(&vote)
-
-	hash, err := SignDelegateTx(privateKey, &txParams)
-	if err != nil {
-		t.Error("SignDelegateTx err: ", err)
-	}
-```
-[合约调用交易(Sign invoke contract transaction:)]()
-```go
-	privateKey := "Y9sx4Y8sBAbWDAqAWytYuUnJige3ZPwKDZp1SCDqqRby1YMgRG9c"
-	var txParam CallContractTxParam
-	txParam.ValidHeight = 22365
-	txParam.SrcRegId = "0-1"
-	txParam.AppId = "20988-1"          //contract regid
-	txParam.Fees = 100000
-	txParam.Values = 10000
-	txParam.ContractHex = "f017"      //call contract method
-	txParam.PubKey = "03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
-	hash, err := SignCallContractTx(privateKey, &txParam)
-	if err != nil {
-		t.Error("SignCallContractTx err: ", err)
-	}
-```
-[合约部署交易(Sign deploy contract Transaction:)]()
-```go
-	privateKey := "YAa1wFCfFnZ5bt4hg9MDeDevTMd1Nu874Mn83hEXwtfAL2vkQE9f"
-	script, err := ioutil.ReadFile("./demo/data/hello.lua")
-	if err != nil {
-		t.Error("Read contract script file err: ", err)
-	}
-	var txParam RegisterContractTxParam
-	txParam.ValidHeight = 630314 
-	txParam.SrcRegId = "0-1"     
-	txParam.Fees = 110000000                       //Miner fee,minimum 11000000sawi 
-	txParam.Script = script                        //contract bytearray
-	txParam.Description = "My hello contract!!!"  //contract description
-	hash, err := SignRegisterContractTx(privateKey, &txParam)
-	if err != nil {
-		t.Error("SignRegisterContractTx err: ", err)
-	}
-```
+#### 合约交易(部署、调用)
 
 #### CDP交易(CDP Transaction)
 用户可以通过抵押WICC获得WUSD,一个用户只能拥有一个cdp，除非之前的cdp已经关闭。  
