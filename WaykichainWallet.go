@@ -63,7 +63,8 @@ func CheckPrivateKey(privateKey string, netType int) (bool, error) {
 // netType: WAYKI_TESTNET or WAYKI_MAINTNET
 func GetAddressFromMnemonic(words string, netType int) (string, error) {
 	wordArr:=strings.Split(words," ")
-	if(len(wordArr)!=12){
+	isValid:=commons.IsMnemonicValid(words)
+	if(len(wordArr)!=12||!isValid){
 		return "", ERR_INVALID_MNEMONIC
 	}
 	address := commons.GetAddressFromMnemonic(words, commons.Network(netType))
@@ -74,7 +75,8 @@ func GetAddressFromMnemonic(words string, netType int) (string, error) {
 // netType: WAYKI_TESTNET or WAYKI_MAINTNET
 func GetPrivateKeyFromMnemonic(words string, netType int) (string, error) {
 	wordArr:=strings.Split(words," ")
-	if(len(wordArr)!=12){
+	isValid:=commons.IsMnemonicValid(words)
+	if(len(wordArr)!=12||!isValid){
 		return "", ERR_INVALID_MNEMONIC
 	}
 	privateKey := commons.GetPrivateKeyFromMnemonic(words, commons.Network(netType))
