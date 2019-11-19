@@ -2,8 +2,10 @@ package wiccwallet
 
 import (
 	"encoding/hex"
-	hash2 "github.com/WaykiChain/wicc-wallet-utils-go/commons/hash"
+	"fmt"
 	"github.com/WaykiChain/wicc-wallet-utils-go/commons"
+	hash2 "github.com/WaykiChain/wicc-wallet-utils-go/commons/hash"
+	"github.com/btcsuite/btcd/btcec"
 	"github.com/btcsuite/btcutil"
 	"github.com/btcsuite/btcutil/base58"
 	"strings"
@@ -358,7 +360,12 @@ func SignUCoinCallContractTx(privateKey string, param *UCoinContractTxParam) (st
 
 //Sign message by private Key
 func SignMessage(privateKey string, message string) (*SignMessageParam, error) {
+	//Use sha256_sha160 instead of sha256_twice
 	hash := hash2.Hash256(hash2.Hash160([]byte(message)))
+
+	hashStr := hex.EncodeToString(hash)
+	fmt.Println("hashStr=",hashStr)
+
 	wifKey, errorDecode := btcutil.DecodeWIF(privateKey)
 	if (errorDecode != nil) {
 		return nil, ERR_INVALID_PRIVATE_KEY
@@ -372,6 +379,62 @@ func SignMessage(privateKey string, message string) (*SignMessageParam, error) {
 		hex.EncodeToString(signMsg.Serialize())}
 	return &sign, nil
 }
+
+func VerifyMsgSignature(signature string , publicKey string, msg string, netType int) (isRight bool,addr string){
+
+	if  (len(publicKey) != 66) || (len(signature) % 2 != 0) {
+		fmt.Println("The length of publicKey or signature error")
+		return false,""
+	}
+
+	publicKeyBytes, err := hex.DecodeString(publicKey)
+	if err != nil {
+		fmt.Println("publicKey err:", err)
+		return false,""
+	}
+
+	//check publicKey
+	pubKey, err := btcec.ParsePubKey(publicKeyBytes, btcec.S256())
+	if (err != nil) {
+		fmt.Println("PublicKey invaild")
+		return false,""
+	}
+
+	netParams, err := commons.NetworkToChainConfig(commons.Network(netType))
+	if (err != nil) {
+		fmt.Println("invalid network")
+		return false,""
+	}
+
+	//get address from public
+	address, err := btcutil.NewAddressPubKey(publicKeyBytes,netParams)
+	if (err != nil) {
+		fmt.Println("Failed to generate address")
+		return false,""
+	}
+
+	//get signature hash
+	sigBytes, err := hex.DecodeString(signature)
+	if err != nil {
+		fmt.Println("signature err:", err)
+		return false,""
+	}
+	sig, err := btcec.ParseDERSignature(sigBytes, btcec.S256())
+	if err != nil {
+		fmt.Println("sigBytes err:", err)
+		return false,""
+	}
+
+	//Verify
+	//Use sha256_sha160 instead of sha256_twice
+	isValid := sig.Verify(hash2.Hash256(btcutil.Hash160([]byte(msg))), pubKey)
+	if (isValid){
+		return true,address.EncodeAddress()
+	}else{
+		return false,""
+	}
+}
+
 
 //SignRegisterContractTx sign for call register contract tx
 // returns the signature hex string and nil error, or returns empty string and the error if it has error

@@ -1,14 +1,10 @@
 package wiccwallet
 
 import (
-	_ "fmt"
-	"testing"
 	"fmt"
-	"encoding/hex"
-	"crypto/ecdsa"
-	"github.com/btcsuite/btcutil"
-	"github.com/btcsuite/btcd/btcec"
-	"github.com/WaykiChain/wicc-wallet-utils-go/commons/hash"
+	_ "fmt"
+	//"github.com/btcsuite/btcutil"
+	"testing"
 )
 
 /*
@@ -60,19 +56,25 @@ func TestGetPubKey(t *testing.T) {
 	fmt.Println("公钥",str,"测试私钥？",checkPriv)
 }
 
-
 func TestSignMessage(t *testing.T) {
-	msg := "WaykiChain"
-	privateKey := "Y9dJaHVk7Rs4sVq1Uk8TGLW4PQzzesA7Lss2Xz1inZY9KMfHBSPE"
-	signMsg,_:=SignMessage(privateKey,msg)
-	fmt.Println(signMsg)
+	//地址:wX7cC6qK6RQCLShCevpeciqQaQNEtqLRa8
+	//钱包地址对应的私钥:Y8WXc3RYw4TRxdGEpTLPd5GR7VrsAvRgCdiZMZakwFyVST1P7NnC
+	//公钥:034edcac8efda301a0919cdf2feeb0376bfcd2a1a29b5d094e5e9ce7a580c82fcc (压缩后)
+	msg := "WaykiChain" //原始数据,由开发者后台生成传给前端,生成规则由开发者自己决定
+	privateKey := "Y8WXc3RYw4TRxdGEpTLPd5GR7VrsAvRgCdiZMZakwFyVST1P7NnC"
+	signResult, _ := SignMessage(privateKey, msg) //签名结果，包含签名后信息 + 签名者公钥
 
-	wifKey, _ := btcutil.DecodeWIF(privateKey)
-	key := wifKey.PrivKey
-	publicKey := key.PubKey().ToECDSA()
-	decode,_:=	hex.DecodeString(signMsg.SignMessage)
-	fmt.Println(signMsg.PublicKey)
-	sign,_:=btcec.ParseDERSignature(decode, btcec.S256())
-	success := ecdsa.Verify(publicKey,  hash.Hash256(btcutil.Hash160([]byte("WaykiChain"))), sign.R, sign.S)
-	fmt.Println("验证签名成功？", success)
+	fmt.Println("signResult: \n\tpublicKey=", signResult.PublicKey, "\n\tsignature=", signResult.SignMessage)
+}
+
+func TestVerifyMsgSignature(t *testing.T) {
+
+	signature := "3044022024fafdf62a8414ad28c96354cc310daffee04e8ad46276420bdaafe1aa35091e02205b2c1b1a1e7fe97a74f2e3dc16f790a28cafea2ec40911fd40cff856899a851"
+	publicKey := "034edcac8efda301a0919cdf2feeb0376bfcd2a1a29b5d094e5e9ce7a580c82fcc"
+	msg := "WaykiChain"
+	netType := WAYKI_TESTNET
+//	netType := WAYKI_MAINTNET
+
+	isValid, address := VerifyMsgSignature(signature,publicKey,msg,netType)
+	fmt.Println("VerifyMsgSignature Result:", isValid, ";Sign address：",address)
 }
