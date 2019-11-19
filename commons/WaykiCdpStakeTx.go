@@ -61,7 +61,7 @@ func (tx WaykiCdpStakeTx) doSignTx(wifKey *btcutil.WIF) []byte {
 	if(tx.UserId!=nil){
 		writer.WriteUserId(tx.UserId)
 	}else if(tx.PubKey!=nil){
-		writer.WriteReverse(tx.PubKey)
+		writer.WritePubKeyId(tx.PubKey)
 	}
 	writer.WriteString(tx.FeeSymbol)
 	writer.WriteVarInt(int64(tx.Fees))
