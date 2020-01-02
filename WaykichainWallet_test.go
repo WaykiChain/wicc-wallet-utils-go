@@ -61,7 +61,7 @@ func TestSignMessage(t *testing.T) {
 	//钱包地址对应的私钥:Y8WXc3RYw4TRxdGEpTLPd5GR7VrsAvRgCdiZMZakwFyVST1P7NnC
 	//公钥:034edcac8efda301a0919cdf2feeb0376bfcd2a1a29b5d094e5e9ce7a580c82fcc (压缩后)
 	msg := "WaykiChain" //原始数据,由开发者后台生成传给前端,生成规则由开发者自己决定
-	privateKey := "Y8WXc3RYw4TRxdGEpTLPd5GR7VrsAvRgCdiZMZakwFyVST1P7NnC"
+	privateKey := "Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEnmFEYMqQd13"
 	signResult, _ := SignMessage(privateKey, msg) //签名结果，包含签名后信息 + 签名者公钥
 
 	fmt.Println("signResult: \n\tpublicKey=", signResult.PublicKey, "\n\tsignature=", signResult.SignMessage)
@@ -69,8 +69,8 @@ func TestSignMessage(t *testing.T) {
 
 func TestVerifyMsgSignature(t *testing.T) {
 
-	signature := "3044022024fafdf62a8414ad28c96354cc310daffee04e8ad46276420bdaafe1aa35091e02205b2c1b1a1e7fe97a74f2e3dc16f790a28cafea2ec40911fd40cff856899a851"
-	publicKey := "034edcac8efda301a0919cdf2feeb0376bfcd2a1a29b5d094e5e9ce7a580c82fcc"
+	signature := "3045022100ddeb1b77ec7f7e1e3c58e68191f99d3ca7a1877f4e799f3bea47373d20b3c7580220076d1d0081e0d37141f5beaa65a06efeed7b8f060b5bd499ccbcdccca7e70418"
+	publicKey := "036c5397f3227a1e209952829d249b7ad0f615e43b763ac15e3a6f52627a10df21"
 	msg := "WaykiChain"
 	netType := WAYKI_TESTNET
 //	netType := WAYKI_MAINTNET
