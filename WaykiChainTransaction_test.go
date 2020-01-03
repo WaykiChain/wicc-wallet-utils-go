@@ -1,10 +1,11 @@
 package wiccwallet
 
 import (
-	"testing"
 	"encoding/hex"
-	"io/ioutil"
+	"encoding/json"
 	"github.com/WaykiChain/wicc-wallet-utils-go/commons"
+	"io/ioutil"
+	"testing"
 )
 
 /*
@@ -17,11 +18,11 @@ func TestSignUCoinTransferTx(t *testing.T) {
 	var txParam UCoinTransferTxParam
 	txParam.FeeSymbol = string(commons.WICC)
 	txParam.Fees = 1000000
-	txParam.ValidHeight = 297449
-	txParam.SrcRegId = "0-1"
+	txParam.ValidHeight = 12345
+	txParam.SrcRegId = ""
 	txParam.Dests=NewDestArr()
-	dest:=Dest{string(commons.WICC),1000000, "wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6"}
-	txParam.Dests.Add(&dest)
+	dest1:=Dest{string(commons.WICC),1000000, "wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4"}
+	txParam.Dests.Add(&dest1)
 	txParam.PubKey = "036c5397f3227a1e209952829d249b7ad0f615e43b763ac15e3a6f52627a10df21"
 	txParam.Memo = ""
 	hash, err := SignUCoinTransferTx(privateKey, &txParam)
@@ -386,5 +387,22 @@ func TestSignDexCancelTx(t *testing.T) {
 		t.Error("DexCancelTx err: ", err)
 	}
 	println(hash)
+}
+
+// Support UCOIN_TRANSFER_TX and UCOIN_CONTRACT_INVOKE_TX only
+func TestDecodeRawTx(t *testing.T){
+	//rawTx := "0b01df390684f0c10c82480457494343bc834002141c758724cc60db35dd387bcf619a478ec3c065f20457494343bc8340142af03ec43eb893039b5dd5bab612d73034cf1b610457555344858c1f00473045022100d68782ebf4059ac26b169ae035ca2a8c1533c4f5639c9fd64445f205d86fbf2c022008b7ed1467ec9321382284ce9d762967a604602a26295f4d569f9a15b643e1db"
+	//rawTx := "0b01df3921036c5397f3227a1e209952829d249b7ad0f615e43b763ac15e3a6f52627a10df210457494343bc83400214079b9296a00a2b655787fa90e66ec3cde4bf1c8c0457494343bc834014079b9296a00a2b655787fa90e66ec3cde4bf1c8c0457494343866700473045022100a80f36f5b260bdbb76a46f0d9563bdfe0c79a8c2f7b5935b5e79a3c280040551022001ba6dee175619b2c3ba19976690d848ffdbfb4df596bdf866932a4b7befb022"
+	rawTx := "0b01c7a10803de4901045749434382dbea93000114079b9296a00a2b655787fa90e66ec3cde4bf1c8c045749434382dbea930006e8bdace8b4a647304502210091922890a5ccc26fa2c6c404378d3684a414f952018f0dfa414ee463f81e6cfa022057babb41679557218c6bdf6fa24f495423289639aac71643566d1e8bb6c0f5f8"
+	result ,err := commons.DecodeRawTx(rawTx,WAYKI_TESTNET)
+	if err != nil {
+		t.Error("Umarshal failed:", err)
+	}
+	jsonBytes, err := json.MarshalIndent(result, "", "    ")
+	if err != nil {
+		t.Error("Umarshal failed:", err)
+	}
+
+	t.Log("DecodeRawTx result=\n",string(jsonBytes))
 }
 

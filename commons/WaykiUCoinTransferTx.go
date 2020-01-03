@@ -3,6 +3,7 @@ package commons
 import (
 	"bytes"
 	"encoding/hex"
+	"fmt"
 
 	"github.com/btcsuite/btcutil"
 	hash2 "github.com/WaykiChain/wicc-wallet-utils-go/commons/hash"
@@ -45,6 +46,8 @@ func (tx WaykiUCoinTransferTx) SignTx(wifKey *btcutil.WIF) string {
 	writer.WriteString(tx.Memo)
 	signedBytes := tx.doSignTx(wifKey)
 	writer.WriteBytes(signedBytes)
+
+	fmt.Println("buyes=",buf.Bytes())
 
 	rawTx := hex.EncodeToString(buf.Bytes())
 	return rawTx

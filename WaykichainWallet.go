@@ -100,6 +100,8 @@ func GetAddressFromPrivateKey(privateKey string, netType int) string {
 	return address
 }
 
+
+
 //SignRegisterAccountTx sign for register account tx
 // returns the signature hex string and nil error, or returns empty string and the error if it has error
 func SignRegisterAccountTx(privateKey string, param *RegisterAccountTxParam) (string, error) {
@@ -409,7 +411,12 @@ func VerifyMsgSignature(signature string , publicKey string, msg string, netType
 	}
 
 	//get address from public
+	fmt.Println("len(publicKeyBytes)=",len(publicKeyBytes))
+	fmt.Println("publicKeyBytes=",publicKeyBytes)
 	address, err := btcutil.NewAddressPubKey(publicKeyBytes,netParams)
+	keyid:= address.AddressPubKeyHash().Hash160()[:]
+
+	fmt.Println("keyid=",hex.EncodeToString(keyid))
 	if (err != nil) {
 		fmt.Println("Failed to generate address")
 		return false,""
