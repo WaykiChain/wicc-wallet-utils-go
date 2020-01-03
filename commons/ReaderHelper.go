@@ -40,7 +40,7 @@ type DecodeUCoinTransferDest struct {
 	DestAddr   string
 }
 
-// Only support UCOIN_TRANSFER_TX and UCOIN_CONTRACT_INVOKE_TX
+// Support UCOIN_TRANSFER_TX and UCOIN_CONTRACT_INVOKE_TX only
 func DecodeRawTx(rawTx string,netType int) (interface{},error){
 	rawTxBytes, err := hex.DecodeString(rawTx)
 	if  err != nil{
