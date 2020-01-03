@@ -1,13 +1,9 @@
 package wiccwallet
 
 import (
-	"bytes"
-	"encoding/binary"
 	"encoding/hex"
-	"fmt"
-	"github.com/JKinGH/go-hdwallet"
+	"encoding/json"
 	"github.com/WaykiChain/wicc-wallet-utils-go/commons"
-	"github.com/golang/protobuf/proto"
 	"io/ioutil"
 	"testing"
 )
@@ -36,167 +32,6 @@ func TestSignUCoinTransferTx(t *testing.T) {
 	println(hash)
 }
 
-
-
-func TestReadVarInt(t *testing.T){
-	//data := []byte{11,1,128,203,76}
-//	data := "0b01df3921036c5397f3227a1e209952829d249b7ad0f615e43b763ac15e3a6f52627a10df210457494343bc834001141c758724cc60db35dd387bcf619a478ec3c065f20457494343bc83400046304402201b7fe045930206c2ff54caf5f7db1fab60f6d08da0482dc9f3ddd1154f2f0ae60220304af3b39f958e67347ad58579a9f31d86726f1e20655e6a8aca61d431d58f7e"
-	data := "0b01df390684f0c10c82480457494343bc834002141c758724cc60db35dd387bcf619a478ec3c065f20457494343bc8340142af03ec43eb893039b5dd5bab612d73034cf1b610457555344858c1f00473045022100d68782ebf4059ac26b169ae035ca2a8c1533c4f5639c9fd64445f205d86fbf2c022008b7ed1467ec9321382284ce9d762967a604602a26295f4d569f9a15b643e1db"
-	dataBytes,_ := hex.DecodeString(data)
-	buf := bytes.NewBuffer(dataBytes)
-
-	//交易类型
-	v1 := commons.ReadVarInt(buf)
-	fmt.Println("v1=",v1)
-	fmt.Println("after txType=",buf.Bytes())
-
-	//版本号
-	v2 := commons.ReadVarInt(buf)
-	fmt.Println("v2=",v2)
-	fmt.Println("after version=",buf.Bytes())
-
-	//有效高度
-	v3  := commons.ReadVarInt(buf)
-	fmt.Println("v3=",v3)
-	fmt.Println("after vaildheight=",buf.Bytes())
-
-	//regid/pubkey
-	regid,pubkey := commons.ReadUserId(buf)
-	fmt.Println("regid=",regid,"pubkey=",pubkey)
-	fmt.Println("after userId=",buf.Bytes())
-
-	//feeSymbol
-	feeSymbol := commons.ReadString(buf)
-	fmt.Println("feeSymbol=",feeSymbol)
-	fmt.Println("after feeSymbol=",buf.Bytes())
-
-	//fee
-	fee := commons.ReadVarInt(buf)
-	fmt.Println("fee=",fee)
-	fmt.Println("after fee=",buf.Bytes())
-
-	//destaddr
-	dests,_ := ReadUCoinDestAddr(buf,&hdwallet.WICCTestnetParams)
-	for i ,dest := range dests.destArray{
-		fmt.Printf("dest[%d]=%+v\n",i,dest)
-	}
-	fmt.Println("after destaddr=",buf.Bytes())
-
-	//memo
-	memo := commons.ReadString(buf)
-	fmt.Println("memo=",memo)
-	fmt.Println("after memo=",buf.Bytes())
-
-	//signature
-	signature := commons.ReadHex(buf)
-	fmt.Println("signature=",signature)
-	fmt.Println("after signature=",buf.Bytes())
-}
-
-
-
-
-
-
-
-func TestEndoce( t *testing.T){
-	byteTest1 := proto.EncodeVarint(12345)
-	fmt.Printf("byteTes1t=%v\n",byteTest1)
-
-	buf := make([]byte,4)
-	byteTest2 := binary.PutVarint(buf,12345)
-	fmt.Printf("byteTest2=%v\n",byteTest2)
-
-
-}
-
-
-func TestDecodeRawTx (t *testing.T) {
-	rawtx := "0b01df390200010457494343bc834001141c758724cc60db35dd387bcf619a478ec3c065f20457494343bc83400046304402207f07d390bf87317f671ac42641c86279279de13d0b0e4eb3a550df38bd853a4f0220587a34384f39ecc333e51cb22d06b9ba2be9ffdf80dc28e4593ce55a152bd68c"
-	rawtxBytes,_ := hex.DecodeString(rawtx)
-	fmt.Printf("rawtxBytes=%v\n",rawtxBytes)
-
-	buf := bytes.NewBuffer(rawtxBytes)
-
-	/******/
-	_,len1 := binary.Varint(buf.Bytes())
-	fmt.Println("len=",len1)
-
-	rawtxBytes1  := buf.Next(len1)
-	fmt.Printf("rawtxBytes1=%v\n",rawtxBytes1)
-
-	x1,n1 :=proto.DecodeVarint(rawtxBytes1)
-	fmt.Println("x1=",x1,"n1=",n1)
-
-	fmt.Println("after=",buf.Bytes())
-	/******/
-
-	_,len2:= binary.Varint(buf.Bytes())
-	fmt.Println("len2=",len2)
-
-	rawtxBytes2  := buf.Next(len2)
-	fmt.Printf("rawtxBytes1=%v\n",rawtxBytes2)
-
-	x2,n2 :=proto.DecodeVarint(rawtxBytes2)
-	fmt.Println("x2=",x2,"n2=",n2)
-
-	fmt.Println("after=",buf.Bytes())
-	/******/
-
-	_,len3:= binary.Varint(buf.Bytes())
-	fmt.Println("len3=",len3)
-
-	rawtxBytes3  := buf.Next(len3)
-	fmt.Printf("rawtxBytes3=%v\n",rawtxBytes3)
-
-	x3,n3 :=proto.DecodeVarint(rawtxBytes3)
-	fmt.Println("x3=",x3,"n3=",n3)
-
-	fmt.Println("after=",buf.Bytes())
-
-
-	buftest := []byte{0xdf,0x39}
-	//x,p := binary.Varint(buftest)
-	x,_ := binary.ReadUvarint(bytes.NewBuffer(buftest))
-
-	fmt.Println("x=",x)
-
-
-//	buf := bytes.NewBuffer(rawtxBytes)
-
-
-
-
-/*	_,n1 := binary.Varint(rawtxBytes)
-	fmt.Println("len=",n1)
-
-	abc1 := buf.Next(n1)
-	fmt.Println("abc1=",abc1)
-
-	_,n2 := binary.Varint(rawtxBytes)
-	fmt.Println("len=",n2)
-
-	abc2 := buf.Next(n2)
-	fmt.Println("abc2=",abc2)
-
-
-	_,n3 := binary.Varint(rawtxBytes)
-	fmt.Println("len=",n3)
-
-	abc3 := buf.Next(n3)
-	fmt.Println("abc3=",abc3)*/
-
-
-
-
-
-
-
-
-
-
-
-}
 /*
   * 多币种合约调用交易 ,支持多种币种转账
   * Test nUniversal Coin Contract Tx
@@ -552,5 +387,22 @@ func TestSignDexCancelTx(t *testing.T) {
 		t.Error("DexCancelTx err: ", err)
 	}
 	println(hash)
+}
+
+// Only support UCOIN_TRANSFER_TX and UCOIN_CONTRACT_INVOKE_TX
+func TestDecodeRawTx(t *testing.T){
+	//rawTx := "0b01df390684f0c10c82480457494343bc834002141c758724cc60db35dd387bcf619a478ec3c065f20457494343bc8340142af03ec43eb893039b5dd5bab612d73034cf1b610457555344858c1f00473045022100d68782ebf4059ac26b169ae035ca2a8c1533c4f5639c9fd64445f205d86fbf2c022008b7ed1467ec9321382284ce9d762967a604602a26295f4d569f9a15b643e1db"
+	//rawTx := "0b01df3921036c5397f3227a1e209952829d249b7ad0f615e43b763ac15e3a6f52627a10df210457494343bc83400214079b9296a00a2b655787fa90e66ec3cde4bf1c8c0457494343bc834014079b9296a00a2b655787fa90e66ec3cde4bf1c8c0457494343866700473045022100a80f36f5b260bdbb76a46f0d9563bdfe0c79a8c2f7b5935b5e79a3c280040551022001ba6dee175619b2c3ba19976690d848ffdbfb4df596bdf866932a4b7befb022"
+	rawTx := "0b01c7a10803de4901045749434382dbea93000114079b9296a00a2b655787fa90e66ec3cde4bf1c8c045749434382dbea930006e8bdace8b4a647304502210091922890a5ccc26fa2c6c404378d3684a414f952018f0dfa414ee463f81e6cfa022057babb41679557218c6bdf6fa24f495423289639aac71643566d1e8bb6c0f5f8"
+	result ,err := commons.DecodeRawTx(rawTx,WAYKI_TESTNET)
+	if err != nil {
+		t.Error("Umarshal failed:", err)
+	}
+	jsonBytes, err := json.MarshalIndent(result, "", "    ")
+	if err != nil {
+		t.Error("Umarshal failed:", err)
+	}
+
+	t.Log("DecodeRawTx result=\n",string(jsonBytes))
 }
 

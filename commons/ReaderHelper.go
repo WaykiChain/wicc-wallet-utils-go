@@ -5,85 +5,131 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"github.com/JKinGH/go-hdwallet"
-	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcutil/base58"
 	"golang.org/x/crypto/ripemd160"
 	"strconv"
 )
 
-type WaykiDecodeUCoinTransferTx struct {
-	TxType      WaykiTxType
-	Version     int64
-	ValidHeight int64
-	UserId      string // regid/publicKey
-	Fees   		uint64
+type DecodeBaseParams struct{
+	TxType      string
+	Version     uint64
+	ValidHeight uint64
+	UserId      string      // regid/publicKey
 	FeeSymbol 	string      //Fee Type (WICC/WUSD)
-	Dests    	[]DecodeDest
-	Memo        string
+	Fees   		uint64
 	Signature   string
 }
 
-type DecodeDest struct {
+type DecodeUCoinTransferParams struct {
+	BaseParams  DecodeBaseParams
+	Memo        string
+	Dests    	[]DecodeUCoinTransferDest
+}
+
+type DecodeUContractInvokeParams struct {
+	BaseParams    DecodeBaseParams
+	ContractRegId string
+	CoinSymbol    string
+	CoinAmount    uint64
+	ContractParam string
+}
+
+type DecodeUCoinTransferDest struct {
 	CoinSymbol string   //From Coin Type
 	CoinAmount uint64
 	DestAddr   string
 }
 
-func DecodeUCoinTransferTx() WaykiDecodeUCoinTransferTx{
-	data := "0b01df390684f0c10c82480457494343bc834002141c758724cc60db35dd387bcf619a478ec3c065f20457494343bc8340142af03ec43eb893039b5dd5bab612d73034cf1b610457555344858c1f00473045022100d68782ebf4059ac26b169ae035ca2a8c1533c4f5639c9fd64445f205d86fbf2c022008b7ed1467ec9321382284ce9d762967a604602a26295f4d569f9a15b643e1db"
-	dataBytes,_ := hex.DecodeString(data)
-	buf := bytes.NewBuffer(dataBytes)
-
-	//交易类型
-	v1 := ReadVarInt(buf)
-	fmt.Println("v1=",v1)
-	fmt.Println("after txType=",buf.Bytes())
-
-	//版本号
-	v2 := ReadVarInt(buf)
-	fmt.Println("v2=",v2)
-	fmt.Println("after version=",buf.Bytes())
-
-	//有效高度
-	v3  := ReadVarInt(buf)
-	fmt.Println("v3=",v3)
-	fmt.Println("after vaildheight=",buf.Bytes())
-
-	//regid/pubkey
-	regid,pubkey := ReadUserId(buf)
-	fmt.Println("regid=",regid,"pubkey=",pubkey)
-	fmt.Println("after userId=",buf.Bytes())
-
-	//feeSymbol
-	feeSymbol := ReadString(buf)
-	fmt.Println("feeSymbol=",feeSymbol)
-	fmt.Println("after feeSymbol=",buf.Bytes())
-
-	//fee
-	fee := ReadVarInt(buf)
-	fmt.Println("fee=",fee)
-	fmt.Println("after fee=",buf.Bytes())
-
-	//destaddr
-	dests,_ := ReadUCoinDestAddr(buf,&hdwallet.WICCTestnetParams)
-	for i ,dest := range dests.destArray{
-		fmt.Printf("dest[%d]=%+v\n",i,dest)
+// Only support UCOIN_TRANSFER_TX and UCOIN_CONTRACT_INVOKE_TX
+func DecodeRawTx(rawTx string,netType int) (interface{},error){
+	rawTxBytes, err := hex.DecodeString(rawTx)
+	if  err != nil{
+		return nil,err
 	}
-	fmt.Println("after destaddr=",buf.Bytes())
+	buf := bytes.NewBuffer(rawTxBytes)
+	//交易类型
+	txType := ReadVarInt(buf)
+	switch txType {
+	case UCOIN_TRANSFER_TX:
+		result,err := DecodeUCoinTransferTx(buf,netType)
+		if err != nil{
+			return nil,err
+		}
+		return result, nil
+	case UCOIN_CONTRACT_INVOKE_TX:
+		result,err := DecodeUContractInvokeTx(buf)
+		if err != nil{
+			return nil,err
+		}
+		return result, nil
+	default:
+		return nil ,errors.New("This txType have't benn supported ")
+	}
 
-	//memo
-	memo := commons.ReadString(buf)
-	fmt.Println("memo=",memo)
-	fmt.Println("after memo=",buf.Bytes())
-
-	//signature
-	signature := commons.ReadHex(buf)
-	fmt.Println("signature=",signature)
-	fmt.Println("after signature=",buf.Bytes())
 }
 
+//Decode UCoinTransfer Rawtx by buf after read txType
+func DecodeUCoinTransferTx(buf *bytes.Buffer,netType int) (DecodeUCoinTransferParams,error){
+	//version
+	version := ReadVarInt(buf)
+	//vaildHeight
+	vaildHeight  := ReadVarInt(buf)
+	//regid/pubkey
+	userId := ReadUserId(buf)
+	//feeSymbol
+	feeSymbol := ReadString(buf)
+	//fee
+	fee := ReadVarInt(buf)
+	//dests
+	dests,err := ReadUCoinDestAddr(buf,netType)
+	if err != nil{
+		return DecodeUCoinTransferParams{},err
+	}
+	//memo
+	memo := ReadString(buf)
+	//signature
+	signature := ReadHex(buf)
 
+	return DecodeUCoinTransferParams{
+		BaseParams  : DecodeBaseParams{"UCOIN_TRANSFER_TX",version,
+			vaildHeight,userId,feeSymbol,fee,signature},
+		Memo   	    : memo,
+		Dests  		: dests,
+	},nil
+}
+
+//Decode UContractInvoke RawTx by buf after read txType
+func DecodeUContractInvokeTx(buf *bytes.Buffer) (DecodeUContractInvokeParams,error){
+	//version
+	version := ReadVarInt(buf)
+	//vaildHeight
+	vaildHeight  := ReadVarInt(buf)
+	//regid/pubkey
+	userId := ReadUserId(buf)
+	//The contract regid which be Invoke
+	contractRegid := ReadContractRegid(buf)
+	//The param which to invoke contract
+	contractParam := ReadHex(buf)
+	//fee
+	fee := ReadVarInt(buf)
+	//feeSymbol
+	feeSymbol := ReadString(buf)
+	//coinSymbol
+	coinSymbol := ReadString(buf)
+	//coinAmount
+	coinAmount := ReadVarInt(buf)
+	//signature
+	signature := ReadHex(buf)
+
+	return DecodeUContractInvokeParams{
+		BaseParams  : DecodeBaseParams{"UCONTRACT_INVOKE_TX",version,
+			vaildHeight,userId,feeSymbol,fee,signature},
+		ContractRegId: contractRegid,
+		CoinSymbol   : coinSymbol,
+		CoinAmount    :coinAmount,
+		ContractParam :contractParam,
+	},nil
+}
 
 //return value in buf and number of value bytes
 //func ReadVarInt(data []byte) (uint64,int){
@@ -91,15 +137,12 @@ func ReadVarInt(buf *bytes.Buffer) (uint64){
 
 	n := uint64(0)
 	for i:= 0 ; true ;i++ {
-		fmt.Println("i=",i)
 		c := uint64(buf.Bytes()[i])
-		fmt.Println("c=", c)
 		n = (n << 7) | (c & 0x7F)
 		if ((c & 0x80) != uint64(0)) {
 			n ++
 		} else {
 			len := i+1
-			fmt.Println("value=",n,"len=",len)
 			buf.Next(len)
 			return n
 		}
@@ -118,28 +161,25 @@ func ReadPubkey(buf *bytes.Buffer) string{
 func ReadRegid(buf *bytes.Buffer) string{
 	height := ReadVarInt(buf)
 	index := ReadVarInt(buf)
-
-	fmt.Println("regid=",strconv.FormatInt(int64(height),10) + "-" + strconv.FormatInt(int64(index),10))
-
 	return strconv.FormatInt(int64(height),10) + "-" + strconv.FormatInt(int64(index),10)
 }
 
 //return regid + publicKey
-func ReadUserId(buf *bytes.Buffer) (string,string) {
-	publicKey := ""
-	regid := ""
-	idLen := ReadVarInt(buf)
-	fmt.Println("idLen=",idLen)
-	fmt.Println("after=",buf.Bytes())
-	if idLen == 33 {//公钥
-		publicKey = ReadPubkey(buf)
-	}else { //regid
-		regid = ReadRegid(buf)
-	}
+func ReadUserId(buf *bytes.Buffer) (string) {
 
-	return regid,publicKey
+	idLen := ReadVarInt(buf)
+	if idLen == 33 {//公钥
+		return ReadPubkey(buf)
+	}else { //regid
+		return ReadRegid(buf)
+	}
 }
 
+//return contract regid
+func ReadContractRegid(buf *bytes.Buffer) string{
+	ReadVarInt(buf) //contractRegidLen
+	return ReadRegid(buf)
+}
 
 func ReadString(buf *bytes.Buffer) string{
 	stringLen := ReadVarInt(buf)
@@ -155,43 +195,42 @@ func ReadHex(buf *bytes.Buffer) string{
 	return hexString
 }
 
-func GetAddrFrom20BytePubKeyHash( pubKeyHash []byte, netParams *chaincfg.Params) (string,error){
+func GetAddrFrom20BytePubKeyHash( pubKeyHash []byte, netType int) (string,error){
 
 	if len(pubKeyHash) != ripemd160.Size{
 		return "",errors.New("The len of pubKeyHash error!")
 	}
 
+	netParams, err := NetworkToChainConfig(Network(netType))
+	if (err != nil) {
+		fmt.Errorf("invalid network")
+		return "",err
+	}
+
 	return base58.CheckEncode(pubKeyHash[:ripemd160.Size], netParams.PubKeyHashAddrID),nil
 }
 
-func ReadUCoinDestAddr(buf *bytes.Buffer,netParams *chaincfg.Params) (*DestArr,error){
+func ReadUCoinDestAddr(buf *bytes.Buffer,netType int) ([]DecodeUCoinTransferDest,error){
 	//数组数
 	size := ReadVarInt(buf)
-	Dests := NewDestArr()
-
-	fmt.Println("size=",size)
+	dests := make([]DecodeUCoinTransferDest,0)
 
 	for i:=0; i < int(size) ;i ++{
 		keyid_len := ReadVarInt(buf)
 		keyid := buf.Bytes()[:keyid_len]
-		address,err := GetAddrFrom20BytePubKeyHash(keyid,netParams)
+		address,err := GetAddrFrom20BytePubKeyHash(keyid,netType)
 		if err != nil {
 			return nil,err
 		}
 		buf.Next(int(keyid_len))
 		coinSymbol := ReadString(buf)
 		transferAmount := ReadVarInt(buf)
-
-		fmt.Println("coinSymbol=",coinSymbol)
-		fmt.Println("transferAmount=",transferAmount)
-		fmt.Println("address=",address)
+		dest := DecodeUCoinTransferDest{coinSymbol, transferAmount, address}
 		//dest:=Dest{string(commons.WICC),1000000, "wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4"}
-		Dests.Add(&Dest{coinSymbol,transferAmount,address})
+		dests  = append(dests,dest)
 	}
 
-	return Dests,nil
+	return dests,nil
 }
-
-
 
 
