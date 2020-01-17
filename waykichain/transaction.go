@@ -121,17 +121,17 @@ func (param *UCoinTransferTxParam) CreateRawTx(privateKey string) (string, strin
 	tx.Version = TX_VERSION
 
 	var dests []UCoinTransferDest
-	for i:=0;i< len(param.Dests.destArray);i++{
+	for i:=0;i< len(param.Dests.DestArray);i++{
 		var dest UCoinTransferDest
-		dest.DestAddr = parseUserId(param.Dests.destArray[i].DestAddr)
-		if param.Dests.destArray[i].CoinAmount < 0 {
+		dest.DestAddr = parseUserId(param.Dests.DestArray[i].DestAddr)
+		if param.Dests.DestArray[i].CoinAmount < 0 {
 			return "","", common.ERR_RANGE_VALUES
 		}
-		dest.CoinAmount = uint64(param.Dests.destArray[i].CoinAmount)
-		if param.Dests.destArray[i].CoinSymbol == "" {
+		dest.CoinAmount = uint64(param.Dests.DestArray[i].CoinAmount)
+		if param.Dests.DestArray[i].CoinSymbol == "" {
 			return "","", common.ERR_COIN_TYPE
 		}
-		dest.CoinSymbol = string(param.Dests.destArray[i].CoinSymbol)
+		dest.CoinSymbol = string(param.Dests.DestArray[i].CoinSymbol)
 		dests=append(dests,dest)
 	}
 	tx.Dests=dests
@@ -613,8 +613,8 @@ func (param *CdpStakeTxParam) CreateRawTx(privateKey string) (string,string, err
 		tx.FeeSymbol = string(param.FeeSymbol)
 	}
 	var models []AssetModel
-	for i := 0; i < len(param.Assets.assetArray); i++ {
-		asset := param.Assets.assetArray[i]
+	for i := 0; i < len(param.Assets.AssetArray); i++ {
+		asset := param.Assets.AssetArray[i]
 		var model AssetModel
 		model.AssetSymbol=asset.AssetSymbol
 		if asset.AssetSymbol=="" {
@@ -750,8 +750,8 @@ func (param *CdpRedeemTxParam) CreateRawTx(privateKey string) (string,string ,er
 	tx.CdpTxHash = txHash
 
 	var models []AssetModel
-	for i := 0; i < len(param.Assets.assetArray); i++ {
-		asset := param.Assets.assetArray[i]
+	for i := 0; i < len(param.Assets.AssetArray); i++ {
+		asset := param.Assets.AssetArray[i]
 		var model AssetModel
 		model.AssetSymbol=asset.AssetSymbol
 		if asset.AssetSymbol=="" {
@@ -998,7 +998,7 @@ func (param *DexLimitSellTxParam) CreateRawTx(privateKey string) (string, string
 }
 
 // returns the signature hex string and nil error, or returns empty string and the error if it has error
-func (param *DexLimitBugTxParam) CreateRawTx(privateKey string) (string,string, error) {
+func (param *DexLimitBuyTxParam) CreateRawTx(privateKey string) (string,string, error) {
 	wifKey, err := btcutil.DecodeWIF(privateKey)
 	if err != nil {
 		return "","", common.ERR_INVALID_PRIVATEKEY
@@ -1158,7 +1158,7 @@ func (param *DexMarketSellTxParam) CreateRawTx(privateKey string) (string, strin
 }
 
 // returns the signature hex string and nil error, or returns empty string and the error if it has error
-func (param *DexMarketBugTxParam) CreateRawTx(privateKey string) (string,string, error) {
+func (param *DexMarketBuyTxParam) CreateRawTx(privateKey string) (string,string, error) {
 	wifKey, err := btcutil.DecodeWIF(privateKey)
 	if err != nil {
 		return "","", common.ERR_INVALID_PRIVATEKEY

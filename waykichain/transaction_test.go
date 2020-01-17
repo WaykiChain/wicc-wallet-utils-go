@@ -259,7 +259,7 @@ func TestCreateCdpLiquidateRawTx(t *testing.T) {
  * */
 func TestCreateDexLimitBuyRawTx(t *testing.T) {
 	privateKey := "Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEnmFEYMqQd13"
-	var txParam DexLimitBugTxParam
+	var txParam DexLimitBuyTxParam
 	txParam.FeeSymbol = common.WICCSYM
 	txParam.Fees = 1000000
 	txParam.CoinSymbol = common.WUSDSYM
@@ -336,7 +336,7 @@ func TestCreateDexMarketSellRawTx(t *testing.T) {
     * */
 func TestCreateDexMarketBuyRawTx(t *testing.T) {
 	privateKey := "Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEnmFEYMqQd13"
-	var txParam DexMarketBugTxParam
+	var txParam DexMarketBuyTxParam
 	txParam.FeeSymbol = common.WICCSYM
 	txParam.Fees = 1000000
 	txParam.CoinSymbol = common.WUSDSYM

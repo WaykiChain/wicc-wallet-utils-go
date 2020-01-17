@@ -95,11 +95,11 @@ type AssetModel struct {
 }
 //cdp stake asset list
 type AssetModels struct {
-	assetArray []*AssetModel
+	AssetArray []*AssetModel
 }
 
 func (assetModels *AssetModels) Add(model *AssetModel)  {
-	assetModels.assetArray= append(assetModels.assetArray, model)
+	assetModels.AssetArray= append(assetModels.AssetArray, model)
 }
 
 func NewCdpAssets() *AssetModels {
@@ -150,14 +150,14 @@ type Dest struct {
 }
 
 type DestArr struct {
-	destArray []*Dest
+	DestArray []*Dest
 }
 func NewDestArr() *DestArr {
 	return &DestArr{}
 }
 
 func (dests *DestArr) Add(dest *Dest)  {
-	dests.destArray= append(dests.destArray, dest)
+	dests.DestArray= append(dests.DestArray, dest)
 }
 
 
@@ -174,8 +174,8 @@ type DexLimitSellTxParam struct {
 	Price     int64
 }
 
-//Dex Bug Limit param of the tx
-type DexLimitBugTxParam struct {
+//Dex Buy Limit param of the tx
+type DexLimitBuyTxParam struct {
 	ValidHeight int64  // valid height Within the height of the latest block
 	SrcRegId    string // the reg id of the register
 	PubKey      string
@@ -199,8 +199,8 @@ type DexMarketSellTxParam struct {
 	AssetAmount  int64
 }
 
-//Dex market Bug param of the tx
-type DexMarketBugTxParam struct {
+//Dex market Buy param of the tx
+type DexMarketBuyTxParam struct {
 	ValidHeight int64  // valid height Within the height of the latest block
 	SrcRegId    string // the reg id of the register
 	PubKey      string
