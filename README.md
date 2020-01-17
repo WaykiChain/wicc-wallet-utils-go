@@ -20,7 +20,7 @@ func GetPrivateKeyFromMnemonic(words string, netType int) string
 
 func GetPubKeyFromPrivateKey(privKey string) (string,error) 
 
-func GetAddressFromPrivateKey(privateKey string, netType int) string
+func GenerateAddressFromPrivateKey(privateKey string, netType int) string
 
 func GetAddressFromMnemonic(words string, netType int) string
 ```
@@ -33,7 +33,7 @@ func GetAddressFromMnemonic(words string, netType int) string
 - **GetPubKeyFromPrivateKey.**   
 （提供私钥获得公钥，获得公钥的16进制字符串）  
 you should provide your Private Key,the function return wallet public key as hex string.  
-- **GetAddressFromPrivateKey.**  
+- **GenerateAddressFromPrivateKey.**  
 私钥获得钱包地址，地址是Base58编码的字符串，主网地址大写字母W开头，测试网地址小写字母w开头。  
 you should provide your Private Key,the function return wallet Address as base58 encode string,MainNet Address start with "W",TestNet Address start with "w".  
 - **GetAddressFromMnemonic.**  
@@ -57,7 +57,7 @@ publicKey,_:=GetPubKeyFromPrivateKey("Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEn
 ```
 [私钥获得钱包地址(Get address from private key:)](https://github.com/WaykiChain/wicc-wallet-utils-go/blob/master/WaykichainWallet_test.go)
 ```go
-address := GetAddressFromPrivateKey(privateKey, WAYKI_MAINTNET)
+address := GenerateAddressFromPrivateKey(privateKey, WAYKI_MAINTNET)
 ```
 [助记词获得钱包地址(Get address from mnemonic:)](https://github.com/WaykiChain/wicc-wallet-utils-go/blob/master/WaykichainWallet_test.go)
 ```go
