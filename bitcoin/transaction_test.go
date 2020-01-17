@@ -1,10 +1,7 @@
 package bitcoin
 
 import (
-	"encoding/hex"
-	"fmt"
 	"github.com/blocktree/go-owcdrivers/btcTransaction"
-	"github.com/btcsuite/btcutil/base58"
 	"testing"
 )
 
@@ -18,9 +15,9 @@ func TestCreatetBTCRawTxRelyChain(t *testing.T){
 	from2 := FromInfo{"cUQyhR3BbeFMwtqFRrMppFtPPcx6DMQNFEXm8C1yNSzMkEoRoGYM",BTCTestnetW,"mxeBxFWLFAY3G1RKijr91B3kzsX2mTvnYv"}
 	fromInfos := []FromInfo{from1,from2}
 	//输出
-	out1 := btcTransaction.Vout{"2N2f4HUsH1hFp36zwSUSoeGxVag5BUrJQwr",55000}
-	out2 := btcTransaction.Vout{"mrA3J5RR2etH2FvUodfzBLXnKm5ozQtL7d", 2000}
-	outs:= []btcTransaction.Vout{out1,out2}
+	out1 := VOut{&btcTransaction.Vout{"2N2f4HUsH1hFp36zwSUSoeGxVag5BUrJQwr",55000}}
+	out2 := VOut{&btcTransaction.Vout{"mrA3J5RR2etH2FvUodfzBLXnKm5ozQtL7d",2000}}
+	outs:= []VOut{out1,out2}
 
 	rawtx ,err := wm.CreatetRawTxRelyChain(fromInfos,outs)
 	if err != nil {
@@ -46,6 +43,7 @@ func TestSendBTCTransactionRelyChain(t *testing.T){
 
 //手动查询Unspent记录，只创建签名生成rawtx,手动广播
 func TestCreateBTCTransferRawTx(t *testing.T){
+	wm := NewWalletManager()
 
 	/*Case1: 隔离见证 -> 普通地址 -> 找零到from地址*/
 /*	fromInfos := make([]FinalTxIn,0)
@@ -99,19 +97,19 @@ func TestCreateBTCTransferRawTx(t *testing.T){
 	/*Case3: 普通地址 -> 隔离见证地址 */
 	fromInfos := make([]FinalTxIn,0)
 	from1 := FromInfo{"cUQyhR3BbeFMwtqFRrMppFtPPcx6DMQNFEXm8C1yNSzMkEoRoGYM",BTCTestnetW,"mxeBxFWLFAY3G1RKijr91B3kzsX2mTvnYv"}
-	tos := make([]btcTransaction.Vout,0)
+	tos := make([]VOut,0)
 	fromInfo1 := FinalTxIn{
 		&from1,
 		"ee409ae5031af9b27b5dfd177dd5924407c79fca87e3f13cf3536e0ce2fd596b", //unspent:1449083
 		0,
 		1449083,
 	}
-	to1 := btcTransaction.Vout{"2N2f4HUsH1hFp36zwSUSoeGxVag5BUrJQwr",1065802} //转账金额
+	to1 := VOut{&btcTransaction.Vout{"2N2f4HUsH1hFp36zwSUSoeGxVag5BUrJQwr",1065802}}//转账金额
 	//fee = 2000 * (1*148 + 1*34 + 10) = 383281
 	fromInfos = append(fromInfos,fromInfo1)
 	tos = append(tos,to1)
 
-	rawtx ,err := CreateTransferRawTx(fromInfos,tos)
+	rawtx ,err := wm.CreateTransferRawTx(fromInfos,tos)
 	if err != nil {
 		t.Errorf("Failed to CreatetBTCRawTransaction: %v",err)
 	}
@@ -123,16 +121,5 @@ func TestCreateBTCTransferRawTx(t *testing.T){
 }
 
 
-func TestBase58(t *testing.T){
-
-	base58_str := "mx3KrUjRzzqYTcsyyvWBiHBncLrrTPXnkV"
-
-	base58_byte,version,_ := base58.CheckDecode(base58_str)
-
-
-	fmt.Println("version=",version)
-	fmt.Println("base58.Decode=",hex.EncodeToString(base58_byte))
-
-}
 
 

@@ -23,7 +23,7 @@ type Wallet interface {
 type BTCTransaction interface{
 	//BTC transfer
 	CreatetRawTxRelyChain(ins []bitcoin.FromInfo, outs []bitcoin.VOut) (string,error)
-	CreateTransferRawTx( txins []bitcoin.FinalTxIn,  txouts []bitcoin.VOut) (string, error)
+	CreateTransferRawTx(txins []bitcoin.FinalTxIn,  txouts []bitcoin.VOut) (string, error)
 }
 
 type ETHTransaction interface{
