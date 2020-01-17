@@ -341,7 +341,7 @@ func TestCreateDexMarketBuyRawTx(t *testing.T) {
 	txParam.Fees = 1000000
 	txParam.CoinSymbol = common.WUSDSYM
 	txParam.AssetSymbol = common.WICCSYM
-	txParam.AssetAmount = 10000
+	txParam.CoinAmount = 10000
 	txParam.ValidHeight = 25
 	txParam.SrcRegId = "0-1"
 	txParam.PubKey = "03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"

@@ -463,12 +463,12 @@ func (param *DelegateTxParam) CreateRawTx(privateKey string) (string,string, err
 		return "","", common.ERR_FEE_SMALLER_MIN
 	}
 
-	if len(param.Votes.voteArray) == 0 {
+	if len(param.Votes.VoteArray) == 0 {
 		return "","", common.ERR_EMPTY_VOTES
 	}
 	var voteData []OperVoteFundTx
-	for i := 0; i < len(param.Votes.voteArray); i++ {
-		inVote := param.Votes.voteArray[i]
+	for i := 0; i < len(param.Votes.VoteArray); i++ {
+		inVote := param.Votes.VoteArray[i]
 		var v OperVoteFundTx
 		if !checkPubKey(inVote.PubKey) {
 			return "","", common.ERR_INVALID_VOTE_PUBKEY
@@ -1197,10 +1197,10 @@ func (param *DexMarketBuyTxParam) CreateRawTx(privateKey string) (string,string,
 	} else {
 		tx.FeeSymbol = string(param.FeeSymbol)
 	}
-	if !checkMoneyRange(param.AssetAmount) {
+	if !checkMoneyRange(param.CoinAmount) {
 		return "","", common.ERR_RANGE_VALUES
 	}
-	tx.AssetAmount = uint64(param.AssetAmount)
+	tx.AssetAmount = uint64(param.CoinAmount)
 
 	return tx.createRawTx(wifKey)
 }

@@ -208,7 +208,7 @@ type DexMarketBuyTxParam struct {
 	Fees        int64 // fees for mining
 	AssetSymbol string
 	CoinSymbol  string
-	AssetAmount  int64
+	CoinAmount  int64
 }
 
 type DexCancelTxParam struct {

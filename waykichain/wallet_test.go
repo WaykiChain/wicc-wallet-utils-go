@@ -99,7 +99,7 @@ func TestCheckWICCPrivateKey(t *testing.T){
 获得公钥
 get publicKey hex String
 */
-func TesGetPubKeyFromPrivateKey(t *testing.T) {
+func TestGetPubKeyFromPrivateKey(t *testing.T) {
 
 	WICCPrivateKey := "PemqPzcsCJXjU4PovGSC9zBv89YZSisrWePF9N1skxdEbftbdkDo"
 	publicKey, err := WICCW.GetPubKeyFromPrivateKey(WICCPrivateKey)
@@ -111,7 +111,7 @@ func TesGetPubKeyFromPrivateKey(t *testing.T) {
 	WICCTestnetPrivateKey := "Y6amwxjHqUM37UrquokPsbCXTRNughoM27gDUGfbXhJikS39i9h1"
 	publicKey, err = WICCW.GetPubKeyFromPrivateKey(WICCTestnetPrivateKey)
 	if err != nil {
-		t.Errorf("Failed to GetPubKeyFromPrivateKey : %v", err)
+		t.Errorf("Failed to GetPubKeyFromPrivateKey WICCTestnetPrivateKey: %v", err)
 	}
 	t.Log("GetPubKeyFromPrivateKey WICCTestnetPrivateKey=", publicKey)
 }

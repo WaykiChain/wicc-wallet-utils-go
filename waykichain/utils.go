@@ -1,7 +1,6 @@
 package waykichain
 
 import (
-	"crypto/ecdsa"
 	"encoding/hex"
 	"github.com/WaykiChain/wicc-wallet-utils-go/common"
 	"github.com/WaykiChain/wicc-wallet-utils-go/common/hash"
@@ -36,7 +35,7 @@ type OperVoteFund struct {
 
 // OperVoteFunds array of OperVoteFund
 type OperVoteFunds struct {
-	voteArray []*OperVoteFund
+	VoteArray []*OperVoteFund
 }
 
 //NewOperVoteFunds create new OperVoteFunds
@@ -46,19 +45,19 @@ func NewOperVoteFunds() *OperVoteFunds {
 
 //Len get the length of OperVoteFunds
 func (votes *OperVoteFunds) Len(index int) int {
-	return len(votes.voteArray)
+	return len(votes.VoteArray)
 }
 
 //Get element of OperVoteFund by index
 func (votes *OperVoteFunds) Get(index int) *OperVoteFund {
-	return votes.voteArray[index]
+	return votes.VoteArray[index]
 }
 
 //Add element to OperVoteFund
 //pubKey is binary bytes
 //voteValue add fund if >= 0, minus fund if < 0
 func (votes *OperVoteFunds) Add(fund *OperVoteFund) {
-	votes.voteArray = append(votes.voteArray, fund)
+	votes.VoteArray = append(votes.VoteArray, fund)
 }
 
 func abs(x int64) int64 {
@@ -164,11 +163,6 @@ func GetVoteTypeByValue(value int64) WaykiVoteType {
 	return ret
 }
 
-type WalletAddress struct {
-	key     ecdsa.PrivateKey
-	privKey string
-	address string
-}
 type RegId struct {
 	Height uint64
 	Index  uint64

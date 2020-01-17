@@ -81,9 +81,9 @@ func TestGetPubKeyFromPrivateKey(t *testing.T) {
 	ETHPrivateKey := "0b98e389e449fa5f388f94bf702066e9ad373e19c2119076f0c276cdd50d776a"
 	publicKey, err := ETHW.GetPubKeyFromPrivateKey(ETHPrivateKey)
 	if err != nil {
-		t.Errorf("Failed to GetPubKeyFromPrivateKey BTCPrivateKey: %v", err)
+		t.Errorf("Failed to GetPubKeyFromPrivateKey ETHPrivateKey: %v", err)
 	}
-	t.Log("GetPubKeyFromPrivateKey BTCPrivateKey=", publicKey)
+	t.Log("GetPubKeyFromPrivateKey ETHPrivateKey=", publicKey)
 }
 
 //TestImportKeystore
