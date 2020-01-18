@@ -53,15 +53,15 @@ func TestSendUCoinTransferTx(t *testing.T){
 	txParam.Dests.Add(&dest)
 	txParam.PubKey = "031b27286c65b81ac13cfd4067b030398a19eb147f439c094fbb19a2f3ab9ec10b"
 	txParam.Memo = ""
-	rawTx,txid, err := txParam.CreateRawTx(privateKey)
+	result, err := txParam.CreateRawTx(privateKey)
 	if err != nil {
 		t.Error("CreateUCoinTransferRawTx err: ", err)
 	}
-	t.Log("rawTx=",rawTx)
-	t.Log("txid=",txid)
+	t.Log("rawTx=",result.RawTx)
+	t.Log("txid=",result.Txid)
 
 	//广播交易
-	submitxid,err := tw.SubmitTxRaw(rawTx)
+	submitxid,err := tw.SubmitTxRaw(result.RawTx)
 	if err != nil {
 		t.Error("SubmitTxRaw err: ", err)
 	}

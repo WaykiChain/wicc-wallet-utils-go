@@ -33,13 +33,9 @@ type ETHTransaction interface{
 
 type WICCTransaction interface {
 	//All Tx type
-	CreateRawTx(privateKey string) (string, string, error)
+	CreateRawTx(privateKey string) (* waykichain.SignResult, error)
 }
 
 type WICCSignMessage interface {
 	SignMessage() (waykichain.SignMsgResult, error)
-}
-
-type WICCVerifyMsgSignature interface {
-	VerifyMsgSignature() (isRight bool, addr string)
 }

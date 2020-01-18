@@ -30,7 +30,8 @@ type WaykiUCoinTransferTx struct {
 	Memo       string
 }
 //return rawtx + txid
-func (tx WaykiUCoinTransferTx) createRawTx(wifKey *btcutil.WIF) (string,string,error){
+func (tx WaykiUCoinTransferTx) createRawTx(wifKey *btcutil.WIF) (* SignResult,error){
+
 	buf := bytes.NewBuffer([]byte{})
 	writer := NewWriterHelper(buf)
 
@@ -53,12 +54,12 @@ func (tx WaykiUCoinTransferTx) createRawTx(wifKey *btcutil.WIF) (string,string,e
 	writer.WriteString(tx.Memo)
 	signatureBytes,txid ,err:= tx.CalSignatureTxid(wifKey)
 	if err != nil{
-		return "","",err
+		return nil,err
 	}
 	writer.WriteBytes(signatureBytes)
 
 	rawTx := hex.EncodeToString(buf.Bytes())
-	return rawTx, txid,nil
+	return &SignResult{rawTx,txid},nil
 }
 
 //return signature and txid
@@ -89,16 +90,16 @@ func (tx WaykiUCoinTransferTx) CalSignatureTxid(wifKey *btcutil.WIF) ([]byte,str
 
 //CreateUCoinTransferRawTx sign for Multi-currency transfer
 // returns the signature hex string and nil error, or returns empty string and the error if it has error
-func (param *UCoinTransferTxParam) CreateRawTx(privateKey string) (string, string,error) {
+func (param *UCoinTransferTxParam) CreateRawTx(privateKey string) (*SignResult,error) {
 
 	wifKey, err := btcutil.DecodeWIF(privateKey)
 	if err != nil {
-		return "","", common.ERR_INVALID_PRIVATEKEY
+		return nil, common.ERR_INVALID_PRIVATEKEY
 	}
 	var tx WaykiUCoinTransferTx
 
 	if param.ValidHeight < 0 {
-		return "","", common.ERR_NEGATIVE_VALID_HEIGHT
+		return nil, common.ERR_NEGATIVE_VALID_HEIGHT
 	}
 	tx.ValidHeight = param.ValidHeight
 
@@ -106,14 +107,14 @@ func (param *UCoinTransferTxParam) CreateRawTx(privateKey string) (string, strin
 
 	pubKey, err := hex.DecodeString(param.PubKey)
 	if (err != nil) {
-		return "","", common.ERR_USER_PUBLICKEY
+		return nil, common.ERR_USER_PUBLICKEY
 	}
 	tx.PubKey = pubKey
 	if (tx.UserId == nil && tx.PubKey == nil) {
-		return "","", common.ERR_INVALID_SRC_REG_ID
+		return nil, common.ERR_INVALID_SRC_REG_ID
 	}
 	if !checkMoneyRange(param.Fees) {
-		return "","", common.ERR_RANGE_FEE
+		return nil, common.ERR_RANGE_FEE
 	}
 	tx.Fees = uint64(param.Fees)
 
@@ -125,11 +126,11 @@ func (param *UCoinTransferTxParam) CreateRawTx(privateKey string) (string, strin
 		var dest UCoinTransferDest
 		dest.DestAddr = parseUserId(param.Dests.DestArray[i].DestAddr)
 		if param.Dests.DestArray[i].CoinAmount < 0 {
-			return "","", common.ERR_RANGE_VALUES
+			return nil, common.ERR_RANGE_VALUES
 		}
 		dest.CoinAmount = uint64(param.Dests.DestArray[i].CoinAmount)
 		if param.Dests.DestArray[i].CoinSymbol == "" {
-			return "","", common.ERR_COIN_TYPE
+			return nil, common.ERR_COIN_TYPE
 		}
 		dest.CoinSymbol = string(param.Dests.DestArray[i].CoinSymbol)
 		dests=append(dests,dest)
@@ -156,7 +157,7 @@ type WaykiUCoinCallContractTx struct {
 	Contract []byte
 }
 
-func (tx WaykiUCoinCallContractTx) createRawTx(wifKey *btcutil.WIF) (string,string,error) {
+func (tx WaykiUCoinCallContractTx) createRawTx(wifKey *btcutil.WIF) (* SignResult,error) {
 
 	buf := bytes.NewBuffer([]byte{})
 	writer := NewWriterHelper(buf)
@@ -177,12 +178,12 @@ func (tx WaykiUCoinCallContractTx) createRawTx(wifKey *btcutil.WIF) (string,stri
 	writer.WriteVarInt(int64(tx.CoinAmount))
 	signatureBytes,txid,err := tx.CalSignatureTxid(wifKey)
 	if err != nil{
-		return "","",err
+		return nil,err
 	}
 	writer.WriteBytes(signatureBytes)
 
 	rawTx := hex.EncodeToString(buf.Bytes())
-	return rawTx, txid,nil
+	return &SignResult{rawTx,txid},nil
 }
 
 //return signature and txid
@@ -208,50 +209,50 @@ func (tx WaykiUCoinCallContractTx) CalSignatureTxid(wifKey *btcutil.WIF) ([]byte
 	return calSignatureTxid(buf.Bytes(),wifKey)
 }
 // returns the signature hex string and nil error, or returns empty string and the error if it has error
-func (param *UCoinContractTxParam) CreateRawTx(privateKey string) (string,string, error) {
+func (param *UCoinContractTxParam) CreateRawTx(privateKey string) (* SignResult, error) {
 	// check and convert params
 	wifKey, err := btcutil.DecodeWIF(privateKey)
 	if err != nil {
-		return "","", common.ERR_INVALID_PRIVATEKEY
+		return nil, common.ERR_INVALID_PRIVATEKEY
 	}
 
 	var tx WaykiUCoinCallContractTx
 
 	if param.ValidHeight < 0 {
-		return "","", common.ERR_NEGATIVE_VALID_HEIGHT
+		return nil, common.ERR_NEGATIVE_VALID_HEIGHT
 	}
 	tx.ValidHeight = param.ValidHeight
 	tx.UserId = parseRegId(param.SrcRegId)
 	tx.AppId = parseRegId(param.AppId)
 	if tx.AppId == nil {
-		return "","", common.ERR_INVALID_APP_ID
+		return nil, common.ERR_INVALID_APP_ID
 	}
 	if !checkMoneyRange(param.CoinAmount) {
-		return "","", common.ERR_RANGE_VALUES
+		return nil, common.ERR_RANGE_VALUES
 	}
 	tx.CoinAmount = int64(param.CoinAmount)
 	if !checkMoneyRange(param.Fees) {
-		return "","", common.ERR_RANGE_FEE
+		return nil, common.ERR_RANGE_FEE
 	}
 	if !checkMinTxFee(param.Fees) {
-		return "","", common.ERR_FEE_SMALLER_MIN
+		return nil, common.ERR_FEE_SMALLER_MIN
 	}
 	tx.Fees = int64(param.Fees)
 	binary, errHex := hex.DecodeString(param.ContractHex)
 	if errHex != nil {
-		return "", "",common.ERR_INVALID_CONTRACT_HEX
+		return nil, common.ERR_INVALID_CONTRACT_HEX
 	}
 	tx.Contract = []byte(binary)
 	pubKey, err := hex.DecodeString(param.PubKey)
 	if (err != nil) {
-		return "","", common.ERR_USER_PUBLICKEY
+		return nil, common.ERR_USER_PUBLICKEY
 	}
 	tx.PubKey = pubKey
 	if (tx.UserId == nil && tx.PubKey == nil) {
-		return "","", common.ERR_INVALID_SRC_REG_ID
+		return nil, common.ERR_INVALID_SRC_REG_ID
 	}
 	if param.CoinSymbol == "" {
-		return "","", common.ERR_COIN_TYPE
+		return nil, common.ERR_COIN_TYPE
 	}
 	tx.CoinSymbol = param.CoinSymbol
 	if (param.FeeSymbol == "") {
@@ -282,7 +283,7 @@ func WriteContractScript(writer *WriterHelper, script []byte, description string
 	writer.WriteBytes(scriptWriter.GetBuf().Bytes())
 }
 // sign transaction
-func (tx WaykiUCoinRegisterContractTx) createRawTx(wifKey *btcutil.WIF) (string,string,error) {
+func (tx WaykiUCoinRegisterContractTx) createRawTx(wifKey *btcutil.WIF) (* SignResult,error) {
 
 	buf := bytes.NewBuffer([]byte{})
 	writer := NewWriterHelper(buf)
@@ -295,12 +296,12 @@ func (tx WaykiUCoinRegisterContractTx) createRawTx(wifKey *btcutil.WIF) (string,
 	WriteContractScript(writer, tx.Script, tx.Description)
 	signatureBytes,txid,err := tx.CalSignatureTxid(wifKey)
 	if err != nil{
-		return "","",err
+		return nil,err
 	}
 	writer.WriteBytes(signatureBytes)
 
 	rawTx := hex.EncodeToString(buf.Bytes())
-	return rawTx, txid,nil
+	return &SignResult{rawTx,txid},nil
 }
 
 func (tx WaykiUCoinRegisterContractTx) CalSignatureTxid(wifKey *btcutil.WIF) ([]byte,string,error) {
@@ -319,28 +320,28 @@ func (tx WaykiUCoinRegisterContractTx) CalSignatureTxid(wifKey *btcutil.WIF) ([]
 
 //CreateUCoinDeployContractTx sign for call register contract tx
 // returns the signature hex string and nil error, or returns empty string and the error if it has error
-func (param *UCoinRegisterContractTxParam) CreateRawTx(privateKey string) (string, string,error) {
+func (param *UCoinRegisterContractTxParam) CreateRawTx(privateKey string) (* SignResult,error) {
 
 	// check and convert params
 	wifKey, err := btcutil.DecodeWIF(privateKey)
 	if err != nil {
-		return "","", common.ERR_INVALID_PRIVATEKEY
+		return nil, common.ERR_INVALID_PRIVATEKEY
 	}
 
 	var tx WaykiUCoinRegisterContractTx
 
 	if param.ValidHeight < 0 {
-		return "","", common.ERR_NEGATIVE_VALID_HEIGHT
+		return nil, common.ERR_NEGATIVE_VALID_HEIGHT
 	}
 	tx.ValidHeight = param.ValidHeight
 
 	tx.UserId = parseRegId(param.SrcRegId)
 
 	if !checkMoneyRange(param.Fees) {
-		return "","", common.ERR_RANGE_FEE
+		return nil, common.ERR_RANGE_FEE
 	}
 	if !checkMinTxFee(param.Fees) {
-		return "", "",common.ERR_FEE_SMALLER_MIN
+		return nil ,common.ERR_FEE_SMALLER_MIN
 	}
 	tx.Fees = uint64(param.Fees)
 
@@ -348,16 +349,16 @@ func (param *UCoinRegisterContractTxParam) CreateRawTx(privateKey string) (strin
 	tx.Version = TX_VERSION
 
 	if len(param.Script) == 0 || len(param.Script) > CONTRACT_SCRIPT_MAX_SIZE {
-		return "", "",common.ERR_INVALID_SCRIPT
+		return nil,common.ERR_INVALID_SCRIPT
 	}
 	tx.Script = param.Script
 
 	if len(param.Description) > CONTRACT_SCRIPT_DESC_MAX_SIZE {
-		return "","", common.ERR_INVALID_SCRIPT_DESC
+		return nil, common.ERR_INVALID_SCRIPT_DESC
 	}
 	tx.Description = param.Description
 	if (tx.UserId == nil && tx.PubKey == nil) {
-		return "","", common.ERR_INVALID_SRC_REG_ID
+		return nil, common.ERR_INVALID_SRC_REG_ID
 	}
 
 	if (param.FeeSymbol == "") {
@@ -383,7 +384,7 @@ type WaykiDelegateTx struct {
 }
 
 //return rawtx + txid
-func (tx WaykiDelegateTx) createRawTx(wifKey *btcutil.WIF) (string,string,error) {
+func (tx WaykiDelegateTx) createRawTx(wifKey *btcutil.WIF) (* SignResult,error) {
 
 	buf := bytes.NewBuffer([]byte{})
 	writer := NewWriterHelper(buf)
@@ -405,12 +406,12 @@ func (tx WaykiDelegateTx) createRawTx(wifKey *btcutil.WIF) (string,string,error)
 	writer.WriteVarInt(int64(tx.Fees))
 	signatureBytes,txid,err := tx.CalSignatureTxid(wifKey)
 	if err != nil{
-		return "","",err
+		return nil,err
 	}
 	writer.WriteBytes(signatureBytes)
 
 	rawTx := hex.EncodeToString(buf.Bytes())
-	return rawTx, txid,nil
+	return &SignResult{rawTx,txid},nil
 }
 
 //return signature and txid
@@ -438,45 +439,45 @@ func (tx WaykiDelegateTx) CalSignatureTxid(wifKey *btcutil.WIF) ([]byte,string,e
 	return calSignatureTxid(buf.Bytes(),wifKey)
 }
 // returns the signature hex string and nil error, or returns empty string and the error if it has error
-func (param *DelegateTxParam) CreateRawTx(privateKey string) (string,string, error) {
+func (param *DelegateTxParam) CreateRawTx(privateKey string) (* SignResult, error) {
 
 	// check and convert params
 	wifKey, err := btcutil.DecodeWIF(privateKey)
 	if err != nil {
-		return "","", common.ERR_INVALID_PRIVATEKEY
+		return nil, common.ERR_INVALID_PRIVATEKEY
 	}
 
 	var tx WaykiDelegateTx
 
 	if param.ValidHeight < 0 {
-		return "","", common.ERR_NEGATIVE_VALID_HEIGHT
+		return nil, common.ERR_NEGATIVE_VALID_HEIGHT
 	}
 	tx.ValidHeight = param.ValidHeight
 
 	tx.UserId = parseRegId(param.SrcRegId)
 
 	if !checkMoneyRange(param.Fees) {
-		return "","", common.ERR_RANGE_FEE
+		return nil, common.ERR_RANGE_FEE
 	}
 
 	if !checkMinTxFee(param.Fees) {
-		return "","", common.ERR_FEE_SMALLER_MIN
+		return nil, common.ERR_FEE_SMALLER_MIN
 	}
 
 	if len(param.Votes.VoteArray) == 0 {
-		return "","", common.ERR_EMPTY_VOTES
+		return nil, common.ERR_EMPTY_VOTES
 	}
 	var voteData []OperVoteFundTx
 	for i := 0; i < len(param.Votes.VoteArray); i++ {
 		inVote := param.Votes.VoteArray[i]
 		var v OperVoteFundTx
 		if !checkPubKey(inVote.PubKey) {
-			return "","", common.ERR_INVALID_VOTE_PUBKEY
+			return nil, common.ERR_INVALID_VOTE_PUBKEY
 		}
 
 		v.VoteValue = abs(inVote.VoteValue)
 		if !checkMoneyRange(v.VoteValue) {
-			return "","", common.ERR_RANGE_VOTE_VALUE
+			return nil, common.ERR_RANGE_VOTE_VALUE
 		}
 		v.VoteType = GetVoteTypeByValue(inVote.VoteValue)
 
@@ -487,11 +488,11 @@ func (param *DelegateTxParam) CreateRawTx(privateKey string) (string,string, err
 
 	pubKey, err := hex.DecodeString(param.PubKey)
 	if (err != nil) {
-		return "","", common.ERR_USER_PUBLICKEY
+		return nil, common.ERR_USER_PUBLICKEY
 	}
 	tx.PubKey = pubKey
 	if (tx.UserId == nil && tx.PubKey == nil) {
-		return "","", common.ERR_INVALID_SRC_REG_ID
+		return nil, common.ERR_INVALID_SRC_REG_ID
 	}
 	tx.TxType = DELEGATE_TX
 	tx.Version = 1
@@ -512,7 +513,7 @@ type WaykiCdpStakeTx struct {
 }
 
 //return rawtx + txid
-func (tx WaykiCdpStakeTx) createRawTx(wifKey *btcutil.WIF) (string,string,error){
+func (tx WaykiCdpStakeTx) createRawTx(wifKey *btcutil.WIF) (* SignResult,error){
 	buf := bytes.NewBuffer([]byte{})
 	writer := NewWriterHelper(buf)
 
@@ -534,12 +535,12 @@ func (tx WaykiCdpStakeTx) createRawTx(wifKey *btcutil.WIF) (string,string,error)
 	writer.WriteVarInt(int64(tx.ScoinValues))
 	signatureBytes,txid,err := tx.CalSignatureTxid(wifKey)
 	if err != nil{
-		return "","",err
+		return nil,err
 	}
 	writer.WriteBytes(signatureBytes)
 
 	rawTx := hex.EncodeToString(buf.Bytes())
-	return rawTx, txid,nil
+	return &SignResult{rawTx,txid},nil
 }
 
 //return signature and txid
@@ -568,16 +569,16 @@ func (tx WaykiCdpStakeTx) CalSignatureTxid(wifKey *btcutil.WIF) ([]byte,string,e
 	return calSignatureTxid(buf.Bytes(),wifKey)
 }
 // returns the signature hex string and nil error, or returns empty string and the error if it has error
-func (param *CdpStakeTxParam) CreateRawTx(privateKey string) (string,string, error) {
+func (param *CdpStakeTxParam) CreateRawTx(privateKey string) (* SignResult, error) {
 
 	wifKey, err := btcutil.DecodeWIF(privateKey)
 	if err != nil {
-		return "","", common.ERR_INVALID_PRIVATEKEY
+		return nil, common.ERR_INVALID_PRIVATEKEY
 	}
 	var tx WaykiCdpStakeTx
 
 	if param.ValidHeight < 0 {
-		return "", "",common.ERR_NEGATIVE_VALID_HEIGHT
+		return nil,common.ERR_NEGATIVE_VALID_HEIGHT
 	}
 	tx.ValidHeight = param.ValidHeight
 
@@ -585,27 +586,27 @@ func (param *CdpStakeTxParam) CreateRawTx(privateKey string) (string,string, err
 
 	pubKey, err := hex.DecodeString(param.PubKey)
 	if (err != nil) {
-		return "","", common.ERR_USER_PUBLICKEY
+		return nil, common.ERR_USER_PUBLICKEY
 	}
 	tx.PubKey = pubKey
 	if (tx.UserId == nil && tx.PubKey == nil) {
-		return "","", common.ERR_INVALID_SRC_REG_ID
+		return nil, common.ERR_INVALID_SRC_REG_ID
 	}
 	if !checkCdpMinTxFee(param.Fees) {
-		return "","", common.ERR_FEE_SMALLER_MIN
+		return nil, common.ERR_FEE_SMALLER_MIN
 	}
 	tx.Fees = uint64(param.Fees)
 
 	tx.TxType = CDP_STAKE_TX
 	tx.Version = TX_VERSION
 	if  param.ScoinMint < 0 {
-		return "","", common.ERR_CDP_STAKE_NUMBER
+		return nil, common.ERR_CDP_STAKE_NUMBER
 	}
 
 	tx.ScoinValues = uint64(param.ScoinMint)
 
 	if  param.ScoinSymbol == "" {
-		return "","", common.ERR_COIN_TYPE
+		return nil, common.ERR_COIN_TYPE
 	}
 	if (param.FeeSymbol == "") {
 		tx.FeeSymbol = string(common.WICC)
@@ -618,12 +619,12 @@ func (param *CdpStakeTxParam) CreateRawTx(privateKey string) (string,string, err
 		var model AssetModel
 		model.AssetSymbol=asset.AssetSymbol
 		if asset.AssetSymbol=="" {
-			return "","", common.ERR_COIN_TYPE
+			return nil, common.ERR_COIN_TYPE
 		}
 
 		model.AssetAmount = abs(asset.AssetAmount)
 		if !checkMoneyRange(model.AssetAmount) {
-			return "","", common.ERR_CDP_STAKE_NUMBER
+			return nil, common.ERR_CDP_STAKE_NUMBER
 		}
 		models = append(models, model)
 	}
@@ -634,7 +635,7 @@ func (param *CdpStakeTxParam) CreateRawTx(privateKey string) (string,string, err
 	}
 	txHash, err := hex.DecodeString(param.CdpTxid)
 	if (err != nil) {
-		return "","", common.ERR_CDP_TX_HASH
+		return nil, common.ERR_CDP_TX_HASH
 	}
 	tx.CdpTxHash = txHash
 
@@ -652,7 +653,7 @@ type WaykiCdpRedeemTx struct {
 }
 
 //return rawtx + txid
-func (tx WaykiCdpRedeemTx) createRawTx(wifKey *btcutil.WIF) (string,string,error){
+func (tx WaykiCdpRedeemTx) createRawTx(wifKey *btcutil.WIF) (* SignResult,error){
 	buf := bytes.NewBuffer([]byte{})
 	writer := NewWriterHelper(buf)
 
@@ -671,12 +672,12 @@ func (tx WaykiCdpRedeemTx) createRawTx(wifKey *btcutil.WIF) (string,string,error
 	writer.WriteCdpAsset(tx.Assets)
 	signatureBytes,txid,err := tx.CalSignatureTxid(wifKey)
 	if err != nil{
-		return "","",err
+		return nil,err
 	}
 	writer.WriteBytes(signatureBytes)
 
 	rawTx := hex.EncodeToString(buf.Bytes())
-	return rawTx, txid,nil
+	return &SignResult{rawTx,txid},nil
 }
 
 //return signature and txid
@@ -702,16 +703,16 @@ func (tx WaykiCdpRedeemTx) CalSignatureTxid(wifKey *btcutil.WIF) ([]byte,string,
 	return calSignatureTxid(buf.Bytes(),wifKey)
 }
 // returns the signature hex string and nil error, or returns empty string and the error if it has error
-func (param *CdpRedeemTxParam) CreateRawTx(privateKey string) (string,string ,error) {
+func (param *CdpRedeemTxParam) CreateRawTx(privateKey string) (* SignResult ,error) {
 
 	wifKey, err := btcutil.DecodeWIF(privateKey)
 	if err != nil {
-		return "", "",common.ERR_INVALID_PRIVATEKEY
+		return nil,common.ERR_INVALID_PRIVATEKEY
 	}
 	var tx WaykiCdpRedeemTx
 
 	if param.ValidHeight < 0 {
-		return "", "",common.ERR_NEGATIVE_VALID_HEIGHT
+		return nil,common.ERR_NEGATIVE_VALID_HEIGHT
 	}
 	tx.ValidHeight = param.ValidHeight
 
@@ -719,21 +720,21 @@ func (param *CdpRedeemTxParam) CreateRawTx(privateKey string) (string,string ,er
 
 	pubKey, err := hex.DecodeString(param.PubKey)
 	if (err != nil) {
-		return "","", common.ERR_USER_PUBLICKEY
+		return nil, common.ERR_USER_PUBLICKEY
 	}
 	tx.PubKey = pubKey
 	if (tx.UserId == nil && tx.PubKey == nil) {
-		return "","", common.ERR_INVALID_SRC_REG_ID
+		return nil, common.ERR_INVALID_SRC_REG_ID
 	}
 	if !checkCdpMinTxFee(param.Fees) {
-		return "","", common.ERR_FEE_SMALLER_MIN
+		return nil, common.ERR_FEE_SMALLER_MIN
 	}
 	tx.Fees = uint64(param.Fees)
 
 	tx.TxType = CDP_REDEEMP_TX
 	tx.Version = TX_VERSION
 	if param.ScoinsToRepay < 0 {
-		return "","", common.ERR_CDP_STAKE_NUMBER
+		return nil, common.ERR_CDP_STAKE_NUMBER
 	}
 	tx.ScoinValues = uint64(param.ScoinsToRepay)
 
@@ -745,7 +746,7 @@ func (param *CdpRedeemTxParam) CreateRawTx(privateKey string) (string,string ,er
 
 	txHash, err := hex.DecodeString(param.CdpTxid)
 	if (err != nil) {
-		return "","", common.ERR_CDP_TX_HASH
+		return nil, common.ERR_CDP_TX_HASH
 	}
 	tx.CdpTxHash = txHash
 
@@ -755,12 +756,12 @@ func (param *CdpRedeemTxParam) CreateRawTx(privateKey string) (string,string ,er
 		var model AssetModel
 		model.AssetSymbol=asset.AssetSymbol
 		if asset.AssetSymbol=="" {
-			return "","", common.ERR_COIN_TYPE
+			return nil, common.ERR_COIN_TYPE
 		}
 
 		model.AssetAmount = abs(asset.AssetAmount)
 		if !checkMoneyRange(model.AssetAmount) {
-			return "","", common.ERR_CDP_STAKE_NUMBER
+			return nil, common.ERR_CDP_STAKE_NUMBER
 		}
 		models = append(models, model)
 	}
@@ -778,7 +779,7 @@ type WaykiCdpLiquidateTx struct {
 	AseetSymbol string
 }
 //return rawtx + txid
-func (tx WaykiCdpLiquidateTx) createRawTx(wifKey *btcutil.WIF) (string,string,error){
+func (tx WaykiCdpLiquidateTx) createRawTx(wifKey *btcutil.WIF) (* SignResult,error){
 	buf := bytes.NewBuffer([]byte{})
 	writer := NewWriterHelper(buf)
 
@@ -797,12 +798,12 @@ func (tx WaykiCdpLiquidateTx) createRawTx(wifKey *btcutil.WIF) (string,string,er
 	writer.WriteVarInt(int64(tx.ScoinsLiquidate))
 	signatureBytes,txid,err := tx.CalSignatureTxid(wifKey)
 	if err != nil{
-		return "","",err
+		return nil,err
 	}
 	writer.WriteBytes(signatureBytes)
 
 	rawTx := hex.EncodeToString(buf.Bytes())
-	return rawTx, txid,nil
+	return &SignResult{rawTx,txid},nil
 }
 
 //return signature and txid
@@ -827,16 +828,16 @@ func (tx WaykiCdpLiquidateTx) CalSignatureTxid(wifKey *btcutil.WIF) ([]byte,stri
 	return calSignatureTxid(buf.Bytes(),wifKey)
 }
 // returns the signature hex string and nil error, or returns empty string and the error if it has error
-func (param *CdpLiquidateTxParam) CreateRawTx(privateKey string) (string,string, error) {
+func (param *CdpLiquidateTxParam) CreateRawTx(privateKey string) (* SignResult, error) {
 
 	wifKey, err := btcutil.DecodeWIF(privateKey)
 	if err != nil {
-		return "","", common.ERR_INVALID_PRIVATEKEY
+		return nil, common.ERR_INVALID_PRIVATEKEY
 	}
 	var tx WaykiCdpLiquidateTx
 
 	if param.ValidHeight < 0 {
-		return "","", common.ERR_NEGATIVE_VALID_HEIGHT
+		return nil, common.ERR_NEGATIVE_VALID_HEIGHT
 	}
 	tx.ValidHeight = param.ValidHeight
 
@@ -844,21 +845,21 @@ func (param *CdpLiquidateTxParam) CreateRawTx(privateKey string) (string,string,
 
 	pubKey, err := hex.DecodeString(param.PubKey)
 	if (err != nil) {
-		return "","", common.ERR_USER_PUBLICKEY
+		return nil, common.ERR_USER_PUBLICKEY
 	}
 	tx.PubKey = pubKey
 	if (tx.UserId == nil && tx.PubKey == nil) {
-		return "","", common.ERR_INVALID_SRC_REG_ID
+		return nil, common.ERR_INVALID_SRC_REG_ID
 	}
 	if !checkCdpMinTxFee(param.Fees) {
-		return "","", common.ERR_FEE_SMALLER_MIN
+		return nil, common.ERR_FEE_SMALLER_MIN
 	}
 	tx.Fees = uint64(param.Fees)
 
 	tx.TxType = CDP_LIQUIDATE_TX
 	tx.Version = TX_VERSION
 	if param.ScoinsLiquidate < 0 {
-		return "","", common.ERR_CDP_STAKE_NUMBER
+		return nil, common.ERR_CDP_STAKE_NUMBER
 	}
 	tx.ScoinsLiquidate = uint64(param.ScoinsLiquidate)
 
@@ -869,13 +870,13 @@ func (param *CdpLiquidateTxParam) CreateRawTx(privateKey string) (string,string,
 	}
 
 	if param.AssetSymbol==""{
-		return "","",common.ERR_COIN_TYPE
+		return nil,common.ERR_COIN_TYPE
 	}
 	tx.AseetSymbol=param.AssetSymbol
 
 	txHash, err := hex.DecodeString(param.CdpTxid)
 	if (err != nil) {
-		return "","", common.ERR_CDP_TX_HASH
+		return nil, common.ERR_CDP_TX_HASH
 	}
 	tx.CdpTxHash = txHash
 
@@ -894,7 +895,7 @@ type WaykiDexSellLimitTx struct {
 }
 
 //return rawtx + txid
-func (tx WaykiDexSellLimitTx) createRawTx(wifKey *btcutil.WIF) (string,string,error){
+func (tx WaykiDexSellLimitTx) createRawTx(wifKey *btcutil.WIF) (* SignResult,error){
 	buf := bytes.NewBuffer([]byte{})
 	writer := NewWriterHelper(buf)
 
@@ -914,12 +915,12 @@ func (tx WaykiDexSellLimitTx) createRawTx(wifKey *btcutil.WIF) (string,string,er
 	writer.WriteVarInt(int64(tx.AskPrice))
 	signatureBytes,txid,err := tx.CalSignatureTxid(wifKey)
 	if err != nil{
-		return "","",err
+		return nil,err
 	}
 	writer.WriteBytes(signatureBytes)
 
 	rawTx := hex.EncodeToString(buf.Bytes())
-	return rawTx, txid,nil
+	return &SignResult{rawTx,txid},nil
 }
 
 //return signature and txid
@@ -946,15 +947,15 @@ func (tx WaykiDexSellLimitTx) CalSignatureTxid(wifKey *btcutil.WIF) ([]byte,stri
 	return calSignatureTxid(buf.Bytes(), wifKey)
 }
 // returns the signature hex string and nil error, or returns empty string and the error if it has error
-func (param *DexLimitSellTxParam) CreateRawTx(privateKey string) (string, string,error) {
+func (param *DexLimitSellTxParam) CreateRawTx(privateKey string) (* SignResult,error) {
 	wifKey, err := btcutil.DecodeWIF(privateKey)
 	if err != nil {
-		return "","", common.ERR_INVALID_PRIVATEKEY
+		return nil, common.ERR_INVALID_PRIVATEKEY
 	}
 	var tx WaykiDexSellLimitTx
 
 	if param.ValidHeight < 0 {
-		return "","", common.ERR_NEGATIVE_VALID_HEIGHT
+		return nil, common.ERR_NEGATIVE_VALID_HEIGHT
 	}
 	tx.ValidHeight = param.ValidHeight
 
@@ -962,25 +963,25 @@ func (param *DexLimitSellTxParam) CreateRawTx(privateKey string) (string, string
 
 	pubKey, err := hex.DecodeString(param.PubKey)
 	if (err != nil) {
-		return "","", common.ERR_USER_PUBLICKEY
+		return nil, common.ERR_USER_PUBLICKEY
 	}
 	tx.PubKey = pubKey
 	if (tx.UserId == nil && tx.PubKey == nil) {
-		return "","", common.ERR_INVALID_SRC_REG_ID
+		return nil, common.ERR_INVALID_SRC_REG_ID
 	}
 	if !checkMinTxFee(param.Fees) {
-		return "","", common.ERR_FEE_SMALLER_MIN
+		return nil, common.ERR_FEE_SMALLER_MIN
 	}
 	tx.Fees = uint64(param.Fees)
 
 	tx.TxType = DEX_SELL_LIMIT_ORDER_TX
 	tx.Version = TX_VERSION
 	if param.Price <= 0 {
-		return "","", common.ERR_ASK_PRICE
+		return nil, common.ERR_ASK_PRICE
 	}
 	tx.AskPrice = uint64(param.Price)
 	if param.CoinSymbol == "" || param.AssetSymbol == "" {
-		return "","", common.ERR_COIN_TYPE
+		return nil, common.ERR_COIN_TYPE
 	}
 	tx.AssetSymbol = param.AssetSymbol
 	tx.CoinSymbol = param.CoinSymbol
@@ -990,7 +991,7 @@ func (param *DexLimitSellTxParam) CreateRawTx(privateKey string) (string, string
 		tx.FeeSymbol = string(param.FeeSymbol)
 	}
 	if !checkMoneyRange(param.AssetAmount) {
-		return "","", common.ERR_RANGE_VALUES
+		return nil, common.ERR_RANGE_VALUES
 	}
 	tx.AssetAmount = uint64(param.AssetAmount)
 
@@ -998,15 +999,15 @@ func (param *DexLimitSellTxParam) CreateRawTx(privateKey string) (string, string
 }
 
 // returns the signature hex string and nil error, or returns empty string and the error if it has error
-func (param *DexLimitBuyTxParam) CreateRawTx(privateKey string) (string,string, error) {
+func (param *DexLimitBuyTxParam) CreateRawTx(privateKey string) (* SignResult, error) {
 	wifKey, err := btcutil.DecodeWIF(privateKey)
 	if err != nil {
-		return "","", common.ERR_INVALID_PRIVATEKEY
+		return nil, common.ERR_INVALID_PRIVATEKEY
 	}
 	var tx WaykiDexSellLimitTx
 
 	if param.ValidHeight < 0 {
-		return "","", common.ERR_NEGATIVE_VALID_HEIGHT
+		return nil, common.ERR_NEGATIVE_VALID_HEIGHT
 	}
 	tx.ValidHeight = param.ValidHeight
 
@@ -1014,25 +1015,25 @@ func (param *DexLimitBuyTxParam) CreateRawTx(privateKey string) (string,string, 
 
 	pubKey, err := hex.DecodeString(param.PubKey)
 	if (err != nil) {
-		return "","", common.ERR_USER_PUBLICKEY
+		return nil, common.ERR_USER_PUBLICKEY
 	}
 	tx.PubKey = pubKey
 	if (tx.UserId == nil && tx.PubKey == nil) {
-		return "","", common.ERR_INVALID_SRC_REG_ID
+		return nil, common.ERR_INVALID_SRC_REG_ID
 	}
 	if !checkCdpMinTxFee(param.Fees) {
-		return "","", common.ERR_FEE_SMALLER_MIN
+		return nil, common.ERR_FEE_SMALLER_MIN
 	}
 	tx.Fees = uint64(param.Fees)
 
 	tx.TxType = DEX_BUY_LIMIT_ORDER_TX
 	tx.Version = TX_VERSION
 	if param.Price <= 0 {
-		return "", "",common.ERR_ASK_PRICE
+		return nil,common.ERR_ASK_PRICE
 	}
 	tx.AskPrice = uint64(param.Price)
 	if param.CoinSymbol == "" || param.AssetSymbol == "" {
-		return "","", common.ERR_COIN_TYPE
+		return nil, common.ERR_COIN_TYPE
 	}
 	tx.AssetSymbol = param.AssetSymbol
 	tx.CoinSymbol = param.CoinSymbol
@@ -1042,7 +1043,7 @@ func (param *DexLimitBuyTxParam) CreateRawTx(privateKey string) (string,string, 
 		tx.FeeSymbol = string(param.FeeSymbol)
 	}
 	if !checkMoneyRange(param.AssetAmount) {
-		return "","", common.ERR_RANGE_VALUES
+		return nil, common.ERR_RANGE_VALUES
 	}
 	tx.AssetAmount = uint64(param.AssetAmount)
 
@@ -1060,7 +1061,7 @@ type WaykiDexMarketTx struct {
 }
 
 //return rawtx + txid
-func (tx WaykiDexMarketTx) createRawTx(wifKey *btcutil.WIF) (string,string,error){
+func (tx WaykiDexMarketTx) createRawTx(wifKey *btcutil.WIF) (* SignResult,error){
 	buf := bytes.NewBuffer([]byte{})
 	writer := NewWriterHelper(buf)
 
@@ -1079,12 +1080,12 @@ func (tx WaykiDexMarketTx) createRawTx(wifKey *btcutil.WIF) (string,string,error
 	writer.WriteVarInt(int64(tx.AssetAmount))
 	signatureBytes,txid,err := tx.CalSignatureTxid(wifKey)
 	if err != nil{
-		return "","",err
+		return nil,err
 	}
 	writer.WriteBytes(signatureBytes)
 
 	rawTx := hex.EncodeToString(buf.Bytes())
-	return rawTx, txid,nil
+	return &SignResult{rawTx,txid},nil
 }
 
 //return signature and txid
@@ -1110,15 +1111,15 @@ func (tx WaykiDexMarketTx) CalSignatureTxid(wifKey *btcutil.WIF) ([]byte,string,
 	return calSignatureTxid(buf.Bytes(),wifKey)
 }
 // returns the signature hex string and nil error, or returns empty string and the error if it has error
-func (param *DexMarketSellTxParam) CreateRawTx(privateKey string) (string, string,error) {
+func (param *DexMarketSellTxParam) CreateRawTx(privateKey string) (* SignResult,error) {
 	wifKey, err := btcutil.DecodeWIF(privateKey)
 	if err != nil {
-		return "","", common.ERR_INVALID_PRIVATEKEY
+		return nil, common.ERR_INVALID_PRIVATEKEY
 	}
 	var tx WaykiDexMarketTx
 
 	if param.ValidHeight < 0 {
-		return "","", common.ERR_NEGATIVE_VALID_HEIGHT
+		return nil, common.ERR_NEGATIVE_VALID_HEIGHT
 	}
 	tx.ValidHeight = param.ValidHeight
 
@@ -1126,21 +1127,21 @@ func (param *DexMarketSellTxParam) CreateRawTx(privateKey string) (string, strin
 
 	pubKey, err := hex.DecodeString(param.PubKey)
 	if (err != nil) {
-		return "","", common.ERR_USER_PUBLICKEY
+		return nil, common.ERR_USER_PUBLICKEY
 	}
 	tx.PubKey = pubKey
 	if (tx.UserId == nil && tx.PubKey == nil) {
-		return "","", common.ERR_INVALID_SRC_REG_ID
+		return nil, common.ERR_INVALID_SRC_REG_ID
 	}
 	if !checkCdpMinTxFee(param.Fees) {
-		return "","", common.ERR_FEE_SMALLER_MIN
+		return nil, common.ERR_FEE_SMALLER_MIN
 	}
 	tx.Fees = uint64(param.Fees)
 
 	tx.TxType = DEX_SELL_MARKET_ORDER_TX
 	tx.Version = TX_VERSION
 	if param.CoinSymbol == "" || param.AssetSymbol == "" {
-		return "", "",common.ERR_COIN_TYPE
+		return nil,common.ERR_COIN_TYPE
 	}
 	tx.AssetSymbol = param.AssetSymbol
 	tx.CoinSymbol = param.CoinSymbol
@@ -1150,7 +1151,7 @@ func (param *DexMarketSellTxParam) CreateRawTx(privateKey string) (string, strin
 		tx.FeeSymbol = string(param.FeeSymbol)
 	}
 	if !checkMoneyRange(param.AssetAmount) {
-		return "","", common.ERR_RANGE_VALUES
+		return nil, common.ERR_RANGE_VALUES
 	}
 	tx.AssetAmount = uint64(param.AssetAmount)
 
@@ -1158,15 +1159,15 @@ func (param *DexMarketSellTxParam) CreateRawTx(privateKey string) (string, strin
 }
 
 // returns the signature hex string and nil error, or returns empty string and the error if it has error
-func (param *DexMarketBuyTxParam) CreateRawTx(privateKey string) (string,string, error) {
+func (param *DexMarketBuyTxParam) CreateRawTx(privateKey string) (* SignResult, error) {
 	wifKey, err := btcutil.DecodeWIF(privateKey)
 	if err != nil {
-		return "","", common.ERR_INVALID_PRIVATEKEY
+		return nil, common.ERR_INVALID_PRIVATEKEY
 	}
 	var tx WaykiDexMarketTx
 
 	if param.ValidHeight < 0 {
-		return "","", common.ERR_NEGATIVE_VALID_HEIGHT
+		return nil, common.ERR_NEGATIVE_VALID_HEIGHT
 	}
 	tx.ValidHeight = param.ValidHeight
 
@@ -1174,21 +1175,21 @@ func (param *DexMarketBuyTxParam) CreateRawTx(privateKey string) (string,string,
 
 	pubKey, err := hex.DecodeString(param.PubKey)
 	if (err != nil) {
-		return "","", common.ERR_USER_PUBLICKEY
+		return nil, common.ERR_USER_PUBLICKEY
 	}
 	tx.PubKey = pubKey
 	if (tx.UserId == nil && tx.PubKey == nil) {
-		return "","", common.ERR_INVALID_SRC_REG_ID
+		return nil, common.ERR_INVALID_SRC_REG_ID
 	}
 	if !checkCdpMinTxFee(param.Fees) {
-		return "","", common.ERR_FEE_SMALLER_MIN
+		return nil, common.ERR_FEE_SMALLER_MIN
 	}
 	tx.Fees = uint64(param.Fees)
 
 	tx.TxType = DEX_BUY_MARKET_ORDER_TX
 	tx.Version = TX_VERSION
 	if param.CoinSymbol == "" || param.AssetSymbol == "" {
-		return "","", common.ERR_COIN_TYPE
+		return nil, common.ERR_COIN_TYPE
 	}
 	tx.AssetSymbol = param.AssetSymbol
 	tx.CoinSymbol = param.CoinSymbol
@@ -1198,7 +1199,7 @@ func (param *DexMarketBuyTxParam) CreateRawTx(privateKey string) (string,string,
 		tx.FeeSymbol = string(param.FeeSymbol)
 	}
 	if !checkMoneyRange(param.CoinAmount) {
-		return "","", common.ERR_RANGE_VALUES
+		return nil, common.ERR_RANGE_VALUES
 	}
 	tx.AssetAmount = uint64(param.CoinAmount)
 
@@ -1213,7 +1214,7 @@ type WaykiDexCancelTx struct {
 }
 
 //return rawtx + txid
-func (tx WaykiDexCancelTx) createRawTx(wifKey *btcutil.WIF) (string,string,error){
+func (tx WaykiDexCancelTx) createRawTx(wifKey *btcutil.WIF) (* SignResult,error){
 	buf := bytes.NewBuffer([]byte{})
 	writer := NewWriterHelper(buf)
 
@@ -1230,12 +1231,12 @@ func (tx WaykiDexCancelTx) createRawTx(wifKey *btcutil.WIF) (string,string,error
 	writer.WriteReverse(tx.DexHash)
 	signatureBytes,txid,err := tx.CalSignatureTxid(wifKey)
 	if err != nil{
-		return "","",err
+		return nil,err
 	}
 	writer.WriteBytes(signatureBytes)
 
 	rawTx := hex.EncodeToString(buf.Bytes())
-	return rawTx, txid,nil
+	return &SignResult{rawTx,txid},nil
 }
 
 //return signature and txid
@@ -1258,15 +1259,15 @@ func (tx WaykiDexCancelTx) CalSignatureTxid(wifKey *btcutil.WIF) ([]byte,string,
 	return calSignatureTxid(buf.Bytes(),wifKey)
 }
 // returns the signature hex string and nil error, or returns empty string and the error if it has error
-func (param *DexCancelTxParam) CreateRawTx(privateKey string) (string, string,error) {
+func (param *DexCancelTxParam) CreateRawTx(privateKey string) (* SignResult,error) {
 	wifKey, err := btcutil.DecodeWIF(privateKey)
 	if err != nil {
-		return "","", common.ERR_INVALID_PRIVATEKEY
+		return nil, common.ERR_INVALID_PRIVATEKEY
 	}
 	var tx WaykiDexCancelTx
 
 	if param.ValidHeight < 0 {
-		return "","", common.ERR_NEGATIVE_VALID_HEIGHT
+		return nil, common.ERR_NEGATIVE_VALID_HEIGHT
 	}
 	tx.ValidHeight = param.ValidHeight
 
@@ -1274,14 +1275,14 @@ func (param *DexCancelTxParam) CreateRawTx(privateKey string) (string, string,er
 
 	pubKey, err := hex.DecodeString(param.PubKey)
 	if (err != nil) {
-		return "","", common.ERR_USER_PUBLICKEY
+		return nil, common.ERR_USER_PUBLICKEY
 	}
 	tx.PubKey = pubKey
 	if (tx.UserId == nil && tx.PubKey == nil) {
-		return "","", common.ERR_INVALID_SRC_REG_ID
+		return nil, common.ERR_INVALID_SRC_REG_ID
 	}
 	if !checkCdpMinTxFee(param.Fees) {
-		return "","", common.ERR_FEE_SMALLER_MIN
+		return nil, common.ERR_FEE_SMALLER_MIN
 	}
 	tx.Fees = uint64(param.Fees)
 
@@ -1294,7 +1295,7 @@ func (param *DexCancelTxParam) CreateRawTx(privateKey string) (string, string,er
 	}
 	txHash, err := hex.DecodeString(param.DexTxid)
 	if (err != nil) {
-		return "","", common.ERR_CDP_TX_HASH
+		return nil, common.ERR_CDP_TX_HASH
 	}
 	tx.DexHash = txHash
 
@@ -1313,7 +1314,7 @@ type WaykiAssetIssueTx struct {
 }
 
 //return rawtx + txid
-func (tx WaykiAssetIssueTx) createRawTx(wifKey *btcutil.WIF) (string,string,error){
+func (tx WaykiAssetIssueTx) createRawTx(wifKey *btcutil.WIF) (* SignResult,error){
 	buf := bytes.NewBuffer([]byte{})
 	writer := NewWriterHelper(buf)
 
@@ -1337,12 +1338,12 @@ func (tx WaykiAssetIssueTx) createRawTx(wifKey *btcutil.WIF) (string,string,erro
 
 	signatureBytes,txid,err := tx.CalSignatureTxid(wifKey)
 	if err != nil{
-		return "","",err
+		return nil,err
 	}
 	writer.WriteBytes(signatureBytes)
 
 	rawTx := hex.EncodeToString(buf.Bytes())
-	return rawTx, txid,nil
+	return &SignResult{rawTx,txid},nil
 }
 
 //return signature and txid
@@ -1372,22 +1373,22 @@ func (tx WaykiAssetIssueTx) CalSignatureTxid(wifKey *btcutil.WIF) ([]byte,string
 }
 
 // returns the signature hex string and nil error, or returns empty string and the error if it has error
-func (param *AssetIssueTxParam) CreateRawTx(privateKey string) (string,string, error) {
+func (param *AssetIssueTxParam) CreateRawTx(privateKey string) (* SignResult, error) {
 
 	wifKey, err := btcutil.DecodeWIF(privateKey)
 	if err != nil {
-		return "","", common.ERR_INVALID_PRIVATEKEY
+		return nil, common.ERR_INVALID_PRIVATEKEY
 	}
 	var tx WaykiAssetIssueTx
 
 	if param.ValidHeight < 0 {
-		return "","", common.ERR_NEGATIVE_VALID_HEIGHT
+		return nil, common.ERR_NEGATIVE_VALID_HEIGHT
 	}
 	tx.ValidHeight = param.ValidHeight
 	tx.UserId = parseRegId(param.SrcRegId)
 
 	if (tx.UserId == nil) {
-		return "","", common.ERR_INVALID_SRC_REG_ID
+		return nil, common.ERR_INVALID_SRC_REG_ID
 	}
 
 	tx.Fees = uint64(param.Fees)
@@ -1396,7 +1397,7 @@ func (param *AssetIssueTxParam) CreateRawTx(privateKey string) (string,string, e
 	tx.Version = TX_VERSION
 
 	if !checkAssetSymbol(param.AssetSymbol) {
-		return "","", common.ERR_SYMBOL_ERROR
+		return nil, common.ERR_SYMBOL_ERROR
 	}
 	tx.AssetSymbol = param.AssetSymbol
 	if (param.FeeSymbol == "") {
@@ -1406,16 +1407,16 @@ func (param *AssetIssueTxParam) CreateRawTx(privateKey string) (string,string, e
 	}
 	tx.MinTable = param.MinTable
 	if (param.AssetName == "") {
-		return "","", common.ERR_ASSET_NAME_ERROR
+		return nil, common.ERR_ASSET_NAME_ERROR
 	}
 	tx.AssetName = param.AssetName
 	if (param.AssetTotal < 100000000) {
-		return "","", common.ERR_TOTAl_SUPPLY_ERROR
+		return nil, common.ERR_TOTAl_SUPPLY_ERROR
 	}
 	tx.AssetTotal = uint64(param.AssetTotal)
 	tx.AssetOwner = parseUserId(param.AssetOwner)
 	if (tx.AssetOwner == nil) {
-		return "","", common.ERR_ASSET_UPDATE_OWNER_ERROR
+		return nil, common.ERR_ASSET_UPDATE_OWNER_ERROR
 	}
 
 	return tx.createRawTx(wifKey)
@@ -1433,7 +1434,7 @@ type WaykiAssetUpdateTx struct {
 }
 
 //return rawtx + txid
-func (tx WaykiAssetUpdateTx) createRawTx(wifKey *btcutil.WIF) (string,string,error){
+func (tx WaykiAssetUpdateTx) createRawTx(wifKey *btcutil.WIF) (* SignResult,error){
 	buf := bytes.NewBuffer([]byte{})
 	writer := NewWriterHelper(buf)
 
@@ -1461,12 +1462,12 @@ func (tx WaykiAssetUpdateTx) createRawTx(wifKey *btcutil.WIF) (string,string,err
 
 	signatureBytes,txid,err := tx.CalSignatureTxid(wifKey)
 	if err != nil{
-		return "","",err
+		return nil,err
 	}
 	writer.WriteBytes(signatureBytes)
 
 	rawTx := hex.EncodeToString(buf.Bytes())
-	return rawTx, txid,nil
+	return &SignResult{rawTx,txid},nil
 }
 
 //return signature and txid
@@ -1500,21 +1501,21 @@ func (tx WaykiAssetUpdateTx) CalSignatureTxid(wifKey *btcutil.WIF) ([]byte,strin
 	return calSignatureTxid(buf.Bytes(),wifKey)
 }
 // returns the signature hex string and nil error, or returns empty string and the error if it has error
-func (param *AssetUpdateTxParam) CreateRawTx(privateKey string) (string, string,error) {
+func (param *AssetUpdateTxParam) CreateRawTx(privateKey string) (* SignResult,error) {
 
 	wifKey, err := btcutil.DecodeWIF(privateKey)
 	if err != nil {
-		return "","", common.ERR_INVALID_PRIVATEKEY
+		return nil, common.ERR_INVALID_PRIVATEKEY
 	}
 	var tx WaykiAssetUpdateTx
 
 	if param.ValidHeight < 0 {
-		return "","", common.ERR_NEGATIVE_VALID_HEIGHT
+		return nil, common.ERR_NEGATIVE_VALID_HEIGHT
 	}
 	tx.ValidHeight = param.ValidHeight
 	tx.UserId = parseRegId(param.SrcRegId)
 	if (tx.UserId == nil) {
-		return "","", common.ERR_INVALID_SRC_REG_ID
+		return nil, common.ERR_INVALID_SRC_REG_ID
 	}
 
 	tx.Fees = uint64(param.Fees)
@@ -1523,7 +1524,7 @@ func (param *AssetUpdateTxParam) CreateRawTx(privateKey string) (string, string,
 	tx.Version = TX_VERSION
 
 	if !checkAssetSymbol(param.AssetSymbol) {
-		return "","", common.ERR_SYMBOL_ERROR
+		return nil, common.ERR_SYMBOL_ERROR
 	}
 	tx.AssetSymbol = param.AssetSymbol
 	if (param.FeeSymbol == "") {
@@ -1536,23 +1537,23 @@ func (param *AssetUpdateTxParam) CreateRawTx(privateKey string) (string, string,
 	case 1:
 		tx.AssetOwner = parseUserId(param.AssetOwner)
 		if (tx.AssetOwner == nil) {
-			return "","", common.ERR_ASSET_UPDATE_OWNER_ERROR
+			return nil, common.ERR_ASSET_UPDATE_OWNER_ERROR
 		}
 		break
 	case 2:
 		if (param.AssetName == "") {
-			return "","", common.ERR_ASSET_NAME_ERROR
+			return nil, common.ERR_ASSET_NAME_ERROR
 		}
 		tx.AssetName = param.AssetName
 		break
 	case 3:
 		if (param.AssetTotal < 100000000) {
-			return "","", common.ERR_TOTAl_SUPPLY_ERROR
+			return nil, common.ERR_TOTAl_SUPPLY_ERROR
 		}
 		tx.AssetTotal = uint64(param.AssetTotal)
 		break
 	default:
-		return "","", common.ERR_ASSET_UPDATE_TYPE_ERROR
+		return nil, common.ERR_ASSET_UPDATE_TYPE_ERROR
 	}
 
 	return tx.createRawTx(wifKey)
@@ -1565,7 +1566,7 @@ type WaykiRegisterAccountTx struct {
 }
 
 //return rawtx + txid
-func (tx WaykiRegisterAccountTx) createRawTx(wifKey *btcutil.WIF) (string,string,error){
+func (tx WaykiRegisterAccountTx) createRawTx(wifKey *btcutil.WIF) (* SignResult,error){
 	buf := bytes.NewBuffer([]byte{})
 	writer := NewWriterHelper(buf)
 	writer.WriteByte(byte(tx.TxType))
@@ -1577,12 +1578,12 @@ func (tx WaykiRegisterAccountTx) createRawTx(wifKey *btcutil.WIF) (string,string
 	writer.WriteVarInt(int64(tx.Fees))
 	signatureBytes,txid,err := tx.CalSignatureTxid(wifKey)
 	if err != nil{
-		return "","",err
+		return nil,err
 	}
 	writer.WriteBytes(signatureBytes)
 
 	rawTx := hex.EncodeToString(buf.Bytes())
-	return rawTx, txid,nil
+	return &SignResult{rawTx,txid},nil
 }
 
 //return signature and txid
@@ -1600,21 +1601,21 @@ func (tx WaykiRegisterAccountTx) CalSignatureTxid(wifKey *btcutil.WIF) ([]byte,s
 }
 
 // returns the signature hex string and nil error, or returns empty string and the error if it has error
-func (param *RegisterAccountTxParam) CreateRawTx(privateKey string) (string,string, error) {
+func (param *RegisterAccountTxParam) CreateRawTx(privateKey string) (* SignResult, error) {
 	// check and convert params
 	wifKey, err := btcutil.DecodeWIF(privateKey)
 	if err != nil {
-		return "","", common.ERR_INVALID_PRIVATEKEY
+		return nil, common.ERR_INVALID_PRIVATEKEY
 	}
 
 	var tx WaykiRegisterAccountTx
 	if param.ValidHeight < 0 {
-		return "","", common.ERR_NEGATIVE_VALID_HEIGHT
+		return nil, common.ERR_NEGATIVE_VALID_HEIGHT
 	}
 	tx.ValidHeight = param.ValidHeight
 
 	if !checkMinTxFee(param.Fees) {
-		return "","", common.ERR_FEE_SMALLER_MIN
+		return nil, common.ERR_FEE_SMALLER_MIN
 	}
 	tx.Fees = uint64(param.Fees)
 
@@ -1634,7 +1635,7 @@ type WaykiCommonTx struct {
 }
 
 //return rawtx + txid
-func (tx WaykiCommonTx) createRawTx(wifKey *btcutil.WIF) (string,string,error){
+func (tx WaykiCommonTx) createRawTx(wifKey *btcutil.WIF) (* SignResult,error){
 	//uid := ParseRegId(tx.UserId)
 	buf := bytes.NewBuffer([]byte{})
 	writer := NewWriterHelper(buf)
@@ -1654,12 +1655,12 @@ func (tx WaykiCommonTx) createRawTx(wifKey *btcutil.WIF) (string,string,error){
 
 	signatureBytes,txid,err := tx.CalSignatureTxid(wifKey)
 	if err != nil{
-		return "","",err
+		return nil,err
 	}
 	writer.WriteBytes(signatureBytes)
 
 	rawTx := hex.EncodeToString(buf.Bytes())
-	return rawTx, txid,nil
+	return &SignResult{rawTx,txid},nil
 }
 
 //return signature and txid
@@ -1684,18 +1685,18 @@ func (tx WaykiCommonTx) CalSignatureTxid(wifKey *btcutil.WIF) ([]byte,string,err
 	return calSignatureTxid(buf.Bytes(),wifKey)
 }
 // returns the signature hex string and nil error, or returns empty string and the error if it has error
-func (param *CommonTxParam) CreateRawTx(privateKey string) (string,string, error) {
+func (param *CommonTxParam) CreateRawTx(privateKey string) (* SignResult, error) {
 
 	// check and convert params
 	wifKey, err := btcutil.DecodeWIF(privateKey)
 	if err != nil {
-		return "","", common.ERR_INVALID_PRIVATEKEY
+		return nil, common.ERR_INVALID_PRIVATEKEY
 	}
 
 	var tx WaykiCommonTx
 
 	if param.ValidHeight < 0 {
-		return "","", common.ERR_NEGATIVE_VALID_HEIGHT
+		return nil, common.ERR_NEGATIVE_VALID_HEIGHT
 	}
 	tx.ValidHeight = param.ValidHeight
 
@@ -1703,30 +1704,30 @@ func (param *CommonTxParam) CreateRawTx(privateKey string) (string,string, error
 
 	tx.DestId = parseUserId(param.DestAddr)
 	if tx.DestId == nil {
-		return "","", common.ERR_INVALID_DEST_ADDR
+		return nil, common.ERR_INVALID_DEST_ADDR
 	}
 
 	if !checkMoneyRange(param.Values) {
-		return "","", common.ERR_RANGE_VALUES
+		return nil, common.ERR_RANGE_VALUES
 	}
 	tx.Values = uint64(param.Values)
 
 	if !checkMoneyRange(param.Fees) {
-		return "","", common.ERR_RANGE_FEE
+		return nil, common.ERR_RANGE_FEE
 	}
 
 	if !checkMinTxFee(param.Fees) {
-		return "","", common.ERR_FEE_SMALLER_MIN
+		return nil, common.ERR_FEE_SMALLER_MIN
 	}
 	tx.Fees = uint64(param.Fees)
 
 	pubKey, err := hex.DecodeString(param.PubKey)
 	if (err != nil) {
-		return "","", common.ERR_USER_PUBLICKEY
+		return nil, common.ERR_USER_PUBLICKEY
 	}
 	tx.PubKey = pubKey
 	if (tx.UserId == nil && tx.PubKey == nil) {
-		return "","", common.ERR_INVALID_SRC_REG_ID
+		return nil, common.ERR_INVALID_SRC_REG_ID
 	}
 	tx.TxType = COMMON_TX
 	tx.Version = TX_VERSION
@@ -1744,7 +1745,7 @@ type WaykiCallContractTx struct {
 }
 
 //return rawtx + txid
-func (tx WaykiCallContractTx) createRawTx(wifKey *btcutil.WIF) (string,string,error){
+func (tx WaykiCallContractTx) createRawTx(wifKey *btcutil.WIF) (* SignResult,error){
 	buf := bytes.NewBuffer([]byte{})
 	writer := NewWriterHelper(buf)
 
@@ -1763,12 +1764,12 @@ func (tx WaykiCallContractTx) createRawTx(wifKey *btcutil.WIF) (string,string,er
 
 	signatureBytes,txid,err := tx.CalSignatureTxid(wifKey)
 	if err != nil{
-		return "","",err
+		return nil,err
 	}
 	writer.WriteBytes(signatureBytes)
 
 	rawTx := hex.EncodeToString(buf.Bytes())
-	return rawTx, txid,nil
+	return &SignResult{rawTx,txid},nil
 }
 
 //return signature and txid
@@ -1792,17 +1793,17 @@ func (tx WaykiCallContractTx) CalSignatureTxid(wifKey *btcutil.WIF) ([]byte,stri
 	return calSignatureTxid(buf.Bytes(),wifKey)
 }
 // returns the signature hex string and nil error, or returns empty string and the error if it has error
-func (param *CallContractTxParam) CreateRawTx(privateKey string) (string,string,error) {
+func (param *CallContractTxParam) CreateRawTx(privateKey string) (* SignResult,error) {
 	// check and convert params
 	wifKey, err := btcutil.DecodeWIF(privateKey)
 	if err != nil {
-		return "","", common.ERR_INVALID_PRIVATEKEY
+		return nil, common.ERR_INVALID_PRIVATEKEY
 	}
 
 	var tx  WaykiCallContractTx
 
 	if param.ValidHeight < 0 {
-		return "","", common.ERR_NEGATIVE_VALID_HEIGHT
+		return nil, common.ERR_NEGATIVE_VALID_HEIGHT
 	}
 	tx.ValidHeight = param.ValidHeight
 
@@ -1810,34 +1811,34 @@ func (param *CallContractTxParam) CreateRawTx(privateKey string) (string,string,
 
 	tx.AppId = parseRegId(param.AppId)
 	if tx.AppId == nil {
-		return "","", common.ERR_INVALID_APP_ID
+		return nil, common.ERR_INVALID_APP_ID
 	}
 
 	if !checkMoneyRange(param.Values) {
-		return "","", common.ERR_RANGE_VALUES
+		return nil, common.ERR_RANGE_VALUES
 	}
 	tx.Values = uint64(param.Values)
 
 	if !checkMoneyRange(param.Fees) {
-		return "","", common.ERR_RANGE_FEE
+		return nil, common.ERR_RANGE_FEE
 	}
 	if !checkMinTxFee(param.Fees) {
-		return "","", common.ERR_FEE_SMALLER_MIN
+		return nil, common.ERR_FEE_SMALLER_MIN
 	}
 	tx.Fees = uint64(param.Fees)
 
 	binary, errHex := hex.DecodeString(param.ContractHex)
 	if errHex != nil {
-		return "","", common.ERR_INVALID_CONTRACT_HEX
+		return nil, common.ERR_INVALID_CONTRACT_HEX
 	}
 	tx.Contract = []byte(binary)
 	pubKey, err := hex.DecodeString(param.PubKey)
 	if (err != nil) {
-		return "","", common.ERR_USER_PUBLICKEY
+		return nil, common.ERR_USER_PUBLICKEY
 	}
 	tx.PubKey = pubKey
 	if (tx.UserId == nil && tx.PubKey == nil) {
-		return "","", common.ERR_INVALID_SRC_REG_ID
+		return nil, common.ERR_INVALID_SRC_REG_ID
 	}
 	tx.TxType = CONTRACT_TX
 	tx.Version = TX_VERSION
@@ -1853,7 +1854,7 @@ type WaykiRegisterContractTx struct {
 }
 
 //return rawtx + txid
-func (tx WaykiRegisterContractTx) createRawTx(wifKey *btcutil.WIF) (string,string,error){
+func (tx WaykiRegisterContractTx) createRawTx(wifKey *btcutil.WIF) (* SignResult,error){
 
 	buf := bytes.NewBuffer([]byte{})
 	writer := NewWriterHelper(buf)
@@ -1866,12 +1867,12 @@ func (tx WaykiRegisterContractTx) createRawTx(wifKey *btcutil.WIF) (string,strin
 	writer.WriteVarInt(int64(tx.Fees))
 	signatureBytes,txid,err := tx.CalSignatureTxid(wifKey)
 	if err != nil{
-		return "","",err
+		return nil,err
 	}
 	writer.WriteBytes(signatureBytes)
 
 	rawTx := hex.EncodeToString(buf.Bytes())
-	return rawTx, txid,nil
+	return &SignResult{rawTx,txid},nil
 }
 
 //return signature and txid
@@ -1889,28 +1890,28 @@ func (tx WaykiRegisterContractTx) CalSignatureTxid(wifKey *btcutil.WIF) ([]byte,
 }
 
 // returns the signature hex string and nil error, or returns empty string and the error if it has error
-func (param *RegisterContractTxParam) CreateRawTx(privateKey string) (string,string, error) {
+func (param *RegisterContractTxParam) CreateRawTx(privateKey string) (* SignResult, error) {
 
 	// check and convert params
 	wifKey, err := btcutil.DecodeWIF(privateKey)
 	if err != nil {
-		return "","", common.ERR_INVALID_PRIVATEKEY
+		return nil, common.ERR_INVALID_PRIVATEKEY
 	}
 
 	var tx WaykiRegisterContractTx
 
 	if param.ValidHeight < 0 {
-		return "","", common.ERR_NEGATIVE_VALID_HEIGHT
+		return nil, common.ERR_NEGATIVE_VALID_HEIGHT
 	}
 	tx.ValidHeight = param.ValidHeight
 
 	tx.UserId = parseRegId(param.SrcRegId)
 
 	if !checkMoneyRange(param.Fees) {
-		return "","", common.ERR_RANGE_FEE
+		return nil, common.ERR_RANGE_FEE
 	}
 	if !checkMinTxFee(param.Fees) {
-		return "","", common.ERR_FEE_SMALLER_MIN
+		return nil, common.ERR_FEE_SMALLER_MIN
 	}
 	tx.Fees = uint64(param.Fees)
 
@@ -1918,16 +1919,16 @@ func (param *RegisterContractTxParam) CreateRawTx(privateKey string) (string,str
 	tx.Version = TX_VERSION
 
 	if len(param.Script) == 0 || len(param.Script) > CONTRACT_SCRIPT_MAX_SIZE {
-		return "","", common.ERR_INVALID_SCRIPT
+		return nil, common.ERR_INVALID_SCRIPT
 	}
 	tx.Script = param.Script
 
 	if len(param.Description) > CONTRACT_SCRIPT_DESC_MAX_SIZE {
-		return "","", common.ERR_INVALID_SCRIPT_DESC
+		return nil, common.ERR_INVALID_SCRIPT_DESC
 	}
 	tx.Description = param.Description
 	if (tx.UserId == nil && tx.PubKey == nil) {
-		return "","", common.ERR_INVALID_SRC_REG_ID
+		return nil, common.ERR_INVALID_SRC_REG_ID
 	}
 
 	return tx.createRawTx(wifKey)
@@ -1939,7 +1940,7 @@ type WaykiRewardTx struct {
 }
 
 //return rawtx + txid
-func (tx WaykiRewardTx) createRawTx(wifKey *btcutil.WIF) (string,string,error) {
+func (tx WaykiRewardTx) createRawTx(wifKey *btcutil.WIF) (* SignResult,error) {
 
 	buf := bytes.NewBuffer([]byte{})
 	writer := NewWriterHelper(buf)
@@ -1952,12 +1953,12 @@ func (tx WaykiRewardTx) createRawTx(wifKey *btcutil.WIF) (string,string,error) {
 
 	signatureBytes,txid,err := tx.CalSignatureTxid(wifKey)
 	if err != nil{
-		return "","",err
+		return nil,err
 	}
 	writer.WriteBytes(signatureBytes)
 
 	rawTx := hex.EncodeToString(buf.Bytes())
-	return rawTx, txid,nil
+	return &SignResult{rawTx,txid},nil
 }
 
 //return signature and txid

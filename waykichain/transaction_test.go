@@ -25,12 +25,12 @@ func TestCreateUCoinTransferRawTx(t *testing.T) {
 	txParam.Dests.Add(&dest)
 	txParam.PubKey = "031b27286c65b81ac13cfd4067b030398a19eb147f439c094fbb19a2f3ab9ec10b"
 	txParam.Memo = ""
-	rawTx,txid, err := txParam.CreateRawTx(privateKey)
+	result, err := txParam.CreateRawTx(privateKey)
 	if err != nil {
-		t.Error("UCoinTransferTx err: ", err)
+		t.Error("TestCreateUCoinTransferRawTx err: ", err)
 	}
-	t.Log("rawTx=",rawTx)
-	t.Log("txid=",txid)
+	t.Log("rawTx=",result.RawTx)
+	t.Log("txid=",result.Txid)
 }
 
 /*
@@ -50,12 +50,12 @@ func TestCreateUCoinCallContractRawTx(t *testing.T) {
 	txParam.AppId = "0-1"
 	txParam.PubKey = "036c5397f3227a1e209952829d249b7ad0f615e43b763ac15e3a6f52627a10df21"
 	txParam.ContractHex = "f017"
-	rawTx,txid, err := txParam.CreateRawTx(privateKey)
+	result, err := txParam.CreateRawTx(privateKey)
 	if err != nil {
-		t.Error("SignUCoinCallContractTx err: ", err)
+		t.Error("TestCreateUCoinCallContractRawTx err: ", err)
 	}
-	t.Log("rawTx=",rawTx)
-	t.Log("txid=",txid)
+	t.Log("rawTx=",result.RawTx)
+	t.Log("txid=",result.Txid)
 }
 
 
@@ -80,12 +80,12 @@ func TestCreateUCoinDeployContractTx(t *testing.T) {
 	txParam.Description = "My hello contract!!!"
 	txParam.FeeSymbol = common.WICCSYM
 
-	rawTx,txid, err := txParam.CreateRawTx(privateKey)
+	result, err := txParam.CreateRawTx(privateKey)
 	if err != nil {
-		t.Error("UCoinRegisterContractTx err: ", err)
+		t.Error("TestCreateUCoinDeployContractTx err: ", err)
 	}
-	t.Log("rawTx=",rawTx)
-	t.Log("txid=",txid)
+	t.Log("rawTx=",result.RawTx)
+	t.Log("txid=",result.Txid)
 }
 
 /*
@@ -107,12 +107,12 @@ func TestCreateAssetCreateRawTx(t *testing.T) {
 	txParam.AssetSymbol="SSSSSSS"
 	txParam.AssetName="SK Token"
 	txParam.MinTable=true
-	rawTx,txid, err := txParam.CreateRawTx(privateKey)
+	result, err := txParam.CreateRawTx(privateKey)
 	if err != nil {
-		t.Error("SignAssetIssueTx err: ", err)
+		t.Error("TestCreateAssetCreateRawTx err: ", err)
 	}
-	t.Log("rawTx=",rawTx)
-	t.Log("txid=",txid)
+	t.Log("rawTx=",result.RawTx)
+	t.Log("txid=",result.Txid)
 }
 
 /*
@@ -133,12 +133,12 @@ func TestCreateAssetUpdateRawTx(t *testing.T) {
 	txParam.AssetOwner="111-1" //only support regid
 	//txParam.AssetTotal=100*100000000
 	//txParam.AssetName="SK Token"
-	rawTx,txid, err := txParam.CreateRawTx(privateKey)
+	result, err := txParam.CreateRawTx(privateKey)
 	if err != nil {
-		t.Error("AssetUpdateTx err: ", err)
+		t.Error("TestCreateAssetUpdateRawTx err: ", err)
 	}
-	t.Log("rawTx=",rawTx)
-	t.Log("txid=",txid)
+	t.Log("rawTx=",result.RawTx)
+	t.Log("txid=",result.Txid)
 }
 
 
@@ -149,22 +149,22 @@ func TestCreateAssetUpdateRawTx(t *testing.T) {
 * */
 func TestCreateDelegateRawTx(t *testing.T) {
 	privateKey := "Y9sx4Y8sBAbWDAqAWytYuUnJige3ZPwKDZp1SCDqqRby1YMgRG9c"
-	var txParams DelegateTxParam
-	txParams.ValidHeight = 95728
-	txParams.SrcRegId = ""
-	txParams.Fees = 1000000
-	txParams.PubKey = "03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
-	txParams.Votes = NewOperVoteFunds()
+	var txParam DelegateTxParam
+	txParam.ValidHeight = 95728
+	txParam.SrcRegId = ""
+	txParam.Fees = 1000000
+	txParam.PubKey = "03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
+	txParam.Votes = NewOperVoteFunds()
 	pubKey, _ := hex.DecodeString("025a37cb6ec9f63bb17e562865e006f0bafa9afbd8a846bd87fc8ff9e35db1252e")
 	vote := OperVoteFund{PubKey: pubKey, VoteValue: 10000}
-	txParams.Votes.Add(&vote)
+	txParam.Votes.Add(&vote)
 
-	rawTx,txid, err := txParams.CreateRawTx(privateKey)
+	result, err := txParam.CreateRawTx(privateKey)
 	if err != nil {
-		t.Error("SignDelegateTx err: ", err)
+		t.Error("TestCreateDelegateRawTx err: ", err)
 	}
-	t.Log("rawTx=",rawTx)
-	t.Log("txid=",txid)
+	t.Log("rawTx=",result.RawTx)
+	t.Log("txid=",result.Txid)
 }
 
 
@@ -190,12 +190,12 @@ func TestCreateCdpStakeRawTx(t *testing.T) {
 	txParam.SrcRegId = "0-1"
 	txParam.PubKey = "03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
 
-	rawTx,txid, err := txParam.CreateRawTx(privateKey)
+	result, err := txParam.CreateRawTx(privateKey)
 	if err != nil {
-		t.Error("CdpStakeTx err: ", err)
+		t.Error("TestCreateCdpStakeRawTx err: ", err)
 	}
-	t.Log("rawTx=",rawTx)
-	t.Log("txid=",txid)
+	t.Log("rawTx=",result.RawTx)
+	t.Log("txid=",result.Txid)
 }
 
 /*
@@ -219,12 +219,12 @@ func TestCreateCdpRedeemRawTx(t *testing.T) {
 	txParam.SrcRegId = "0-1"
 	txParam.PubKey = "03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
 
-	rawTx,txid, err := txParam.CreateRawTx(privateKey)
+	result, err := txParam.CreateRawTx(privateKey)
 	if err != nil {
-		t.Error("CdpRedeemTx err: ", err)
+		t.Error("TestCreateCdpRedeemRawTx err: ", err)
 	}
-	t.Log("rawTx=",rawTx)
-	t.Log("txid=",txid)
+	t.Log("rawTx=",result.RawTx)
+	t.Log("txid=",result.Txid)
 }
 
 /*
@@ -244,12 +244,12 @@ func TestCreateCdpLiquidateRawTx(t *testing.T) {
 	txParam.PubKey = "03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
 	txParam.AssetSymbol=common.WICCSYM
 
-	rawTx, txid,err := txParam.CreateRawTx(privateKey)
+	result, err := txParam.CreateRawTx(privateKey)
 	if err != nil {
-		t.Error("CdpLiquidateTx err: ", err)
+		t.Error("TestCreateCdpLiquidateRawTx err: ", err)
 	}
-	t.Log("rawTx=",rawTx)
-	t.Log("txid=",txid)
+	t.Log("rawTx=",result.RawTx)
+	t.Log("txid=",result.Txid)
 }
 
 /*
@@ -270,12 +270,12 @@ func TestCreateDexLimitBuyRawTx(t *testing.T) {
 	txParam.SrcRegId = "0-1"
 	txParam.PubKey = "03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
 
-	rawTx, txid,err := txParam.CreateRawTx(privateKey)
+	result, err := txParam.CreateRawTx(privateKey)
 	if err != nil {
-		t.Error("DexBuyLimitTx err: ", err)
+		t.Error("TestCreateDexLimitBuyRawTx err: ", err)
 	}
-	t.Log("rawTx=",rawTx)
-	t.Log("txid=",txid)
+	t.Log("rawTx=",result.RawTx)
+	t.Log("txid=",result.Txid)
 }
 
 /*
@@ -296,12 +296,12 @@ func TestCreateDexLimitSellRawTx(t *testing.T) {
 	txParam.SrcRegId = "0-1"
 	txParam.PubKey = "03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
 
-	rawTx,txid, err := txParam.CreateRawTx(privateKey)
+	result, err := txParam.CreateRawTx(privateKey)
 	if err != nil {
-		t.Error("DexSellLimitTx err: ", err)
+		t.Error("TestCreateDexLimitSellRawTx err: ", err)
 	}
-	t.Log("rawTx=",rawTx)
-	t.Log("txid=",txid)
+	t.Log("rawTx=",result.RawTx)
+	t.Log("txid=",result.Txid)
 }
 
 /*
@@ -321,12 +321,12 @@ func TestCreateDexMarketSellRawTx(t *testing.T) {
 	txParam.SrcRegId = "0-1"
 	txParam.PubKey = "03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
 
-	rawTx,txid, err := txParam.CreateRawTx(privateKey)
+	result, err := txParam.CreateRawTx(privateKey)
 	if err != nil {
-		t.Error("DexMarketSellTx err: ", err)
+		t.Error("TestCreateDexMarketSellRawTx err: ", err)
 	}
-	t.Log("rawTx=",rawTx)
-	t.Log("txid=",txid)
+	t.Log("rawTx=",result.RawTx)
+	t.Log("txid=",result.Txid)
 }
 
 /*
@@ -346,12 +346,12 @@ func TestCreateDexMarketBuyRawTx(t *testing.T) {
 	txParam.SrcRegId = "0-1"
 	txParam.PubKey = "03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
 
-	rawTx,txid, err := txParam.CreateRawTx(privateKey)
+	result, err := txParam.CreateRawTx(privateKey)
 	if err != nil {
-		t.Error("DexMarketBuyTx err: ", err)
+		t.Error("TestCreateDexMarketBuyRawTx err: ", err)
 	}
-	t.Log("rawTx=",rawTx)
-	t.Log("txid=",txid)
+	t.Log("rawTx=",result.RawTx)
+	t.Log("txid=",result.Txid)
 }
 
 /*
@@ -369,12 +369,12 @@ func TestCreateDexCancelRawTx(t *testing.T) {
 	txParam.SrcRegId = "0-1"
 	txParam.PubKey = "03e93e7d870ce6f1c9997076c56fc24e6381c612662cd9a5a59294fac9ba7d21d7"
 
-	rawTx,txid, err := txParam.CreateRawTx(privateKey)
+	result, err := txParam.CreateRawTx(privateKey)
 	if err != nil {
-		t.Error("DexCancelTx err: ", err)
+		t.Error("TestCreateDexCancelRawTx err: ", err)
 	}
-	t.Log("rawTx=",rawTx)
-	t.Log("txid=",txid)
+	t.Log("rawTx=",result.RawTx)
+	t.Log("txid=",result.Txid)
 }
 
 // Support UCOIN_TRANSFER_TX and UCOIN_CONTRACT_INVOKE_TX only

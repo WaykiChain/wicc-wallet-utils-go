@@ -266,3 +266,7 @@ const (
 	ASSET_MINT_AMOUNT                 = 3
 )
 
+type SignResult struct{
+	RawTx string
+	Txid  string
+}
