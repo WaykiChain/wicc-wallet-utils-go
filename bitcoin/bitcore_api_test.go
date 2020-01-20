@@ -41,7 +41,7 @@ func TestListUnspentByBitcore(t *testing.T) {
 
 
 func TestEstimateFeeRateByExplorer(t *testing.T) {
-	feeRate, _ := tw.BitcoreClient.estimateFeeRateByBitcore()
+	feeRate, _ := tw.BitcoreClient.EstimateFeeRateByBitcore()
 	t.Logf("EstimateFee feeRate = %s\n", feeRate.String())
 	fees, _ := tw.EstimateFee(10, 2, feeRate)
 	t.Logf("EstimateFee fees = %v\n", fees)

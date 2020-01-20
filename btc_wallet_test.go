@@ -1,4 +1,4 @@
-package bitcoin
+package wicc_wallet_utils_go
 
 import (
 	"github.com/WaykiChain/wicc-wallet-utils-go/common"
@@ -6,7 +6,7 @@ import (
 )
 
 
-func TestGenerateAddressFromMnemonic(t *testing.T){
+func TestBTCGenerateAddressFromMnemonic(t *testing.T){
 
 	mnemonic:= "wreck bullet carpet nerve belt border often trust exchange believe defense rebel"
 
@@ -16,7 +16,7 @@ func TestGenerateAddressFromMnemonic(t *testing.T){
 	BTCAddressTestnetSegwit , err :=  BTCTestnetSegwitW.GenerateAddressFromMnemonic(mnemonic,common.English)
 
 	if err != nil{
-		t.Errorf("Failed to TestImportWalletFromMnemonic: %v", err)
+		t.Errorf("Failed to TestBTCGenerateAddressFromMnemonic: %v", err)
 	}
 
 	//1AG89FCfPQvtVa7DSCUJjEagH13uTs28Zs
@@ -29,7 +29,7 @@ func TestGenerateAddressFromMnemonic(t *testing.T){
 	t.Log("TestImportWalletFromMnemonic , BTCAddressTestnetSegwit=",BTCAddressTestnetSegwit)
 }
 
-func TestGenerateAddressFromPrivateKey(t *testing.T){
+func TestBTCGenerateAddressFromPrivateKey(t *testing.T){
 
 	BTCPrivateKey := "KyUg2abSHhZYP7bZFXKNDw6TnQoHLyJwDbbDvaNfsBsFxMbFCz4g"
 	BTCSegwitPrivateKey := "KwLJcTWXgB6a14VaxPoJsZPe2o9GPdp2PLcEnrZnmPeRrAtmckgb"
@@ -64,7 +64,7 @@ func TestGenerateAddressFromPrivateKey(t *testing.T){
 }
 
 //Test Export PrivateKey by Mnemonics
-func TestExportPrivateFromMnemonic(t *testing.T){
+func TestBTCExportPrivateFromMnemonic(t *testing.T){
 	mnemonic := "wreck bullet carpet nerve belt border often trust exchange believe defense rebel"
 
 	BTCPrivateKey ,err := BTCW.ExportPrivateKeyFromMnemonic(mnemonic,common.English)
@@ -157,7 +157,7 @@ func TestCheckBTCPrivateKey(t *testing.T) {
 	t.Log("TestCheckAddress: BTC_TestnetSegwitPrivateKey=", isValid)
 }
 
-func TestGetPubKeyFromPrivateKey(t *testing.T) {
+func TestBTCGetPubKeyFromPrivateKey(t *testing.T) {
 
 	BTCPrivateKey := "KyUg2abSHhZYP7bZFXKNDw6TnQoHLyJwDbbDvaNfsBsFxMbFCz4g"
 	publicKey, err := BTCW.GetPubKeyFromPrivateKey(BTCPrivateKey)

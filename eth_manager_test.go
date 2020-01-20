@@ -1,25 +1,26 @@
-package ethereum
+package wicc_wallet_utils_go
 
 import (
+	"github.com/WaykiChain/wicc-wallet-utils-go/ethereum"
 	"math/big"
 	"testing"
 )
 
 var (
-	tw 		*WalletManager
+	tw 		*ETHWalletManager
 )
 
 func init(){
 
-	tw = NewWalletManager()
-	tw.Config = NewConfig()
+	tw = NewETHWalletManager()
+	tw.Config = ethereum.NewConfig()
 	tw.Config.ServerAPI = "https://ropsten.infura.io/v3/5c93a142071540709b5d953478797194"
 	tw.Config.ChainID = 3
 	tw.Config.RpcPassword = ""
 	tw.Config.RpcPassword = ""
-	tw.Config.WalletConfig = ETHWalletConf
+	tw.Config.WalletConfig = ETH
 	tw.Config.KeystoreDir = keystoreDir
-	tw.Wallet = NewETHWallet(NewWalletConfig(tw.Config.WalletConfig),tw.Config.KeystoreDir)
+	tw.Wallet = NewETHWallet(tw.Config.WalletConfig)
 	//token := BasicAuth(tw.Config.RpcUser, tw.Config.RpcPassword)
 	tw.WalletClient = NewClient(tw.Config.ServerAPI, "", true)
 

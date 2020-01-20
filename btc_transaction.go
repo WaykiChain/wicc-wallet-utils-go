@@ -1,4 +1,4 @@
-package bitcoin
+package wicc_wallet_utils_go
 
 import (
 	"encoding/hex"
@@ -8,7 +8,6 @@ import (
 	"github.com/WaykiChain/wicc-wallet-utils-go/common/hash"
 	"github.com/WaykiChain/wicc-wallet-utils-go/log"
 	"github.com/blocktree/go-owcdrivers/btcTransaction"
-	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcd/txscript"
 	"github.com/btcsuite/btcutil"
 	"github.com/btcsuite/btcutil/base58"
@@ -20,19 +19,17 @@ type TxOut struct{
 	Amount  uint64
 }
 
-type TxIn2 struct{
-	WIFPrivateKey string  //WIF格式私钥
-	Address       string  //输入的地址
-	Segwit 		  bool    //私钥是否对应隔离见证地址
-	Net 		  *chaincfg.Params  //主网、测试网
-}
-
-type VOut struct{
+type VOutPut struct{
 	Vout *btcTransaction.Vout
 }
 
+type Sricpt struct{
+	lockScript string
+	redeemScript string
+}
+
 //return Lockscript 、Redeemscript
-func GetSricpt( txin FinalTxIn) (string, string, error){
+func GetSricpt(txin FinalTxIn) (Sricpt, error){
 
 	address :=  txin.AddrInfo.Address
 	pubKeyHash,_,_ :=  base58.CheckDecode(address)
@@ -60,14 +57,14 @@ func GetSricpt( txin FinalTxIn) (string, string, error){
 		}
 		redeemScript := hex.EncodeToString(redeemScriptBytes)
 
-		return lockScript ,redeemScript,nil
+		return Sricpt{lockScript ,redeemScript},nil
 
 	} else if txin.AddrInfo.BTCWallet.wallet.IsSegwit == false{//如果地址是普通地址,只需要获取Lockscript
 		lockScriptBytes,_ := PayToPubKeyHashScript(pubKeyHash)
 		lockScript := hex.EncodeToString(lockScriptBytes)
-		return lockScript ,"",nil
+		return Sricpt{lockScript ,""},nil
 	}else{
-		return "","",errors.New("txin error!")
+		return Sricpt{"" ,""},errors.New("txin error!")
 	}
 }
 
@@ -157,7 +154,7 @@ func newFromInfoMap(from FromInfo) (map[string]*FromInfo,error){
 }
 
 //
-func (wm *WalletManager) CreatetRawTxRelyChain(ins []FromInfo, outs []VOut) (string,error){
+func (wm *BTCWalletManager) CreatetRawTxRelyChain(ins []FromInfo, outs []VOutPut) (string,error){
 
 	var(
 		addressInfo  = make(map[string]*FromInfo) //地址 - 私钥/是否隔离见证/链网络类型/地址 的映射
@@ -167,7 +164,7 @@ func (wm *WalletManager) CreatetRawTxRelyChain(ins []FromInfo, outs []VOut) (str
 		balance      = uint64(0)//usedUTXO的总金额
 		actualOut    = uint64(0) //toAmount + fees(转账金额 + 手续费)
 		finalTxIns   = make([]FinalTxIn, 0) //最终用于签名的输入
-		finalTxOuts  = make([]VOut, 0) //最终用于签名的输出
+		finalTxOuts  = make([]VOutPut, 0) //最终用于签名的输出
 	)
 	//判断输入地址是否存在
 	if len(ins) <= 0 {
@@ -274,11 +271,11 @@ func (wm *WalletManager) CreatetRawTxRelyChain(ins []FromInfo, outs []VOut) (str
 
 	//如果找零金额 > 0,把找零地址装进最终签名的输出
 	if changeAmount > 0 {
-		finalTxOuts = append(finalTxOuts, VOut{&btcTransaction.Vout{changeAddress,changeAmount}})
+		finalTxOuts = append(finalTxOuts, VOutPut{&btcTransaction.Vout{changeAddress,changeAmount}})
 	}
 
 	//签名
-	rawTxHex, err := wm.CreateTransferRawTx(finalTxIns,finalTxOuts)
+	rawTxHex, err := CreateTransferRawTx(finalTxIns,finalTxOuts)
 	if err != nil{
 		return "", err
 	}
@@ -287,7 +284,7 @@ func (wm *WalletManager) CreatetRawTxRelyChain(ins []FromInfo, outs []VOut) (str
 }
 
 //创建交易广播之前的rawtx
-func (wm *WalletManager) CreateTransferRawTx( txins []FinalTxIn,  txouts []VOut) (string, error) {
+func CreateTransferRawTx( txins []FinalTxIn,  txouts []VOutPut) (string, error) {
 
 	var (
 		vins = make([]btcTransaction.Vin,0)
@@ -301,8 +298,8 @@ func (wm *WalletManager) CreateTransferRawTx( txins []FinalTxIn,  txouts []VOut)
 		vin := btcTransaction.Vin{txin.PrevTxid,uint32(txin.Vout)}
 		vins = append(vins,vin)
 
-		lockscript,redeemscript,_ := GetSricpt(txin)
-		txunlock := btcTransaction.TxUnlock{lockscript,redeemscript,uint64(txin.Amount),btcTransaction.SigHashAll}
+		script,_ := GetSricpt(txin)
+		txunlock := btcTransaction.TxUnlock{script.lockScript,script.redeemScript,uint64(txin.Amount),btcTransaction.SigHashAll}
 		txUnlocks = append(txUnlocks,txunlock)
 	}
 

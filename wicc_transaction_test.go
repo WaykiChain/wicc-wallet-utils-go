@@ -1,9 +1,10 @@
-package waykichain
+package wicc_wallet_utils_go
 
 import (
 	"encoding/hex"
 	"encoding/json"
 	"github.com/WaykiChain/wicc-wallet-utils-go/common"
+	"github.com/WaykiChain/wicc-wallet-utils-go/waykichain"
 	"io/ioutil"
 	"testing"
 )
@@ -384,7 +385,7 @@ func TestDecodeRawTx(t *testing.T){
 	rawTx := "0b01c7a10803de4901045749434382dbea93000114079b9296a00a2b655787fa90e66ec3cde4bf1c8c045749434382dbea930006e8bdace8b4a647304502210091922890a5ccc26fa2c6c404378d3684a414f952018f0dfa414ee463f81e6cfa022057babb41679557218c6bdf6fa24f495423289639aac71643566d1e8bb6c0f5f8"
 	netParams := common.WICCTestnetParams //testnet
 //	netParams := common.WICCParams  //mainnet
-	result ,err := DecodeRawTx(rawTx,netParams)
+	result ,err := waykichain.DecodeRawTx(rawTx,netParams)
 	if err != nil {
 		t.Error("Umarshal failed:", err)
 	}

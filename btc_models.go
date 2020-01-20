@@ -13,7 +13,7 @@
  * GNU Lesser General Public License for more details.
  */
 
-package bitcoin
+package wicc_wallet_utils_go
 
 import (
 	"encoding/hex"
@@ -166,7 +166,7 @@ type Block struct {
 	isVerbose         bool
 }
 
-func (wm *WalletManager) NewBlock(json *gjson.Result) *Block {
+/*func (wm *BTCWalletManager) NewBlock(json *gjson.Result) *Block {
 	obj := &Block{}
 	//解析json
 	obj.Height = gjson.Get(json.Raw, "height").Uint()
@@ -199,7 +199,7 @@ func (wm *WalletManager) NewBlock(json *gjson.Result) *Block {
 
 	return obj
 }
-
+*/
 //BlockHeader 区块链头
 func (b *Block) BlockHeader(symbol string) *openwallet.BlockHeader {
 
@@ -252,7 +252,7 @@ type Vout struct {
 	Type         string
 }
 
-func (wm *WalletManager) newTxByCore(json *gjson.Result) *Transaction {
+func (wm *BTCWalletManager) newTxByCore(json *gjson.Result) *Transaction {
 
 	/*
 		{

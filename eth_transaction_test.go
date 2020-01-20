@@ -1,4 +1,4 @@
-package ethereum
+package wicc_wallet_utils_go
 
 import (
 	"fmt"

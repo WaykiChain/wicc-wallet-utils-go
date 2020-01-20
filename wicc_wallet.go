@@ -1,8 +1,7 @@
-package waykichain
+package wicc_wallet_utils_go
 
 import (
 	"encoding/hex"
-	"fmt"
 	"github.com/WaykiChain/wicc-wallet-utils-go/common"
 	"github.com/WaykiChain/wicc-wallet-utils-go/common/hash"
 	"github.com/btcsuite/btcd/btcec"
@@ -10,20 +9,34 @@ import (
 )
 
 var(
+	WICCMainnet 		= "WICCMainnet"
+	WICCTestnet 		= "WICCTestnet"
 	WICCW 			  *WICCWallet
 	WICCTestnetW       *WICCWallet
 )
-func init(){
-	WICCW = NewWICCWallet(NewWalletConfig(WICCMainnetConf))
-	WICCTestnetW = NewWICCWallet(NewWalletConfig(WICCTestnetConf))
-}
 
 type WICCWallet struct{
 	wallet *common.Wallet
 	mnemonicLen int
 }
-func NewWICCWallet(wc *WICCWalletConfig) *WICCWallet{
-	return &WICCWallet{wallet:common.NewWallet(wc.coinType,false,false,wc.netParam),mnemonicLen:12}
+
+func init(){
+	WICCW = NewWICCWallet(WICCMainnet)
+	WICCTestnetW = NewWICCWallet(WICCTestnet)
+}
+
+func NewWICCWallet(wc string) *WICCWallet{
+
+	newWallet := WICCWallet{}
+	switch wc {
+	case WICCMainnet:
+		newWallet =  WICCWallet{wallet:common.NewWallet(common.WICC,false,false,&common.WICCParams),mnemonicLen:12}
+	case WICCTestnet:
+		newWallet =  WICCWallet{wallet:common.NewWallet(common.WICC_TESTNET,false,false,&common.WICCTestnetParams),mnemonicLen:12}
+	default:
+		newWallet =  WICCWallet{wallet:common.NewWallet(common.WICC,false,false,&common.WICCParams),mnemonicLen:12}
+	}
+	return  &newWallet
 }
 
 func (WICCw *WICCWallet) GenerateAddressFromMnemonic(mnemonic,language string) (string, error) {
@@ -64,12 +77,9 @@ func (WICCw *WICCWallet) GetPubKeyFromPrivateKey(privateKey string) (string, err
 
 
 //Sign message by private Key
-func (input SignMsgInput) SignMessage() (SignMsgResult, error) {
+func  SignMessage(input SignMsgInput) (SignMsgResult, error) {
 	//Use sha256_sha160 instead of sha256_twice
 	hash := hash.Hash256(hash.Hash160([]byte(input.Data)))
-
-	hashStr := hex.EncodeToString(hash)
-	fmt.Println("hashStr=",hashStr)
 
 	wifKey, errorDecode := btcutil.DecodeWIF(input.PrivateKey)
 	if (errorDecode != nil) {
@@ -85,51 +95,45 @@ func (input SignMsgInput) SignMessage() (SignMsgResult, error) {
 	return signResult, nil
 }
 
-func (input VerifySignInput) VerifyMsgSignature() (isRight bool,addr string){
+func VerifyMsgSignature(input VerifySignInput) (VerifyMsgSignResult,error){
 
 	if  (len(input.PublicKey) != 66) || (len(input.Signature) % 2 != 0) {
-		fmt.Println("The length of publicKey or signature error")
-		return false,""
+		return VerifyMsgSignResult{}, common.ERR_PUBLICKEY_SIGNATURE_ERROR
 	}
 
 	publicKeyBytes, err := hex.DecodeString(input.PublicKey)
 	if err != nil {
-		fmt.Println("publicKey err:", err)
-		return false,""
+		return VerifyMsgSignResult{},err
 	}
 
 	//check publicKey
 	pubKey, err := btcec.ParsePubKey(publicKeyBytes, btcec.S256())
 	if (err != nil) {
-		fmt.Println("PublicKey invaild")
-		return false,""
+		return VerifyMsgSignResult{},err
 	}
 
 	//get address from public
 	address, err := btcutil.NewAddressPubKey(publicKeyBytes,&input.NetParams)
 	if (err != nil) {
-		fmt.Println("Failed to generate address")
-		return false,""
+		return VerifyMsgSignResult{},err
 	}
 
 	//get signature hash
 	sigBytes, err := hex.DecodeString(input.Signature)
 	if err != nil {
-		fmt.Println("signature err:", err)
-		return false,""
+		return VerifyMsgSignResult{},err
 	}
 	sig, err := btcec.ParseDERSignature(sigBytes, btcec.S256())
 	if err != nil {
-		fmt.Println("sigBytes err:", err)
-		return false,""
+		return VerifyMsgSignResult{},err
 	}
 
 	//Verify
 	//Use sha256_sha160 instead of sha256_twice
 	isValid := sig.Verify(hash.Hash256(btcutil.Hash160([]byte(input.Data))), pubKey)
 	if (isValid){
-		return true,address.EncodeAddress()
+		return VerifyMsgSignResult{true,address.EncodeAddress()},nil
 	}else{
-		return false,""
+		return VerifyMsgSignResult{false,""},nil
 	}
 }

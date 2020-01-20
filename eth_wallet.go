@@ -1,4 +1,4 @@
-package ethereum
+package wicc_wallet_utils_go
 
 import (
 	"encoding/hex"
@@ -9,6 +9,24 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 )
+
+var(
+	ETH 		 ="ETH"
+	ETHLedger 	 ="ETHLedger"
+
+	ETHW 			  *ETHWallet
+	ETHLedgerW  	  *ETHWallet
+)
+
+//init ETH multi type address
+const (
+	keystoreDir = "/Users/wujinquan/workspace/eth/"
+)
+
+func init(){
+	ETHW = NewETHWallet(ETH)
+	ETHLedgerW = NewETHWallet(ETHLedger)
+}
 
 // KeyStore manages a key storage directory on disk.
 type KeyStore struct{ k *keystore.KeyStore }
@@ -23,24 +41,31 @@ type ETHWallet struct{
 	keystore *KeyStore
 	mnemonicLen int
 }
-func NewETHWallet(wc *ETHWalletConfig,keystoreDir string ) *ETHWallet{
-	return &ETHWallet{
-		wallet : wicc_common.NewWallet(wc.coinType,false,wc.isLedger,nil),
-		keystore : NewKeyStore(keystoreDir, keystore.StandardScryptN, keystore.StandardScryptP),
-		mnemonicLen : 12,
+
+func NewETHWallet(wc string) *ETHWallet{
+
+	newWallet := ETHWallet{}
+	switch wc {
+	case ETH:
+		newWallet =  ETHWallet{
+			wallet : wicc_common.NewWallet(wicc_common.ETH,false, false,nil),
+			keystore : NewKeyStore(keystoreDir, keystore.StandardScryptN, keystore.StandardScryptP),
+			mnemonicLen : 12,
+		}
+	case ETHLedger:
+		newWallet =  ETHWallet{
+			wallet : wicc_common.NewWallet(wicc_common.ETH,false, false,nil),
+			keystore : NewKeyStore(keystoreDir, keystore.StandardScryptN, keystore.StandardScryptP),
+			mnemonicLen : 12,
+		}
+	default:
+		newWallet =  ETHWallet{
+			wallet : wicc_common.NewWallet(wicc_common.ETH,false, false,nil),
+			keystore : NewKeyStore(keystoreDir, keystore.StandardScryptN, keystore.StandardScryptP),
+			mnemonicLen : 12,
+		}
 	}
-}
-//init ETH multi type address
-const (
-	keystoreDir = "/Users/wujinquan/workspace/eth/"
-)
-var(
-	ETHW 			  *ETHWallet
-	ETHLedgerW  	  *ETHWallet
-)
-func init(){
-	ETHW = NewETHWallet(NewWalletConfig(ETHWalletConf), keystoreDir)
-	ETHLedgerW = NewETHWallet(NewWalletConfig(ETHWalletLedgerConf), keystoreDir)
+	return  &newWallet
 }
 
 func (ETHw *ETHWallet) GenerateAddressFromMnemonic(mnemonic,language string) (string, error) {
@@ -121,30 +146,30 @@ func (ETHw *ETHWallet) GetPubKeyFromPrivateKey(privateKey string) (string, error
 /**********************Keystore********************/
 
 //Import Wallet By Keystore  //wjq 增加去重判断:keystore.Find()
-func (ETHw *ETHWallet) ImportKeystore(password string, keyjson string) (error ,string){
+func (ETHw *ETHWallet) ImportKeystore(password string, keyjson string) (string, error){
 
 	// Import back the account we've exported (and then deleted) above with yet
 	// again a fresh passphrase
 	newAccount, err := ETHw.keystore.k.Import(common.CopyBytes([]byte(keyjson)), password, password)
 	if err != nil {
-		return err, ""
+		return  "",err
 	}
-	return nil , newAccount.Address.Hex()
+	return newAccount.Address.Hex(),nil
 }
 
 //Import PrivateKey, Save as keystore
-func (ETHw *ETHWallet) GenerateAddressFromPrivateKeySaveAsKeystore(password, privateKey string ) (error ,string){
+func (ETHw *ETHWallet) GenerateAddressFromPrivateKeySaveAsKeystore(password, privateKey string ) (string,error){
 
 	privKey, err := crypto.HexToECDSA(privateKey)
 	if err != nil {
-		return err, ""
+		return  "",err
 	}
 
 	newAccount,err := ETHw.keystore.k.ImportECDSA(privKey,password)
 	if err != nil {
-		return err, ""
+		return "",err
 	}
-	return nil , newAccount.Address.Hex()
+	return newAccount.Address.Hex(), nil
 }
 
 //Export keystore by Mnemonic
@@ -156,7 +181,7 @@ func (ETHw *ETHWallet) ExportKeystoreFromMnemonic(mnemonic ,language, password s
 	}
 
 	//import privatekey save as keystore
-	err ,address := ETHw.GenerateAddressFromPrivateKeySaveAsKeystore(password,privateKey)
+	address,err := ETHw.GenerateAddressFromPrivateKeySaveAsKeystore(password,privateKey)
 	if err != nil {
 		return "", err
 	}

@@ -1,31 +1,32 @@
-package waykichain
+package wicc_wallet_utils_go
 
 import (
 	"github.com/WaykiChain/wicc-wallet-utils-go/common"
+	"github.com/WaykiChain/wicc-wallet-utils-go/waykichain"
 	"testing"
 )
 
 var (
-	tw 	*WalletManager
+	WWM *WICCWalletManager
 )
 
 func init(){
 
-	tw = NewWalletManager()
-	tw.Config = NewConfig()
-	tw.Config.NodeServerAPI = "http://10.0.0.20:6968" //testnet
+	WWM = NewWICCWalletManager()
+	WWM.Config = waykichain.NewConfig()
+	WWM.Config.NodeServerAPI = "http://10.0.0.20:6968" //testnet
 //	tw.Config.NodeServerAPI = "http://10.0.0.21:6968" //mainnet
-	tw.Config.BaaSServerAPI = "https://baas-test.wiccdev.org/v2/" //testnet
+	WWM.Config.BaaSServerAPI = "https://baas-test.wiccdev.org/v2/" //testnet
 //	tw.Config.BaaSServerAPI = "https://baas.wiccdev.org/v2/" //mainnet
-	tw.Config.RpcUser = "wayki"
-	tw.Config.RpcPassword = "admin@123"
-	tw.Config.WalletConfig = WICCTestnetConf
-	tw.Config.Debug = true
-	tw.Config.ServerType = BaaS
-	tw.Wallet = NewWICCWallet(NewWalletConfig(tw.Config.WalletConfig))
-	token := BasicAuth(tw.Config.RpcUser, tw.Config.RpcPassword)
-	tw.WalletClient = NewClient(tw.Config.NodeServerAPI, token, tw.Config.Debug)
-	tw.BaaSClient = NewBaaSClient(tw.Config.BaaSServerAPI, tw.Config.Debug)
+	WWM.Config.RpcUser = "wayki"
+	WWM.Config.RpcPassword = "admin@123"
+	WWM.Config.WalletConfig = waykichain.WICCTestnetConfig
+	WWM.Config.Debug = true
+	WWM.Config.ServerType = waykichain.BaaS
+	WWM.Wallet = NewWICCWallet(WWM.Config.WalletConfig)
+	token := waykichain.BasicAuth(WWM.Config.RpcUser, WWM.Config.RpcPassword)
+	WWM.WalletClient = waykichain.NewClient(WWM.Config.NodeServerAPI, token, WWM.Config.Debug)
+	WWM.BaaSClient = waykichain.NewBaaSClient(WWM.Config.BaaSServerAPI, WWM.Config.Debug)
 }
 
 /*
@@ -46,7 +47,7 @@ func TestSendUCoinTransferTx(t *testing.T){
 	var txParam UCoinTransferTxParam
 	txParam.FeeSymbol = string(common.WICC)
 	txParam.Fees = 1000000
-	txParam.ValidHeight,_ = tw.GetSynBlockHeight()
+	txParam.ValidHeight,_ = WWM.GetSynBlockHeight()
 	txParam.SrcRegId = ""
 	txParam.Dests=NewDestArr()
 	dest:=Dest{string(common.WICC),1000000, "wLYLCxsBDjbRiPVEzvbX2bgFftqnWuQxB7"}
@@ -61,7 +62,7 @@ func TestSendUCoinTransferTx(t *testing.T){
 	t.Log("txid=",result.Txid)
 
 	//广播交易
-	submitxid,err := tw.SubmitTxRaw(result.RawTx)
+	submitxid,err := WWM.SubmitTxRaw(result.RawTx)
 	if err != nil {
 		t.Error("SubmitTxRaw err: ", err)
 	}

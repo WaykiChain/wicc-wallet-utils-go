@@ -1,4 +1,4 @@
-package bitcoin
+package wicc_wallet_utils_go
 
 import (
 	"encoding/hex"
@@ -7,16 +7,21 @@ import (
 )
 
 var(
+	BTCMainnet 		 ="BTCMainnet"
+	BTCSegwitMainnet ="BTCSegwitMainnet"
+	BTCTestnet       ="BTCTestnet"
+	BTCSegwitTestnet ="BTCSegwitTestnet"
+
 	BTCW 			  *BTCWallet
 	BTCSegwitW  	  *BTCWallet
 	BTCTestnetW       *BTCWallet
 	BTCTestnetSegwitW *BTCWallet
 )
 func init(){
-	BTCW = NewBTCWallet(NewWalletConfig(BTCMainnetConf))
-	BTCSegwitW = NewBTCWallet(NewWalletConfig(BTCMainnetSegwitConf))
-	BTCTestnetW = NewBTCWallet(NewWalletConfig(BTCTestnetConf))
-	BTCTestnetSegwitW = NewBTCWallet(NewWalletConfig(BTCTestnetSegwitConf))
+	BTCW = NewBTCWallet(BTCMainnet)
+	BTCSegwitW = NewBTCWallet(BTCSegwitMainnet)
+	BTCTestnetW = NewBTCWallet(BTCTestnet)
+	BTCTestnetSegwitW = NewBTCWallet(BTCSegwitTestnet)
 }
 
 type BTCWallet struct{
@@ -24,8 +29,21 @@ type BTCWallet struct{
 	mnemonicLen int
 }
 
-func NewBTCWallet(wc *BTCWalletConfig) *BTCWallet{
-	return &BTCWallet{wallet:common.NewWallet(wc.coinType,wc.isSegwit,false,wc.netParam),mnemonicLen:12}
+func NewBTCWallet(wc string) *BTCWallet{
+	newWallet := BTCWallet{}
+	switch wc {
+	case BTCMainnet:
+		newWallet =  BTCWallet{wallet:common.NewWallet(common.BTC,false,false,&common.BTCParams),mnemonicLen:12}
+	case BTCSegwitMainnet:
+		newWallet =  BTCWallet{wallet:common.NewWallet(common.BTC,true,false,&common.BTCParams),mnemonicLen:12}
+	case BTCTestnet:
+		newWallet =  BTCWallet{wallet:common.NewWallet(common.BTC_TESTNET,false,false,&common.BTCTestnetParams),mnemonicLen:12}
+	case BTCSegwitTestnet:
+		newWallet =  BTCWallet{wallet:common.NewWallet(common.BTC_TESTNET,true,false,&common.BTCTestnetParams),mnemonicLen:12}
+	default:
+		newWallet =  BTCWallet{wallet:common.NewWallet(common.BTC,false,false,&common.BTCParams),mnemonicLen:12}
+	}
+	return  &newWallet
 }
 
 func (BTCw *BTCWallet) GenerateAddressFromMnemonic(mnemonic,language string) (string, error) {

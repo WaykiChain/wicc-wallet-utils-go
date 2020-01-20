@@ -13,7 +13,7 @@
  * GNU Lesser General Public License for more details.
  */
 
-package ethereum
+package wicc_wallet_utils_go
 
 import (
 	"encoding/json"

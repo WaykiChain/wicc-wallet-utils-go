@@ -1,34 +1,12 @@
 package waykichain
 
-import (
-	"github.com/WaykiChain/wicc-wallet-utils-go/common"
-	"github.com/btcsuite/btcd/chaincfg"
-)
-
 var(
-	WICCMainnetConf 		 = "WICCMainnetConf"
-	WICCTestnetConf 		 = "WICCTestnetConf"
+	WICCMainnetConfig 		= "WICCMainnet"
+	WICCTestnetConfig		= "WICCTestnet"
 
 	Node    = 0 //节点RPC服务
 	BaaS    = 1 //BaaS服务
 )
-
-type WICCWalletConfig struct {
-	coinType uint32
-	netParam *chaincfg.Params
-}
-func NewWalletConfig(wc string) *WICCWalletConfig{
-	newConf := WICCWalletConfig{}
-	switch wc {
-	case WICCMainnetConf:
-		newConf = WICCWalletConfig{common.WICC, &common.WICCParams}
-	case WICCTestnetConf:
-		newConf = WICCWalletConfig{common.WICC_TESTNET,&common.WICCTestnetParams}
-	default:
-		newConf = WICCWalletConfig{common.WICC, &common.WICCParams}
-	}
-	return &newConf
-}
 
 
 type Config struct {

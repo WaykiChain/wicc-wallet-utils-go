@@ -1,7 +1,78 @@
-package waykichain
+package wicc_wallet_utils_go
 
-import "github.com/btcsuite/btcd/chaincfg"
+import (
+	"github.com/WaykiChain/wicc-wallet-utils-go/waykichain"
+	"github.com/btcsuite/btcd/chaincfg"
+	"github.com/btcsuite/btcutil/base58"
+	"regexp"
+)
+const (
+	// const for transactions
+	TX_VERSION                    = 1                             // transaction version
+	INITIAL_COIN                  = 210000000                     // initial coin, unit: wicc
+	MONEY_PER_COIN                = 100000000                     // money per coin, unit: sawi
+	MAX_MONEY                     = INITIAL_COIN * MONEY_PER_COIN // the max money in WaykiChain
+	MIN_TX_FEE                    = 10000                         // tx fee min value, unit: sawi
+	CONTRACT_SCRIPT_MAX_SIZE      = 65536                         //64 KB max for contract script size, unit: bytes
+	CONTRACT_SCRIPT_DESC_MAX_SIZE = 512                           //max for contract script description size, unit: bytes
+	MIN_TX_FEE_CDP                = 100000                        // cdp tx fee min value, unit: sawi
+)
 
+
+func abs(x int64) int64 {
+	if x < 0 {
+		return -x
+	}
+	return x
+}
+
+func checkMoneyRange(value int64) bool {
+	return value >= 0 && value <= MAX_MONEY
+}
+
+
+func checkCdpMinTxFee(fees int64) bool {
+
+	return fees >= MIN_TX_FEE_CDP
+}
+
+func checkMinTxFee(fees int64) bool {
+	return fees >= MIN_TX_FEE
+}
+
+func checkAssetSymbol(symbol string) bool {
+	var symbolMatch="^[A-Z]{6,7}$"
+	var match=regexp.MustCompile(symbolMatch)
+	var ma=match.MatchString(symbol)
+	return ma
+}
+
+func parseRegId(idStr string) *waykichain.UserIdWraper {
+	if waykichain.IsRegIdStr(idStr) {
+		return waykichain.NewRegUid(*waykichain.ParseRegId(idStr))
+	}
+	return nil
+}
+
+func parseAddressId(idStr string) *waykichain.UserIdWraper {
+	addrBytes, _, err := base58.CheckDecode(idStr)
+	if err != nil {
+		return nil
+	}
+	return waykichain.NewAdressUid(waykichain.AddressId(addrBytes))
+}
+
+func parseUserId(idStr string) *waykichain.UserIdWraper {
+	userId := parseRegId(idStr)
+	if userId == nil {
+		userId = parseAddressId(idStr)
+	}
+	return userId
+}
+
+func checkPubKey(pubKey []byte) bool {
+	return len(pubKey) == 33
+}
 /***************************************UCOIN_TRANSFER_TX*************************/
 //UCoin Transfer param of the tx
 type UCoinTransferTxParam struct {
@@ -41,6 +112,38 @@ type UCoinRegisterContractTxParam struct {
 
 
 //DelegateTxParam param of the delegate tx
+// OperVoteFund operation of vote fund
+type OperVoteFund struct {
+	PubKey    []byte //< public key, binary format
+	VoteValue int64  //< add fund if >= 0, minus fund if < 0
+}
+
+// OperVoteFunds array of OperVoteFund
+type OperVoteFunds struct {
+	VoteArray []*OperVoteFund
+}
+
+//NewOperVoteFunds create new OperVoteFunds
+func NewOperVoteFunds() *OperVoteFunds {
+	return &OperVoteFunds{}
+}
+
+//Len get the length of OperVoteFunds
+func (votes *OperVoteFunds) Len(index int) int {
+	return len(votes.VoteArray)
+}
+
+//Get element of OperVoteFund by index
+func (votes *OperVoteFunds) Get(index int) *OperVoteFund {
+	return votes.VoteArray[index]
+}
+
+//Add element to OperVoteFund
+//pubKey is binary bytes
+//voteValue add fund if >= 0, minus fund if < 0
+func (votes *OperVoteFunds) Add(fund *OperVoteFund) {
+	votes.VoteArray = append(votes.VoteArray, fund)
+}
 type DelegateTxParam struct {
 	ValidHeight int64          // valid height Within the height of the latest block
 	SrcRegId    string         // the reg id of the voter
@@ -68,25 +171,6 @@ type RegisterContractTxParam struct {
 	Script      []byte // the contract script, binary format
 	Description string // description of contract
 }
-
-
-type SignMsgResult struct {
-	PublicKey string
-	Signature string
-}
-
-type SignMsgInput struct {
-	PrivateKey string
-	Data string
-}
-type VerifySignInput struct {
-	Signature string
-	PublicKey string
-	Data string
-	NetParams chaincfg.Params
-}
-
-
 
 // cdp stake Asset
 type AssetModel struct {
@@ -266,7 +350,27 @@ const (
 	ASSET_MINT_AMOUNT                 = 3
 )
 
-type SignResult struct{
-	RawTx string
-	Txid  string
+type CreateRawTxResult struct{
+	* waykichain.SignResult
+}
+
+type SignMsgResult struct {
+	PublicKey string
+	Signature string
+}
+
+type SignMsgInput struct {
+	PrivateKey string
+	Data string
+}
+type VerifySignInput struct {
+	Signature string
+	PublicKey string
+	Data string
+	NetParams chaincfg.Params
+}
+
+type VerifyMsgSignResult struct{
+	IsRight bool
+	Address string
 }

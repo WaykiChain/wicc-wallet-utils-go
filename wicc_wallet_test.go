@@ -1,4 +1,4 @@
-package waykichain
+package wicc_wallet_utils_go
 
 import (
 	"fmt"
@@ -123,9 +123,12 @@ func TestSignMessage(t *testing.T) {
 	input := SignMsgInput{}
 	input.Data = "WaykiChain" //原始数据,由开发者后台生成传给前端,生成规则由开发者自己决定
 	input.PrivateKey = "Y6amwxjHqUM37UrquokPsbCXTRNughoM27gDUGfbXhJikS39i9h1"
-	signResult, _ := input.SignMessage() //签名结果，包含签名后信息 + 签名者公钥
+	signResult, err := SignMessage(input) //签名结果，包含签名后信息 + 签名者公钥
+	if err != nil {
+		t.Errorf("Failed to TestSignMessage : %v", err)
+	}
 
-	fmt.Println("signResult: \n\tpublicKey=", signResult.PublicKey, "\n\tsignature=", signResult.Signature)
+	t.Log("signResult: \n\tpublicKey=", signResult.PublicKey, "\n\tsignature=", signResult.Signature)
 }
 
 func TestVerifyMsgSignature(t *testing.T) {
@@ -137,6 +140,9 @@ func TestVerifyMsgSignature(t *testing.T) {
 	input.NetParams = common.WICCTestnetParams //testnet
 //	netParams := &common.WICCParams  //mainnet
 
-	isValid, address := input.VerifyMsgSignature()
-	fmt.Println("VerifyMsgSignature Result:", isValid, ";Sign address：",address)
+	result, err := VerifyMsgSignature(input)
+	if err != nil {
+		t.Errorf("Failed to TestSignMessage : %v", err)
+	}
+	fmt.Println("VerifyMsgSignature Result:", result.IsRight, ";Sign address：",result.Address)
 }
