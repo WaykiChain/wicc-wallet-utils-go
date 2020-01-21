@@ -10,15 +10,28 @@ import (
 func TestCreatetBTCRawTxRelyChain(t *testing.T){
 
 	//输入
-	from1 := FromInfo{"cT7214EqFAbtpfuMfg36EDHBmbrkErXLb27ERSKTLX1RUr92LFSE",BTCTestnetSegwitW,"2MsNRcbHbMgwbbkfzx86Z4FdHkRp29NPjmD"}
-	from2 := FromInfo{"cUQyhR3BbeFMwtqFRrMppFtPPcx6DMQNFEXm8C1yNSzMkEoRoGYM",BTCTestnetW,"mxeBxFWLFAY3G1RKijr91B3kzsX2mTvnYv"}
-	fromInfos := []FromInfo{from1,from2}
-	//输出
-	out1 := VOutPut{&btcTransaction.Vout{"2N2f4HUsH1hFp36zwSUSoeGxVag5BUrJQwr",55000}}
-	out2 := VOutPut{&btcTransaction.Vout{"mrA3J5RR2etH2FvUodfzBLXnKm5ozQtL7d",2000}}
-	outs:= []VOutPut{out1,out2}
+	from1 := VInPut{
+		AddrInfo:	&FromInfo{
+			WIFPrivateKey: "cT7214EqFAbtpfuMfg36EDHBmbrkErXLb27ERSKTLX1RUr92LFSE",
+			BTCWallet:BTCTestnetW,
+			Address:"2MsNRcbHbMgwbbkfzx86Z4FdHkRp29NPjmD",
+		},
+	}
+	from2 := VInPut{
+		AddrInfo:	&FromInfo{
+			WIFPrivateKey: "cUQyhR3BbeFMwtqFRrMppFtPPcx6DMQNFEXm8C1yNSzMkEoRoGYM",
+			BTCWallet:BTCTestnetW,
+			Address:"mxeBxFWLFAY3G1RKijr91B3kzsX2mTvnYv",
+		},
+	}
+	vInPuts := []VInPut{from1,from2}
 
-	rawtx ,err := BWM.CreatetRawTxRelyChain(fromInfos,outs)
+	//输出
+	vOutPut1 := VOutPut{&btcTransaction.Vout{"2N2f4HUsH1hFp36zwSUSoeGxVag5BUrJQwr",55000}}
+	vOutPut2 := VOutPut{&btcTransaction.Vout{"mrA3J5RR2etH2FvUodfzBLXnKm5ozQtL7d",2000}}
+	vOutPuts:= []VOutPut{vOutPut1,vOutPut2}
+
+	rawtx ,err := BWM.CreateBTCTransferRawTx(&VInPuts{vInPuts},&VOutPuts{vOutPuts})
 	if err != nil {
 		t.Errorf("Failed to CreatetBTCRawTransaction: %v",err)
 	}
@@ -93,27 +106,30 @@ func TestCreateBTCTransferRawTx(t *testing.T){
 	*/
 
 	/*Case3: 普通地址 -> 隔离见证地址 */
-	fromInfos := make([]FinalTxIn,0)
-	from1 := FromInfo{"cUQyhR3BbeFMwtqFRrMppFtPPcx6DMQNFEXm8C1yNSzMkEoRoGYM",BTCTestnetW,"mxeBxFWLFAY3G1RKijr91B3kzsX2mTvnYv"}
-	tos := make([]VOutPut,0)
-	fromInfo1 := FinalTxIn{
-		&from1,
+	vInPuts := make([]VInPut,0)
+	vOutPuts := make([]VOutPut,0)
+	from1 := VInPut{
+		&FromInfo{
+			"cUQyhR3BbeFMwtqFRrMppFtPPcx6DMQNFEXm8C1yNSzMkEoRoGYM",
+			BTCTestnetW,
+			"mxeBxFWLFAY3G1RKijr91B3kzsX2mTvnYv",
+		},
 		"ee409ae5031af9b27b5dfd177dd5924407c79fca87e3f13cf3536e0ce2fd596b", //unspent:1449083
 		0,
 		1449083,
 	}
 	to1 := VOutPut{&btcTransaction.Vout{"2N2f4HUsH1hFp36zwSUSoeGxVag5BUrJQwr",1065802}}//转账金额
 	//fee = 2000 * (1*148 + 1*34 + 10) = 383281
-	fromInfos = append(fromInfos,fromInfo1)
-	tos = append(tos,to1)
+	vInPuts = append(vInPuts,from1)
+	vOutPuts = append(vOutPuts,to1)
 
-	rawtx ,err := CreateTransferRawTx(fromInfos,tos)
+	rawtx ,err := CreateBTCTransferRawTx(&VInPuts{vInPuts},&VOutPuts{vOutPuts})
 	if err != nil {
 		t.Errorf("Failed to CreatetBTCRawTransaction: %v",err)
 	}
 	t.Log("rawtx=",rawtx)
 	/*普通地址 -> 隔离见证地址
-	txId:eb3180b0dd598b3d2ea4ee44d0a9a84847f630d9cd13d468439f8853f768200e
+	txId:
 	*/
 
 }

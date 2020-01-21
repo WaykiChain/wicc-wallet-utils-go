@@ -13,23 +13,38 @@ import (
 	"github.com/btcsuite/btcutil/base58"
 )
 
-
-type TxOut struct{
-	Address string
-	Amount  uint64
+type VOutPuts struct{
+	VOuts []VOutPut
 }
-
+//用于签名输出的结构体
 type VOutPut struct{
 	Vout *btcTransaction.Vout
 }
 
+type VInPuts struct{
+	VIns []VInPut
+}
+//用于签名输入的结构体
+type VInPut struct{
+	AddrInfo      *FromInfo  //
+	PrevTxid 	  string     //输入对应的上一笔输出的交易哈希
+	VoutIndex 	  uint64     //输入对应的上一笔交易哈希的索引
+	Amount 		  uint64     //输入金额
+}
+type FromInfo struct{
+	WIFPrivateKey string	 //WIF格式私钥，用于签名
+	BTCWallet  *BTCWallet    //私钥是否为隔离见证地址标识; 主网、测试网
+	Address string			 //输入(From)地址,用于校验是否与私钥对应
+}
+
+//用于生成脚本
 type Sricpt struct{
 	lockScript string
 	redeemScript string
 }
 
 //return Lockscript 、Redeemscript
-func GetSricpt(txin FinalTxIn) (*Sricpt, error){
+func GetSricpt(txin VInPut) (*Sricpt, error){
 
 	address :=  txin.AddrInfo.Address
 	pubKeyHash,_,_ :=  base58.CheckDecode(address)
@@ -47,13 +62,13 @@ func GetSricpt(txin FinalTxIn) (*Sricpt, error){
 		//Get Redeemscript
 		wif, err := btcutil.DecodeWIF(txin.AddrInfo.WIFPrivateKey)
 		if err != nil {
-			fmt.Println("err")
+			return nil, err
 		}
 		pubKey := wif.PrivKey.PubKey().SerializeCompressed() //33 bytes 公钥
 		pubHash := hash.Hash160(pubKey)
 		redeemScriptBytes, err := PayToWitnessPubKeyHashScript(pubHash)
 		if err != nil {
-			fmt.Println("err")
+			return nil, err
 		}
 		redeemScript := hex.EncodeToString(redeemScriptBytes)
 
@@ -119,21 +134,6 @@ func calculateAddrBalance(utxos []*Unspent) map[string]*AddrBalance {
 	return addrBalanceMap
 }
 
-//外部调用的输入结构体
-type FromInfo struct{
-	WIFPrivateKey string	 //WIF格式私钥，用于签名
-	BTCWallet  *BTCWallet    //私钥是否为隔离见证地址标识; 主网、测试网
-	Address string			 //输入(From)地址,用于校验是否与私钥对应
-}
-
-//最终用于签名的结构体
-type FinalTxIn struct{
-	AddrInfo      *FromInfo  //
-	PrevTxid 	  string     //输入对应的上一笔输出的交易哈希
-	VoutIndex 	  uint64     //输入对应的上一笔交易哈希的索引
-	Amount 		  uint64     //输入金额
-}
-
 
 func newFromInfoMap(from FromInfo) (map[string]*FromInfo,error){
 
@@ -153,8 +153,9 @@ func newFromInfoMap(from FromInfo) (map[string]*FromInfo,error){
 	return addrMap, nil
 }
 
-//
-func (wm *BTCWalletManager) CreatetRawTxRelyChain(ins []FromInfo, outs []VOutPut) (string,error){
+
+//创建BTC转账rawtx,依赖外部服务查询UTXO、估算手续费等
+func (wm *BTCWalletManager) CreateBTCTransferRawTx(ins *VInPuts, outs *VOutPuts) (string,error){
 
 	var(
 		addressInfo  = make(map[string]*FromInfo) //地址 - 私钥/是否隔离见证/链网络类型/地址 的映射
@@ -163,24 +164,24 @@ func (wm *BTCWalletManager) CreatetRawTxRelyChain(ins []FromInfo, outs []VOutPut
 		usedUTXO 	 = make([]*Unspent, 0) //真正作为输入的utxo
 		balance      = uint64(0)//usedUTXO的总金额
 		actualOut    = uint64(0) //toAmount + fees(转账金额 + 手续费)
-		finalTxIns   = make([]FinalTxIn, 0) //最终用于签名的输入
+		finalTxIns   = make([]VInPut, 0) //最终用于签名的输入
 		finalTxOuts  = make([]VOutPut, 0) //最终用于签名的输出
 	)
 	//判断输入地址是否存在
-	if len(ins) <= 0 {
+	if len(ins.VIns) <= 0 {
 		return "", errors.New("[]InAddr have not addresses")
 	}
 
 	//遍历读取传入的的输入 地址数组
 	searchAddrs := make([]string, 0)
-	for _, in := range ins {
+	for _, in := range ins.VIns {
 		//获取From地址的映射，目的用于获取私钥等信息,组装到最终签名的输入结构体中
-		addressInfo, err := newFromInfoMap(in)
+		addressInfo, err := newFromInfoMap(*in.AddrInfo)
 		if err != nil{
 			return "", err
 		}
 
-		searchAddrs = append(searchAddrs, addressInfo[in.Address].Address)
+		searchAddrs = append(searchAddrs, addressInfo[in.AddrInfo.Address].Address)
 	}
 
 	//查找账户的utxo，包含已确认和未确认的
@@ -194,12 +195,12 @@ func (wm *BTCWalletManager) CreatetRawTxRelyChain(ins []FromInfo, outs []VOutPut
 		return "", errors.New("error, balance is enough: UTXO don't exist")
 	}
 
-	if len(outs) <= 0 {
+	if len(outs.VOuts) <= 0 {
 		return "", errors.New("Receiver addresses is empty!")
 	}
 
 	//计算总输出金额+ 构建最终用于签名的输出
-	for _, out := range outs {
+	for _, out := range outs.VOuts {
 		toAmount = toAmount + uint64(out.Vout.Amount)
 		finalTxOuts = append(finalTxOuts,out)
 	}
@@ -224,17 +225,16 @@ func (wm *BTCWalletManager) CreatetRawTxRelyChain(ins []FromInfo, outs []VOutPut
 	//计算一个可用于支付的余额
 	for _, unspent := range unspents {
 		//将查询且用到的uxto成员赋值给用于最终签名的输入
-		finalTxin := FinalTxIn{addressInfo[unspent.Address],unspent.TxID,unspent.Vout,unspent.Satoshis}
+		finalTxin := VInPut{addressInfo[unspent.Address],unspent.TxID,unspent.Vout,unspent.Satoshis}
 		finalTxIns = append(finalTxIns, finalTxin)
 
 		balance = balance + unspent.Satoshis
 		usedUTXO = append(usedUTXO, unspent)
 		//计算手续费，输出数量需要在真实的输出数量上 + 1个找零地址
-		fees, err = wm.EstimateFee(int64(len(usedUTXO)), int64(len(outs)+1), feesRate)
+		fees, err = wm.EstimateFee(int64(len(usedUTXO)), int64(len(outs.VOuts)+1), feesRate)
 		if err != nil {
 			return "", err
 		}
-		fmt.Println("fees=",fees)
 
 		//真正需要花出去的钱 = 输出的金额 + 手续费
 		actualOut = toAmount + fees
@@ -275,7 +275,7 @@ func (wm *BTCWalletManager) CreatetRawTxRelyChain(ins []FromInfo, outs []VOutPut
 	}
 
 	//签名
-	rawTxHex, err := CreateTransferRawTx(finalTxIns,finalTxOuts)
+	rawTxHex, err := CreateBTCTransferRawTx(&VInPuts{finalTxIns},&VOutPuts{finalTxOuts})
 	if err != nil{
 		return "", err
 	}
@@ -284,7 +284,7 @@ func (wm *BTCWalletManager) CreatetRawTxRelyChain(ins []FromInfo, outs []VOutPut
 }
 
 //创建交易广播之前的rawtx
-func CreateTransferRawTx( txins []FinalTxIn,  txouts []VOutPut) (string, error) {
+func CreateBTCTransferRawTx( txins *VInPuts,  txouts *VOutPuts) (string, error) {
 
 	var (
 		vins = make([]btcTransaction.Vin,0)
@@ -294,7 +294,7 @@ func CreateTransferRawTx( txins []FinalTxIn,  txouts []VOutPut) (string, error) 
 		segwit = false
 	)
 
-	for _, txin := range txins {
+	for _, txin := range txins.VIns {
 		vin := btcTransaction.Vin{txin.PrevTxid,uint32(txin.VoutIndex)}
 		vins = append(vins,vin)
 
@@ -304,7 +304,7 @@ func CreateTransferRawTx( txins []FinalTxIn,  txouts []VOutPut) (string, error) 
 	}
 
 	//check segwit or not
-	for _, txin := range txins {
+	for _, txin := range txins.VIns {
 		if txin.AddrInfo.BTCWallet.wallet.IsSegwit == true{
 			segwit = true
 			break
@@ -312,7 +312,7 @@ func CreateTransferRawTx( txins []FinalTxIn,  txouts []VOutPut) (string, error) 
 	}
 
 	//create vouts
-	for _, txout := range txouts{
+	for _, txout := range txouts.VOuts{
 		vout := btcTransaction.Vout{txout.Vout.Address,txout.Vout.Amount}
 		vouts = append(vouts,vout)
 	}
@@ -323,9 +323,9 @@ func CreateTransferRawTx( txins []FinalTxIn,  txouts []VOutPut) (string, error) 
 	//追加手续费支持
 	replaceable := false
 
-	if txins[0].AddrInfo.BTCWallet.wallet.NetParam == &common.BTCTestnetParams{
+	if txins.VIns[0].AddrInfo.BTCWallet.wallet.NetParam == &common.BTCTestnetParams{
 		addressPrefix = btcTransaction.BTCTestnetAddressPrefix
-	}else if txins[0].AddrInfo.BTCWallet.wallet.NetParam == &common.BTCParams {
+	}else if txins.VIns[0].AddrInfo.BTCWallet.wallet.NetParam == &common.BTCParams {
 		addressPrefix = btcTransaction.BTCMainnetAddressPrefix
 	}else{
 		return "", errors.New("Net err! Neither the Mainnet nor the Testnet")
@@ -343,7 +343,7 @@ func CreateTransferRawTx( txins []FinalTxIn,  txouts []VOutPut) (string, error) 
 		return "", err
 	}
 
-	for i, txin := range txins {
+	for i, txin := range txins.VIns {
 		privateKey,_ := ConvertWIFToHex(txin.AddrInfo.WIFPrivateKey)
 		sigPub, err := btcTransaction.SignRawTransactionHash(transHash[i].Hash, privateKey)
 		if err != nil {
