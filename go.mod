@@ -12,7 +12,9 @@ replace (
 )
 
 require (
+	github.com/DataDog/zstd v1.4.4 // indirect
 	github.com/JKinGH/go-hdwallet v0.0.0-20200117082521-b9fec2768008
+	github.com/Sereal/Sereal v0.0.0-20191211210414-3a6c62eca003 // indirect
 	github.com/astaxie/beego v1.12.0
 	github.com/blocktree/go-owcdrivers v1.2.0
 	github.com/blocktree/openwallet v1.7.0
