@@ -2,9 +2,7 @@ package wicc_wallet_utils_go
 
 import (
 	"encoding/hex"
-	"errors"
 	"github.com/ethereum/go-ethereum/common"
-	wicc_common "github.com/WaykiChain/wicc-wallet-utils-go/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rlp"
 	"math/big"
@@ -14,6 +12,16 @@ type txFeeInfo struct {
 	GasLimit *big.Int
 	GasPrice *big.Int
 	Fee      *big.Int
+}
+
+type ETHTransactionStr struct{
+	FromAddress string
+	ToAddress string
+	Amount string
+	Nonce string
+	GasLimit string
+	GasPrice string
+	Data string
 }
 
 type ETHTransaction struct{
@@ -34,32 +42,31 @@ func (this *txFeeInfo) CalcFee() error {
 }
 
 
-func NewETHSimpleTransaction(to string,amount *big.Int,nonce uint64,gas, gasPrice *big.Int) (*ETHTransaction){
+func NewETHSimpleTransaction(to,amount,nonce ,gas, gasPrice string) (*ETHTransaction,error){
 
-	return &ETHTransaction{
-		ToAddress: to,
+	TxStr := ETHTransactionStr{
+		ToAddress:to,
 		Amount : amount,
 		Nonce : nonce,
 		GasLimit : gas,
 		GasPrice : gasPrice,
-		Data :nil,
 	}
+
+	return convertToETHTranscation(TxStr)
 }
 
-func NewERC20TransferTransaction(to string,ETHamount *big.Int,nonce uint64,gas, gasPrice *big.Int, data string) (*ETHTransaction, error){
+func NewERC20TransferTransaction(to, ETHamount, nonce, gas, gasPrice, data string) (*ETHTransaction, error){
 
-	dataBytes ,err := hex.DecodeString(wicc_common.RemoveOxFromHex(data))
-	if err != nil{
-		return nil ,errors.New("The ERC20 Transfer data failed!")
-	}
-	return &ETHTransaction{
-		ToAddress: to,
+	TxStr := ETHTransactionStr{
+		ToAddress:to,
 		Amount : ETHamount,
 		Nonce : nonce,
 		GasLimit : gas,
 		GasPrice : gasPrice,
-		Data : dataBytes,
-	},nil
+		Data: data,
+	}
+
+	return convertToETHTranscation(TxStr)
 }
 
 func (transaction *ETHTransaction) CreateRawTx(privateKeyStr string, chainId int64) (string, error) {

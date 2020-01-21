@@ -130,6 +130,20 @@ func ConvertToUint64(value string, base int) (uint64, error) {
 	return rst, nil
 }
 
+func ConvertToInt64(value string, base int) (int64, error) {
+	v := value
+	if base == 16 {
+		v = common.RemoveOxFromHex(v)
+	}
+
+	rst, err := strconv.ParseInt(v, base, 64)
+	if err != nil {
+		log.Errorf("convert string[%v] to int failed, err = %v", value, err)
+		return 0, err
+	}
+	return rst, nil
+}
+
 func ConvertToBigInt(value string, base int) (*big.Int, error) {
 	bigvalue := new(big.Int)
 	var success bool
@@ -148,6 +162,45 @@ func ConvertToBigInt(value string, base int) (*big.Int, error) {
 		return big.NewInt(0), errors.New(errInfo)
 	}
 	return bigvalue, nil
+}
+
+func convertToETHTranscation(tx ETHTransactionStr) (*ETHTransaction,error) {
+
+	amountBig ,err := ConvertToBigInt(tx.Amount,10)
+	if err != nil{
+		return nil, err
+	}
+
+	nonceBig ,err := strconv.ParseUint(tx.Nonce,10,64)
+	if err != nil{
+		return nil, err
+	}
+
+	gasBig,err := ConvertToBigInt(tx.GasLimit,10)
+	if err != nil{
+		return nil, err
+	}
+
+	gasPriceBig,err := ConvertToBigInt(tx.GasPrice,10)
+	if err != nil{
+		return nil, err
+	}
+
+	dataBytes ,err := hex.DecodeString(common.RemoveOxFromHex(tx.Data))
+	if err != nil{
+		return nil ,errors.New("The ERC20 Transfer data failed!")
+	}
+
+	return &ETHTransaction{
+		tx.FromAddress,
+		tx.ToAddress,
+		amountBig,
+		nonceBig,
+		gasBig,
+		gasPriceBig,
+		dataBytes,
+
+	},nil
 }
 
 const (

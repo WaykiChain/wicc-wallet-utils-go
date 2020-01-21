@@ -70,7 +70,9 @@ func TestERC20GetAddressBalance(t *testing.T) {
 	if r, err := tw.WalletClient.ERC20GetAddressBalance(address,contract_address); err != nil {
 		t.Errorf("ERC20GetAddressBalance failed: %v\n", err)
 	} else {
+
 		t.Logf("ERC20GetAddressBalance return: \n\t%+v\n", r)
+		t.Logf("ERC20GetAddressBalance return2: \n\t%+v\n", r.Int64())
 	}
 }
 

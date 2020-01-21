@@ -123,7 +123,7 @@ func TestSignMessage(t *testing.T) {
 	input := SignMsgInput{}
 	input.Data = "WaykiChain" //原始数据,由开发者后台生成传给前端,生成规则由开发者自己决定
 	input.PrivateKey = "Y6amwxjHqUM37UrquokPsbCXTRNughoM27gDUGfbXhJikS39i9h1"
-	signResult, err := SignMessage(input) //签名结果，包含签名后信息 + 签名者公钥
+	signResult, err := SignMessage(&input) //签名结果，包含签名后信息 + 签名者公钥
 	if err != nil {
 		t.Errorf("Failed to TestSignMessage : %v", err)
 	}
@@ -140,7 +140,7 @@ func TestVerifyMsgSignature(t *testing.T) {
 	input.NetParams = common.WICCTestnetParams //testnet
 //	netParams := &common.WICCParams  //mainnet
 
-	result, err := VerifyMsgSignature(input)
+	result, err := VerifyMsgSignature(&input)
 	if err != nil {
 		t.Errorf("Failed to TestSignMessage : %v", err)
 	}

@@ -3,6 +3,7 @@ package wicc_wallet_utils_go
 import (
 	"fmt"
 	"math/big"
+	"strconv"
 	"testing"
 )
 
@@ -12,7 +13,8 @@ func TestEthCreateSimpleRawTransaction(t *testing.T) {
 	privateKeyStr := "6B93D965D9981F9066CCC44B9DBF32B50F411C0DCEDF4A41CA4E7424ABDB617F"
 	from := "0x232D23C22543144B988F738C701Df6dfd6eAcA4c"
 	to := "81FD1F7aE91041aAc5fCF7d8Ed3e1dd88Cc1359a"
-	amount := big.NewInt(100000000000000000)
+	amount := "100000000000000000"
+	amountBig,_ := ConvertToBigInt(amount,10)
 
 	txcount ,err:= tw.WalletClient.ethGetTransactionCount(from,LEATEST)
 	if err != nil {
@@ -20,14 +22,17 @@ func TestEthCreateSimpleRawTransaction(t *testing.T) {
 	}
 	t.Log("txcount=",txcount)
 
-	txFeeInfo, err := tw.WalletClient.GetTransactionFeeEstimated(from,to,amount,"")
+	txFeeInfo, err := tw.WalletClient.GetTransactionFeeEstimated(from,to,amountBig,"")
 	if err != nil {
 		t.Errorf("Failed to GetTransactionFeeEstimated: %v",err)
 	}
 	t.Logf("txFeeInfo.GasLimit=%v, txFeeInfo.GasPrice=%v\n",txFeeInfo.GasLimit,txFeeInfo.GasPrice)
 
 
-	tx := NewETHSimpleTransaction(to,amount,txcount,txFeeInfo.GasLimit,txFeeInfo.GasPrice)
+	tx,err := NewETHSimpleTransaction(to,amount,strconv.FormatInt(int64(txcount),10),txFeeInfo.GasLimit.String(),txFeeInfo.GasPrice.String())
+	if err != nil {
+		t.Errorf("Failed to NewETHSimpleTransaction: %v",err)
+	}
 	rawtx ,err :=tx.CreateRawTx(privateKeyStr,tw.Config.ChainID)
 	if err != nil{
 		fmt.Println("err=",err)
@@ -62,7 +67,7 @@ func TestERC20CreateTransferRawTransaction(t *testing.T) {
 	}
 	t.Logf("txFeeInfo.GasLimit=%v, txFeeInfo.GasPrice=%v\n",txFeeInfo.GasLimit,txFeeInfo.GasPrice)
 
-	tx,err := NewERC20TransferTransaction(contractAddr,big.NewInt(0),txcount,txFeeInfo.GasLimit,txFeeInfo.GasPrice,data)
+	tx,err := NewERC20TransferTransaction(contractAddr,"0",strconv.FormatInt(int64(txcount),10),txFeeInfo.GasLimit.String(),txFeeInfo.GasPrice.String(),data)
 	if err != nil {
 		t.Errorf("Failed to NewERC20TransferTransaction: %v",err)
 	}
@@ -88,4 +93,11 @@ func TestEthSendRawTransaction(t *testing.T) {
 }
 
 
+func TestConvertToBigInt(t *testing.T) {
+	value := "10000000000000000000000000000000"
+	base := 10
+	r,_ := ConvertToBigInt(value,base)
+
+	fmt.Printf("r=%+v\n",r)
+}
 

@@ -77,63 +77,63 @@ func (WICCw *WICCWallet) GetPubKeyFromPrivateKey(privateKey string) (string, err
 
 
 //Sign message by private Key
-func  SignMessage(input SignMsgInput) (SignMsgResult, error) {
+func  SignMessage(input *SignMsgInput) (*SignMsgResult, error) {
 	//Use sha256_sha160 instead of sha256_twice
 	hash := hash.Hash256(hash.Hash160([]byte(input.Data)))
 
 	wifKey, errorDecode := btcutil.DecodeWIF(input.PrivateKey)
 	if (errorDecode != nil) {
-		return SignMsgResult{}, common.ERR_INVALID_PRIVATEKEY
+		return nil, common.ERR_INVALID_PRIVATEKEY
 	}
 	key := wifKey.PrivKey
 	signature, errorSign := key.Sign(hash)
 	if (errorSign != nil) {
-		return SignMsgResult{}, common.ERR_SIGNATURE_ERROR
+		return nil, common.ERR_SIGNATURE_ERROR
 	}
 	signResult := SignMsgResult{hex.EncodeToString(wifKey.SerializePubKey()),
 		hex.EncodeToString(signature.Serialize())}
-	return signResult, nil
+	return &signResult, nil
 }
 
-func VerifyMsgSignature(input VerifySignInput) (VerifyMsgSignResult,error){
+func VerifyMsgSignature(input *VerifySignInput) (*VerifyMsgSignResult,error){
 
 	if  (len(input.PublicKey) != 66) || (len(input.Signature) % 2 != 0) {
-		return VerifyMsgSignResult{}, common.ERR_PUBLICKEY_SIGNATURE_ERROR
+		return nil, common.ERR_PUBLICKEY_SIGNATURE_ERROR
 	}
 
 	publicKeyBytes, err := hex.DecodeString(input.PublicKey)
 	if err != nil {
-		return VerifyMsgSignResult{},err
+		return nil,err
 	}
 
 	//check publicKey
 	pubKey, err := btcec.ParsePubKey(publicKeyBytes, btcec.S256())
 	if (err != nil) {
-		return VerifyMsgSignResult{},err
+		return nil,err
 	}
 
 	//get address from public
 	address, err := btcutil.NewAddressPubKey(publicKeyBytes,&input.NetParams)
 	if (err != nil) {
-		return VerifyMsgSignResult{},err
+		return nil,err
 	}
 
 	//get signature hash
 	sigBytes, err := hex.DecodeString(input.Signature)
 	if err != nil {
-		return VerifyMsgSignResult{},err
+		return nil,err
 	}
 	sig, err := btcec.ParseDERSignature(sigBytes, btcec.S256())
 	if err != nil {
-		return VerifyMsgSignResult{},err
+		return nil,err
 	}
 
 	//Verify
 	//Use sha256_sha160 instead of sha256_twice
 	isValid := sig.Verify(hash.Hash256(btcutil.Hash160([]byte(input.Data))), pubKey)
 	if (isValid){
-		return VerifyMsgSignResult{true,address.EncodeAddress()},nil
+		return &VerifyMsgSignResult{true,address.EncodeAddress()},nil
 	}else{
-		return VerifyMsgSignResult{false,""},nil
+		return &VerifyMsgSignResult{false,""},nil
 	}
 }

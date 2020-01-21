@@ -2,7 +2,7 @@ package wicc_wallet_utils_go
 
 import (
 	"github.com/WaykiChain/wicc-wallet-utils-go/ethereum"
-	"math/big"
+	"strconv"
 	"testing"
 )
 
@@ -31,7 +31,8 @@ func TestSendETHTransaction(t *testing.T){
 	privateKeyStr := "6B93D965D9981F9066CCC44B9DBF32B50F411C0DCEDF4A41CA4E7424ABDB617F"
 	from := "0x232D23C22543144B988F738C701Df6dfd6eAcA4c"  //WJQ GenerateAddressFromPrivateKey
 	to := "81FD1F7aE91041aAc5fCF7d8Ed3e1dd88Cc1359a"
-	amount := big.NewInt(100000000000000000)
+	amount := "1000000000000000"
+	amountBig,_ := ConvertToBigInt(amount,10)
 
 	//读取链上from地址的nonce,此做法有风险，可以采用本地记录的方式
 	nonce ,err:= tw.WalletClient.ethGetTransactionCount(from,LEATEST)
@@ -41,14 +42,17 @@ func TestSendETHTransaction(t *testing.T){
 	t.Log("nonce=",nonce)
 
 	//从链上估算手续费
-	txFeeInfo, err := tw.WalletClient.GetTransactionFeeEstimated(from,to,amount,"")
+	txFeeInfo, err := tw.WalletClient.GetTransactionFeeEstimated(from,to,amountBig,"")
 	if err != nil {
 		t.Errorf("Failed to GetTransactionFeeEstimated: %v",err)
 	}
 	t.Logf("txFeeInfo.GasLimit=%v, txFeeInfo.GasPrice=%v\n",txFeeInfo.GasLimit,txFeeInfo.GasPrice)
 
 	//离线签名
-	tx := NewETHSimpleTransaction(to,amount,nonce,txFeeInfo.GasLimit,txFeeInfo.GasPrice)
+	tx,err := NewETHSimpleTransaction(to,amount,strconv.FormatInt(int64(nonce),10),txFeeInfo.GasLimit.String(),txFeeInfo.GasPrice.String())
+	if err != nil {
+		t.Errorf("Failed to NewETHSimpleTransaction: %v",err)
+	}
 	rawtx ,err :=tx.CreateRawTx(privateKeyStr,tw.Config.ChainID)
 	if err != nil{
 		t.Error("CreateRawTx=",err)

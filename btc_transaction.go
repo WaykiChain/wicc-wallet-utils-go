@@ -29,7 +29,7 @@ type Sricpt struct{
 }
 
 //return Lockscript 、Redeemscript
-func GetSricpt(txin FinalTxIn) (Sricpt, error){
+func GetSricpt(txin FinalTxIn) (*Sricpt, error){
 
 	address :=  txin.AddrInfo.Address
 	pubKeyHash,_,_ :=  base58.CheckDecode(address)
@@ -57,14 +57,14 @@ func GetSricpt(txin FinalTxIn) (Sricpt, error){
 		}
 		redeemScript := hex.EncodeToString(redeemScriptBytes)
 
-		return Sricpt{lockScript ,redeemScript},nil
+		return &Sricpt{lockScript ,redeemScript},nil
 
 	} else if txin.AddrInfo.BTCWallet.wallet.IsSegwit == false{//如果地址是普通地址,只需要获取Lockscript
 		lockScriptBytes,_ := PayToPubKeyHashScript(pubKeyHash)
 		lockScript := hex.EncodeToString(lockScriptBytes)
-		return Sricpt{lockScript ,""},nil
+		return &Sricpt{lockScript ,""},nil
 	}else{
-		return Sricpt{"" ,""},errors.New("txin error!")
+		return nil,errors.New("txin error!")
 	}
 }
 
@@ -130,7 +130,7 @@ type FromInfo struct{
 type FinalTxIn struct{
 	AddrInfo      *FromInfo  //
 	PrevTxid 	  string     //输入对应的上一笔输出的交易哈希
-	Vout 		  uint64     //输入对应的上一笔交易哈希的索引
+	VoutIndex 	  uint64     //输入对应的上一笔交易哈希的索引
 	Amount 		  uint64     //输入金额
 }
 
@@ -295,7 +295,7 @@ func CreateTransferRawTx( txins []FinalTxIn,  txouts []VOutPut) (string, error) 
 	)
 
 	for _, txin := range txins {
-		vin := btcTransaction.Vin{txin.PrevTxid,uint32(txin.Vout)}
+		vin := btcTransaction.Vin{txin.PrevTxid,uint32(txin.VoutIndex)}
 		vins = append(vins,vin)
 
 		script,_ := GetSricpt(txin)

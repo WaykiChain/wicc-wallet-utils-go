@@ -401,7 +401,7 @@ func (c * Client) GetTransactionFeeEstimated(from string, to string, value *big.
 	return feeInfo, nil
 }
 
-func (c *Client) EthGetBlockNumber() (uint64, error) {
+func (c *Client) EthGetBlockNumber() (int64, error) {
 	param := make([]interface{}, 0)
 	result, err := c.Call("eth_blockNumber", param)
 	if err != nil {
@@ -414,7 +414,7 @@ func (c *Client) EthGetBlockNumber() (uint64, error) {
 		return 0, errors.New("result of block number type error")
 	}
 
-	blockNum, err := ConvertToUint64(result.String(), 16)
+	blockNum, err := ConvertToInt64(result.String(), 16)
 	if err != nil {
 		log.Errorf("parse block number to big.Int failed, err=%v", err)
 		return 0, err
