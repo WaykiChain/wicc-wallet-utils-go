@@ -13,7 +13,7 @@ func TestCreatetBTCRawTxRelyChain(t *testing.T){
 	from1 := VInPut{
 		AddrInfo:	&FromInfo{
 			WIFPrivateKey: "cT7214EqFAbtpfuMfg36EDHBmbrkErXLb27ERSKTLX1RUr92LFSE",
-			BTCWallet:BTCTestnetW,
+			BTCWallet:BTCTestnetSegwitW,
 			Address:"2MsNRcbHbMgwbbkfzx86Z4FdHkRp29NPjmD",
 		},
 	}

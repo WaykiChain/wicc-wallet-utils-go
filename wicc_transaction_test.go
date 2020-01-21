@@ -68,7 +68,7 @@ func TestCreateUCoinDeployContractTx(t *testing.T) {
 
 	privateKey := "YAa1wFCfFnZ5bt4hg9MDeDevTMd1Nu874Mn83hEXwtfAL2vkQE9f" //"Y9sx4Y8sBAbWDAqAWytYuUnJige3ZPwKDZp1SCDqqRby1YMgRG9c"
 
-	script, err := ioutil.ReadFile("./../demo/data/hello.lua")
+	script, err := ioutil.ReadFile("./demo/data/hello.lua")
 	if err != nil {
 		t.Error("Read contract script file err: ", err)
 	}
