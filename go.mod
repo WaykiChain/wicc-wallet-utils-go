@@ -6,6 +6,7 @@ replace (
 	golang.org/x/crypto v0.0.0-20191227163750-53104e6ec876 => github.com/golang/crypto v0.0.0-20191227163750-53104e6ec876
 	golang.org/x/crypto v0.0.0-20200115085410-6d4e4cb37c7d => github.com/golang/crypto v0.0.0-20200115085410-6d4e4cb37c7d
 	golang.org/x/net v0.0.0-20180821023952-922f4815f713 => github.com/golang/net v0.0.0-20180826012351-8a410e7b638d
+	golang.org/x/sync v0.0.0-20181221193216-37e7f081c4d4 => github.com/golang/sync v0.0.0-20181221193216-37e7f081c4d4
 	golang.org/x/sys v0.3.0 => github.com/golang/sys v0.3.0
 	golang.org/x/text v0.3.0 => github.com/golang/text v0.3.0
 )

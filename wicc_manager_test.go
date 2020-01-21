@@ -45,12 +45,12 @@ func TestSendUCoinTransferTx(t *testing.T){
 
 	//创建rawtx
 	var txParam UCoinTransferTxParam
-	txParam.FeeSymbol = string(common.WICC)
+	txParam.FeeSymbol = string(common.WICCSYM)
 	txParam.Fees = 1000000
 	txParam.ValidHeight,_ = WWM.GetSynBlockHeight()
 	txParam.SrcRegId = ""
 	txParam.Dests=NewDestArr()
-	dest:=Dest{string(common.WICC),1000000, "wLYLCxsBDjbRiPVEzvbX2bgFftqnWuQxB7"}
+	dest:=Dest{string(common.WICCSYM),1000000, "wLYLCxsBDjbRiPVEzvbX2bgFftqnWuQxB7"}
 	txParam.Dests.Add(&dest)
 	txParam.PubKey = "031b27286c65b81ac13cfd4067b030398a19eb147f439c094fbb19a2f3ab9ec10b"
 	txParam.Memo = ""

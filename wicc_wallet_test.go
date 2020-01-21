@@ -71,7 +71,7 @@ func TestCheckAddress(t *testing.T){
 	t.Log("TestCheckAddress: WICCAddress=",isValid)
 
 	WICCAddressTestnet := "wLYLCxsBDjbRiPVEzvbX2bgFftqnWuQxB7"
-	isValid,err = WICCW.CheckAddress(WICCAddressTestnet)
+	isValid,err = WICCTestnetW.CheckAddress(WICCAddressTestnet)
 	if err != nil {
 		t.Errorf("Failed to Check WICCAddressTestnet: %v",err)
 	}
@@ -88,7 +88,7 @@ func TestCheckWICCPrivateKey(t *testing.T){
 	t.Log("CheckWICCPrivateKey BTCSegwitPrivateKey=",isValid)
 
 	WICC_TestnetPrivateKey := "Y6amwxjHqUM37UrquokPsbCXTRNughoM27gDUGfbXhJikS39i9h1"
-	isValid,err = WICCW.CheckPrivateKey(WICC_TestnetPrivateKey)
+	isValid,err = WICCTestnetW.CheckPrivateKey(WICC_TestnetPrivateKey)
 	if err != nil {
 		t.Errorf("Failed to Check WICC_TestnetPrivateKey: %v",err)
 	}
@@ -109,7 +109,7 @@ func TestGetPubKeyFromPrivateKey(t *testing.T) {
 	t.Log("GetPubKeyFromPrivateKey WICCPrivateKey=", publicKey)
 
 	WICCTestnetPrivateKey := "Y6amwxjHqUM37UrquokPsbCXTRNughoM27gDUGfbXhJikS39i9h1"
-	publicKey, err = WICCW.GetPubKeyFromPrivateKey(WICCTestnetPrivateKey)
+	publicKey, err = WICCTestnetW.GetPubKeyFromPrivateKey(WICCTestnetPrivateKey)
 	if err != nil {
 		t.Errorf("Failed to GetPubKeyFromPrivateKey WICCTestnetPrivateKey: %v", err)
 	}
