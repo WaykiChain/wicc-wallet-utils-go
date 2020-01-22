@@ -1,7 +1,6 @@
 package common
 
 import (
-	"github.com/blocktree/openwallet/common"
 	"strings"
 )
 
@@ -19,7 +18,9 @@ func Reverse(src []byte) []byte{
 func RemoveOxFromHex(value string) string {
 	result := value
 	if strings.Index(value, "0x") != -1 {
-		result = common.Substr(value, 2, len(value))
+		len_value := len(value)
+		result = value[2 : len_value]
+		//result = common.Substr(value, 2, len(value))
 	}
 	return result
 }

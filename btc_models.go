@@ -1,23 +1,7 @@
-/*
- * Copyright 2018 The openwallet Authors
- * This file is part of the openwallet library.
- *
- * The openwallet library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * The openwallet library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Lesser General Public License for more details.
- */
-
 package wicc_wallet_utils_go
 
 import (
 	"encoding/hex"
-	"github.com/blocktree/openwallet/openwallet"
 	"github.com/btcsuite/btcd/txscript"
 	"github.com/tidwall/gjson"
 	"strings"
@@ -78,7 +62,6 @@ type Unspent struct {
 	Confirmations uint64 `json:"confirmations"`
 	Spendable     bool   `json:"spendable"`
 	Solvable      bool   `json:"solvable"`
-	HDAddress     openwallet.Address
 }
 
 func NewUnspent(json *gjson.Result) *Unspent {
@@ -200,22 +183,6 @@ type Block struct {
 	return obj
 }
 */
-//BlockHeader 区块链头
-func (b *Block) BlockHeader(symbol string) *openwallet.BlockHeader {
-
-	obj := openwallet.BlockHeader{}
-	//解析json
-	obj.Hash = b.Hash
-	obj.Confirmations = b.Confirmations
-	obj.Merkleroot = b.Merkleroot
-	obj.Previousblockhash = b.Previousblockhash
-	obj.Height = b.Height
-	obj.Version = b.Version
-	obj.Time = b.Time
-	obj.Symbol = symbol
-
-	return &obj
-}
 
 type Transaction struct {
 	TxID          string

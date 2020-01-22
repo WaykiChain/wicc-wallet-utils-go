@@ -11,7 +11,6 @@ import (
 	"math/big"
 	"strconv"
 	"strings"
-	tool "github.com/blocktree/openwallet/common"
 )
 
 type SolidityParam struct {
@@ -33,10 +32,7 @@ func makeTransactionData(methodId string, params []SolidityParam) (string, error
 	for i, _ := range params {
 		var param string
 		if params[i].ParamType == SOLIDITY_TYPE_ADDRESS {
-			param = strings.ToLower(params[i].ParamValue.(string))
-			if strings.Index(param, "0x") != -1 {
-				param = tool.Substr(param, 2, len(param))
-			}
+			param = common.RemoveOxFromHex(strings.ToLower(params[i].ParamValue.(string)))
 
 			if len(param) != 40 {
 				return "", errors.New("length of address error.")

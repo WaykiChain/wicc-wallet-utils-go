@@ -12,19 +12,17 @@ replace (
 )
 
 require (
-	github.com/DataDog/zstd v1.4.4 // indirect
 	github.com/JKinGH/go-hdwallet v0.0.0-20200117082521-b9fec2768008
-	github.com/Sereal/Sereal v0.0.0-20191211210414-3a6c62eca003 // indirect
 	github.com/astaxie/beego v1.12.0
 	github.com/blocktree/go-owcdrivers v1.2.0
-	github.com/blocktree/openwallet v1.7.0
 	github.com/btcsuite/btcd v0.20.1-beta
 	github.com/btcsuite/btcutil v1.0.1
 	github.com/cpacia/bchutil v0.0.0-20181003130114-b126f6a35b6c // indirect
-	github.com/ethereum/go-ethereum v1.9.9
+	github.com/ethereum/go-ethereum v1.9.10
 	github.com/imroc/req v0.2.4
+	github.com/shiena/ansicolor v0.0.0-20151119151921-a422bbe96644 // indirect
 	github.com/shopspring/decimal v0.0.0-20200105231215-408a2507e114
-	github.com/tidwall/gjson v1.3.5
+	github.com/tidwall/gjson v1.4.0
 	github.com/tyler-smith/go-bip39 v1.0.2
 	golang.org/x/crypto v0.0.0-20200115085410-6d4e4cb37c7d
 )

@@ -19,7 +19,6 @@ func init(){
 	tw.Config.RpcPassword = ""
 	tw.Config.RpcPassword = ""
 	tw.Config.WalletConfig = ETH
-	tw.Config.KeystoreDir = keystoreDir
 	tw.Wallet = NewETHWallet(tw.Config.WalletConfig)
 	//token := BasicAuth(tw.Config.RpcUser, tw.Config.RpcPassword)
 	tw.WalletClient = NewClient(tw.Config.ServerAPI, "", true)
