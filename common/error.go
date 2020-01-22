@@ -40,6 +40,8 @@ var (
 	ERR_TOTAl_SUPPLY_ERROR       = errors.New("Asset Total Supply error")
 	ERR_ASSET_UPDATE_TYPE_ERROR       = errors.New("Asset Update Type error")
 	ERR_ASSET_UPDATE_OWNER_ERROR       = errors.New("Asset Update Owner error")
+
+	ERR_PUBLICKEY_SIGNATURE_ERROR       = errors.New("The Length of PublicKey or Signature error")
 )
 
 // ETH errors

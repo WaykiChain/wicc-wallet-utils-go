@@ -343,3 +343,10 @@ func TestCheckPrivateKey(t *testing.T){
 	}
 	t.Log("TestCheckAddress: WICC_TestnetPrivateKey=",isValid)
 }
+
+
+func TestM(t *testing.T){
+	str := "0xXBod"
+	content := RemoveOxFromHex(str)
+	fmt.Println(content)
+}

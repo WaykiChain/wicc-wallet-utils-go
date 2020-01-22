@@ -60,7 +60,7 @@ func NewClient(url, token string, debug bool) *Client {
 }
 
 //estimateFeeRateByCore 预估的没KB手续费率
-func (c *Client) estimateFeeRateByNode() (decimal.Decimal, error) {
+func (c *Client) EstimateFeeRateByNode() (decimal.Decimal, error) {
 
 	feeRate := decimal.Zero
 
@@ -85,35 +85,6 @@ func (c *Client) estimateFeeRateByNode() (decimal.Decimal, error) {
 }
 
 
-
-//getTransactionByCore 获取交易单
-func (c *Client) getListUnspentByCore(min uint64, addresses ...string) ([]*Unspent, error) {
-
-	var (
-		utxos = make([]*Unspent, 0)
-	)
-
-	request := []interface{}{
-		min,
-		9999999,
-	}
-
-	if len(addresses) > 0 {
-		request = append(request, addresses)
-	}
-
-	result, err := c.Call("listunspent", request)
-	if err != nil {
-		return nil, err
-	}
-
-	array := result.Array()
-	for _, a := range array {
-		utxos = append(utxos, NewUnspent(&a))
-	}
-
-	return utxos, nil
-}
 
 // Call calls a remote procedure on another node, specified by the path.
 func (c *Client) Call(path string, request []interface{}) (*gjson.Result, error) {
