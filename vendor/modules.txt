@@ -1,0 +1,94 @@
+# github.com/JKinGH/go-hdwallet v0.0.0-20200117082521-b9fec2768008
+github.com/JKinGH/go-hdwallet
+# github.com/StackExchange/wmi v0.0.0-20180116203802-5d049714c4a6
+github.com/StackExchange/wmi
+# github.com/VictoriaMetrics/fastcache v1.5.3
+github.com/VictoriaMetrics/fastcache
+# github.com/aristanetworks/goarista v0.0.0-20170210015632-ea17b1a17847
+github.com/aristanetworks/goarista/monotime
+# github.com/astaxie/beego v1.12.0
+github.com/astaxie/beego/logs
+# github.com/blocktree/go-owcdrivers v1.2.0
+github.com/blocktree/go-owcdrivers/btcTransaction
+# github.com/blocktree/go-owcrypt v1.1.1
+github.com/blocktree/go-owcrypt
+github.com/blocktree/go-owcrypt/blake256
+github.com/blocktree/go-owcrypt/blake2s
+github.com/blocktree/go-owcrypt/blake512
+github.com/blocktree/go-owcrypt/eddsa
+github.com/blocktree/go-owcrypt/sha3
+github.com/blocktree/go-owcrypt/sm3
+github.com/blocktree/go-owcrypt/eddsa/edwards25519
+# github.com/btcsuite/btcd v0.20.1-beta
+github.com/btcsuite/btcd/btcec
+github.com/btcsuite/btcd/chaincfg
+github.com/btcsuite/btcd/txscript
+github.com/btcsuite/btcd/chaincfg/chainhash
+github.com/btcsuite/btcd/wire
+# github.com/btcsuite/btclog v0.0.0-20170628155309-84c8d2346e9f
+github.com/btcsuite/btclog
+# github.com/btcsuite/btcutil v1.0.1
+github.com/btcsuite/btcutil
+github.com/btcsuite/btcutil/base58
+github.com/btcsuite/btcutil/hdkeychain
+github.com/btcsuite/btcutil/bech32
+# github.com/cespare/xxhash/v2 v2.1.1
+github.com/cespare/xxhash/v2
+# github.com/cpacia/bchutil v0.0.0-20181003130114-b126f6a35b6c
+github.com/cpacia/bchutil
+# github.com/elastic/gosigar v0.8.1-0.20180330100440-37f05ff46ffa
+github.com/elastic/gosigar
+github.com/elastic/gosigar/sys/windows
+# github.com/ethereum/go-ethereum v1.9.10
+github.com/ethereum/go-ethereum/common
+github.com/ethereum/go-ethereum/core/types
+github.com/ethereum/go-ethereum/crypto
+github.com/ethereum/go-ethereum/rlp
+github.com/ethereum/go-ethereum/common/hexutil
+github.com/ethereum/go-ethereum/params
+github.com/ethereum/go-ethereum/trie
+github.com/ethereum/go-ethereum/common/math
+github.com/ethereum/go-ethereum/crypto/secp256k1
+github.com/ethereum/go-ethereum/common/prque
+github.com/ethereum/go-ethereum/ethdb
+github.com/ethereum/go-ethereum/log
+github.com/ethereum/go-ethereum/metrics
+github.com/ethereum/go-ethereum/common/mclock
+# github.com/go-ole/go-ole v1.2.1
+github.com/go-ole/go-ole
+github.com/go-ole/go-ole/oleutil
+# github.com/go-stack/stack v1.8.0
+github.com/go-stack/stack
+# github.com/golang/snappy v0.0.1
+github.com/golang/snappy
+# github.com/imroc/req v0.2.4
+github.com/imroc/req
+# github.com/pkg/errors v0.8.1
+github.com/pkg/errors
+# github.com/shiena/ansicolor v0.0.0-20151119151921-a422bbe96644
+github.com/shiena/ansicolor
+# github.com/shopspring/decimal v0.0.0-20200105231215-408a2507e114
+github.com/shopspring/decimal
+# github.com/steakknife/bloomfilter v0.0.0-20180922174646-6819c0d2a570
+github.com/steakknife/bloomfilter
+# github.com/steakknife/hamming v0.0.0-20180906055917-c99c65617cd3
+github.com/steakknife/hamming
+# github.com/tidwall/gjson v1.4.0
+github.com/tidwall/gjson
+# github.com/tidwall/match v1.0.1
+github.com/tidwall/match
+# github.com/tidwall/pretty v1.0.0
+github.com/tidwall/pretty
+# github.com/tyler-smith/go-bip39 v1.0.2
+github.com/tyler-smith/go-bip39
+github.com/tyler-smith/go-bip39/wordlists
+# golang.org/x/crypto v0.0.0-20200115085410-6d4e4cb37c7d => github.com/golang/crypto v0.0.0-20200115085410-6d4e4cb37c7d
+golang.org/x/crypto/ripemd160
+golang.org/x/crypto/sha3
+golang.org/x/crypto/pbkdf2
+golang.org/x/crypto/blake2b
+golang.org/x/crypto/md4
+# golang.org/x/sys v0.0.0-20190712062909-fae7ac547cb7
+golang.org/x/sys/cpu
+golang.org/x/sys/unix
+golang.org/x/sys/windows
